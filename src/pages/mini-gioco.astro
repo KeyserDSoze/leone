@@ -22,46 +22,114 @@ const faviconUrl = createAssetUrl('/favicon.svg');
         }
 
         body {
+            background: url('images/background.png') center center/cover no-repeat fixed;
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: system-ui, Arial, sans-serif;
+            font-family: system-ui, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 1rem;
+            margin: 0;
+            position: relative;
+        }
+        
+        /* Overlay per migliorare la leggibilità */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: -1;
+            pointer-events: none;
         }
 
         .header {
+            position: relative;
+            z-index: 10;
             width: 100%;
-            max-width: 800px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 1rem 2rem;
+            text-align: left;
             margin-bottom: 1rem;
         }
 
         .btn-home {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             padding: 0.8rem 1.5rem;
-            border-radius: 2rem;
+            background: linear-gradient(135deg, #388e3c, #4caf50);
+            color: white;
             text-decoration: none;
+            border-radius: 1rem;
             font-weight: bold;
+            font-size: 1rem;
             transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(56, 142, 60, 0.3);
         }
-
+        
         .btn-home:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, #2e7d32, #388e3c);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
+        }
+        
+        .btn-home i {
+            font-size: 1.1rem;
         }
 
         h1 {
-            color: white;
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            margin-bottom: 1rem;
             text-align: center;
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 1rem 0 2rem 0;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .rainbow-text {
+            background: linear-gradient(45deg, 
+                #ff0000, #ff8c00, #ffd700, #32cd32, 
+                #1e90ff, #8a2be2, #ff1493, #ff0000);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow-flow 3s ease-in-out infinite;
+        }
+        
+        @keyframes rainbow-flow {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        /* Responsive per il titolo */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+                margin: 1rem 0 1.5rem 0;
+                letter-spacing: 1px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+                margin: 0.5rem 0 1rem 0;
+                letter-spacing: 0.5px;
+            }
         }
 
         .game-container {
@@ -311,7 +379,7 @@ const faviconUrl = createAssetUrl('/favicon.svg');
         </a>
     </div>
 
-    <h1>🦁 Forza 4 con Leone 🦁</h1>
+    <h1>🦁 <span class="rainbow-text">Forza 4 con Leone</span> 🦁</h1>
 
     <div class="game-container">
         <!-- Selezione colore giocatore -->
@@ -693,8 +761,35 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                     this.currentPlayer === this.PLAYER ? 'Il tuo turno' : 'Turno di Leone';
             }
             
-            // AI IMBATTIBILE - Minimax con Alpha-Beta Pruning
+            // AI VELOCE - Minimax semplificato
             getBestMove() {
+                // Priorità 1: Vinci se puoi
+                for (let col = 0; col < this.COLS; col++) {
+                    if (this.canDropPiece(col)) {
+                        const row = this.findLowestRow(col);
+                        this.board[row][col] = this.LEONE;
+                        if (this.hasWinningPosition(this.LEONE)) {
+                            this.board[row][col] = this.EMPTY;
+                            return col;
+                        }
+                        this.board[row][col] = this.EMPTY;
+                    }
+                }
+                
+                // Priorità 2: Blocca il giocatore se sta per vincere
+                for (let col = 0; col < this.COLS; col++) {
+                    if (this.canDropPiece(col)) {
+                        const row = this.findLowestRow(col);
+                        this.board[row][col] = this.PLAYER;
+                        if (this.hasWinningPosition(this.PLAYER)) {
+                            this.board[row][col] = this.EMPTY;
+                            return col;
+                        }
+                        this.board[row][col] = this.EMPTY;
+                    }
+                }
+                
+                // Priorità 3: Minimax veloce
                 let bestScore = -Infinity;
                 let bestCol = 3; // Default centro
                 
@@ -722,7 +817,9 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                 
                 if (leoneWin) return 1000 - depth;
                 if (playerWin) return -1000 + depth;
-                if (this.isBoardFull() || depth >= 7) return 0;
+                if (this.isBoardFull() || depth >= 6) { // Riduciamo a 6 per velocità
+                    return this.evaluatePositionFast(); // Versione veloce
+                }
                 
                 if (isMaximizing) {
                     let maxEval = -Infinity;
@@ -753,6 +850,100 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                     }
                     return minEval;
                 }
+            }
+            
+            // Valutazione veloce - solo posizioni centrali
+            evaluatePositionFast() {
+                let score = 0;
+                const centerCol = 3;
+                
+                // Conta pezzi nelle colonne centrali (più veloce)
+                for (let row = 0; row < this.ROWS; row++) {
+                    for (let col = Math.max(0, centerCol - 2); col <= Math.min(this.COLS - 1, centerCol + 2); col++) {
+                        if (this.board[row][col] === this.LEONE) {
+                            score += (centerCol + 3 - Math.abs(col - centerCol));
+                        } else if (this.board[row][col] === this.PLAYER) {
+                            score -= (centerCol + 3 - Math.abs(col - centerCol));
+                        }
+                    }
+                }
+                
+                return score;
+            }
+            
+            // Valutazione posizionale completa (mantenuta per completezza)
+            evaluatePosition() {
+                let score = 0;
+                
+                // Favorisce le posizioni centrali
+                for (let row = 0; row < this.ROWS; row++) {
+                    for (let col = 0; col < this.COLS; col++) {
+                        if (this.board[row][col] === this.LEONE) {
+                            score += this.getPositionValue(row, col);
+                        } else if (this.board[row][col] === this.PLAYER) {
+                            score -= this.getPositionValue(row, col);
+                        }
+                    }
+                }
+                
+                // Valuta sequenze parziali
+                score += this.evaluateSequences(this.LEONE) * 10;
+                score -= this.evaluateSequences(this.PLAYER) * 10;
+                
+                return score;
+            }
+            
+            getPositionValue(row, col) {
+                // Centro vale di più
+                const centerCol = Math.floor(this.COLS / 2);
+                const distanceFromCenter = Math.abs(col - centerCol);
+                return (4 - distanceFromCenter) + (this.ROWS - row);
+            }
+            
+            evaluateSequences(player) {
+                let score = 0;
+                
+                // Controlla sequenze di 2 e 3 pezzi
+                for (let row = 0; row < this.ROWS; row++) {
+                    for (let col = 0; col < this.COLS; col++) {
+                        // Orizzontale
+                        score += this.countSequence(row, col, 0, 1, player);
+                        // Verticale
+                        score += this.countSequence(row, col, 1, 0, player);
+                        // Diagonale \
+                        score += this.countSequence(row, col, 1, 1, player);
+                        // Diagonale /
+                        score += this.countSequence(row, col, 1, -1, player);
+                    }
+                }
+                
+                return score;
+            }
+            
+            countSequence(row, col, dRow, dCol, player) {
+                let count = 0;
+                let empty = 0;
+                
+                for (let i = 0; i < 4; i++) {
+                    const r = row + i * dRow;
+                    const c = col + i * dCol;
+                    
+                    if (r < 0 || r >= this.ROWS || c < 0 || c >= this.COLS) return 0;
+                    
+                    if (this.board[r][c] === player) {
+                        count++;
+                    } else if (this.board[r][c] === this.EMPTY) {
+                        empty++;
+                    } else {
+                        return 0; // Bloccato dall'avversario
+                    }
+                }
+                
+                if (count === 3 && empty === 1) return 50;
+                if (count === 2 && empty === 2) return 10;
+                if (count === 1 && empty === 3) return 1;
+                
+                return 0;
             }
             
             hasWinningPosition(player) {
