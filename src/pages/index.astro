@@ -1,5 +1,6 @@
 ---
 // Homepage con background e navigazione
+import { createUrl } from '../utils/urls';
 ---
 
 <!DOCTYPE html>
@@ -19,7 +20,7 @@
 
 		body {
 			height: 100vh;
-			background: url('/images/background.png') center center/cover no-repeat;
+			background: url('images/background.png') center center/cover no-repeat;
 			display: flex;
 			flex-direction: column;
 			justify-content: center;
@@ -149,12 +150,12 @@
 		<p class="subtitle">Il tuo arrivo è la gioia più grande</p>
 		
 		<div class="buttons-container">
-			<a href="/lista-nascita" class="btn btn-lista">
+			<a href={createUrl("/lista-nascita")} class="btn btn-lista">
 				<i class="fa-solid fa-gift"></i>
 				Lista Nascita
 			</a>
 			
-			<a href="/mini-gioco" class="btn btn-gioco">
+			<a href={createUrl("/mini-gioco")} class="btn btn-gioco">
 				<i class="fa-solid fa-gamepad"></i>
 				Mini Gioco
 			</a>
