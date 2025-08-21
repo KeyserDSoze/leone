@@ -1,0 +1,170 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "stories": "Historias",
+    "comics": "Cómics",
+    "backToStories": "Volver a las historias",
+    "backToSerie": "Volver a la serie",
+    "backToSeries": "Volver a las series",
+    "backToComics": "Volver a los cómics",
+    "backToHome": "Volver al Inicio"
+  },
+  "common": {
+    "tagline": "Historias, cuentos y reflexiones",
+    "readMore": "Leer la historia completa",
+    "seeMore": "Ver más historias",
+    "shareOn": "Compartir en",
+    "chapters": "Capítulos",
+    "chapter": "Capítulo",
+    "comic": "Cómic",
+    "by": "por",
+    "readSeries": "Leer la serie",
+    "chapterAbbr": "Cap.",
+    "seriesAvailable": "series disponibles",
+    "storiesAvailable": "historias disponibles",
+    "comicsAvailable": "cómics disponibles",
+    "noStoriesAvailable": "No hay historias disponibles",
+    "noComicsAvailable": "No hay cómics disponibles",
+    "comeBackSoon": "¡Vuelve pronto para más contenido!",
+    "comeBackSoonStories": "¡Vuelve pronto para más historias!",
+    "comeBackSoonComics": "¡Vuelve pronto para más cómics!",
+    "noResults": "No se encontraron resultados",
+    "tryAdjustingFilters": "Intenta ajustar los filtros de búsqueda",
+    "comingSoon": "Historias próximamente...",
+    "shareArticle": "Comparte este artículo",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "¡Enlace copiado!",
+    "close": "Cerrar"
+  },
+  "chapter": {
+    "nextChapter": "Siguiente Capítulo",
+    "previousChapter": "Capítulo Anterior",
+    "nextComic": "Siguiente Cómic",
+    "previousComic": "Cómic Anterior",
+    "end": "Fin",
+    "backToSeries": "Volver a la Serie"
+  },
+  "sort": {
+    "date": "Fecha",
+    "title": "Título",
+    "author": "Autor"
+  },
+  "filters": {
+    "searchPlaceholder": "Buscar por título o autor...",
+    "genre": "Género:",
+    "sortBy": "Ordenar por:",
+    "groupBySeries": "Agrupar por serie",
+    "clearFilters": "Limpiar filtros"
+  },
+  "site": {
+    "name": "Tale",
+    "description": "Historias, cuentos y pensamientos"
+  },
+  "genres": {
+    "all": "Todos los géneros",
+    "fantasy": "Fantasía",
+    "sciencefiction": "Ciencia Ficción",
+    "horror": "Horror",
+    "thriller": "Thriller",
+    "mystery": "Misterio",
+    "crime": "Crimen",
+    "adventure": "Aventura",
+    "romance": "Romance",
+    "historicalfiction": "Ficción Histórica",
+    "contemporaryfiction": "Ficción Contemporánea",
+    "satire": "Sátira",
+    "comedy": "Comedia",
+    "drama": "Drama",
+    "fairytale": "Cuento de Hadas",
+    "allegory": "Alegoría",
+    "children": "Infantil",
+    "middlegrade": "Juvenil",
+    "youngadult": "Joven Adulto",
+    "newadult": "Nuevo Adulto",
+    "adult": "Adulto",
+    "biography": "Biografía",
+    "autobiography": "Autobiografía",
+    "memoir": "Memorias",
+    "essay": "Ensayo",
+    "philosophy": "Filosofía",
+    "science": "Ciencia",
+    "history": "Historia",
+    "politics": "Política",
+    "selfhelp": "Autoayuda",
+    "manual": "Manual",
+    "poetry": "Poesía",
+    "diary": "Diario",
+    "epistolary": "Epistolar",
+    "superhero": "Superhéroe",
+    "graphicnovel": "Novela Gráfica",
+    "sliceoflife": "Slice of Life",
+    "comedycomic": "Cómic de Comedia",
+    "satiricalcomic": "Cómic Satírico",
+    "historicalcomic": "Cómic Histórico",
+    "fantasycomic": "Cómic de Fantasía",
+    "scificomic": "Cómic de Sci-Fi",
+    "mysterycomic": "Cómic de Misterio",
+    "horrorcomic": "Cómic de Horror",
+    "adventurecomic": "Cómic de Aventura",
+    "romancecomic": "Cómic de Romance",
+    "psychological": "Psicológico",
+    "dark": "Oscuro",
+    "experimental": "Experimental",
+    "realistic": "Realista",
+    "surreal": "Surrealista",
+    "dystopian": "Distópico",
+    "utopian": "Utópico",
+    "postapocalyptic": "Post-Apocalíptico",
+    "cyberpunk": "Cyberpunk",
+    "steampunk": "Steampunk",
+    "anthology": "Antología",
+    "shortstory": "Cuento Corto",
+    "flashfiction": "Flash Fiction",
+    "lightnovel": "Light Novel",
+    "webcomic": "Webcomic"
+  },
+  "home": {
+    "hero": {
+      "title": "Tale",
+      "subtitle": "Mi espacio personal para historias de todo tipo",
+      "description": "Bienvenido a mi mundo de historias, donde comparto cuentos, pensamientos y reflexiones nacidos de la imaginación y la experiencia."
+    },
+    "features": {
+      "title": "Lo que encontrarás aquí",
+      "stories": {
+        "title": "Historias originales",
+        "description": "Cuentos de fantasía, dramas, comedias y reflexiones personales escritos con pasión"
+      },
+      "serialized": {
+        "title": "Historias seriadas",
+        "description": "Relatos más largos divididos en capítulos para una experiencia de lectura envolvente"
+      },
+      "multilang": {
+        "title": "Contenido multilingüe",
+        "description": "Historias disponibles en italiano, inglés, español, francés y alemán"
+      }
+    },
+    "about": {
+      "title": "Sobre mí",
+      "description": "Soy un escritor que ama contar historias. En este espacio comparto mis relatos de todos los géneros: de la fantasía a la realidad, del drama a la comedia. Cada historia nace del deseo de explorar emociones, situaciones y personajes que viven en mi imaginación."
+    },
+    "latestStories": {
+      "title": "Últimas historias",
+      "noStories": "No hay historias disponibles en este idioma."
+    }
+  },
+  "pages": {
+    "stories": {
+      "description": "Mis relatos e historias narrativas"
+    },
+    "comics": {
+      "description": "Mis cómics e historias ilustradas",
+      "intro": "Explora mi colección de cómics. Filtra por género, busca por título o autor, y descubre historias ilustradas que te transportarán a mundos visuales."
+    }
+  },
+  "footer": {
+    "description": "Historias y cuentos escritos con pasión",
+    "copyright": "Tale. Todos los derechos reservados.",
+    "madeWith": "Hecho con ❤️"
+  }
+}

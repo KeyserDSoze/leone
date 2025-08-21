@@ -1,0 +1,170 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "stories": "ストーリー",
+    "comics": "コミック",
+    "backToStories": "ストーリー一覧に戻る",
+    "backToSeries": "シリーズに戻る",
+    "backToSerie": "シリーズに戻る",
+    "backToComics": "コミック一覧に戻る",
+    "backToHome": "ホームに戻る"
+  },
+  "chapter": {
+    "nextChapter": "次の章",
+    "previousChapter": "前の章",
+    "nextComic": "次の話",
+    "previousComic": "前の話",
+    "end": "完",
+    "backToSeries": "シリーズに戻る"
+  },
+  "common": {
+    "tagline": "物語、物語、そして思索",
+    "readMore": "全文を読む",
+    "seeMore": "もっとストーリーを見る",
+    "shareOn": "共有",
+    "chapters": "章",
+    "chapter": "章",
+    "comic": "コミック",
+    "by": "作：",
+    "readSeries": "シリーズを読む",
+    "chapterAbbr": "第",
+    "seriesAvailable": "利用可能なシリーズ",
+    "storiesAvailable": "利用可能なストーリー",
+    "comicsAvailable": "利用可能なコミック",
+    "noStoriesAvailable": "利用可能なストーリーはありません",
+    "noComicsAvailable": "利用可能なコミックはありません",
+    "comeBackSoon": "新しいコンテンツをお楽しみに！",
+    "comeBackSoonStories": "新しいストーリーをお楽しみに！",
+    "comeBackSoonComics": "新しいコミックをお楽しみに！",
+    "noResults": "結果が見つかりませんでした",
+    "tryAdjustingFilters": "検索条件を調整してみてください",
+    "comingSoon": "ストーリーは近日公開...",
+    "shareArticle": "この記事をシェア",
+    "copyLink": "リンクをコピー",
+    "linkCopied": "リンクをコピーしました！",
+    "close": "閉じる"
+  },
+  "sort": {
+    "date": "日付",
+    "title": "タイトル",
+    "author": "著者"
+  },
+  "filters": {
+    "searchPlaceholder": "タイトルまたは著者で検索...",
+    "genre": "ジャンル:",
+    "sortBy": "並び順:",
+    "groupBySeries": "シリーズごとにグループ化",
+    "clearFilters": "フィルターをクリア"
+  },
+  "site": {
+    "name": "Tale",
+    "description": "物語、物語、そして思索"
+  },
+  "genres": {
+    "all": "すべてのジャンル",
+    "fantasy": "ファンタジー",
+    "sciencefiction": "SF",
+    "horror": "ホラー",
+    "thriller": "スリラー",
+    "mystery": "ミステリー",
+    "crime": "クライム",
+    "adventure": "アドベンチャー",
+    "romance": "ロマンス",
+    "historicalfiction": "歴史小説",
+    "contemporaryfiction": "現代小説",
+    "satire": "風刺",
+    "comedy": "コメディ",
+    "drama": "ドラマ",
+    "fairytale": "童話",
+    "allegory": "寓話",
+    "children": "児童",
+    "middlegrade": "中学年",
+    "youngadult": "ヤングアダルト",
+    "newadult": "ニューアダルト",
+    "adult": "大人",
+    "biography": "伝記",
+    "autobiography": "自伝",
+    "memoir": "回想録",
+    "essay": "エッセイ",
+    "philosophy": "哲学",
+    "science": "科学",
+    "history": "歴史",
+    "politics": "政治",
+    "selfhelp": "自己啓発",
+    "manual": "マニュアル",
+    "poetry": "詩",
+    "diary": "日記",
+    "epistolary": "書簡体",
+    "superhero": "スーパーヒーロー",
+    "graphicnovel": "グラフィックノベル",
+    "sliceoflife": "日常系",
+    "comedycomic": "コメディ漫画",
+    "satiricalcomic": "風刺漫画",
+    "historicalcomic": "歴史漫画",
+    "fantasycomic": "ファンタジー漫画",
+    "scificomic": "SF漫画",
+    "mysterycomic": "ミステリー漫画",
+    "horrorcomic": "ホラー漫画",
+    "adventurecomic": "アドベンチャー漫画",
+    "romancecomic": "ロマンス漫画",
+    "psychological": "心理的",
+    "dark": "ダーク",
+    "experimental": "実験的",
+    "realistic": "リアリスティック",
+    "surreal": "シュルレアル",
+    "dystopian": "ディストピア",
+    "utopian": "ユートピア",
+    "postapocalyptic": "ポストアポカリプス",
+    "cyberpunk": "サイバーパンク",
+    "steampunk": "スチームパンク",
+    "anthology": "アンソロジー",
+    "shortstory": "ショートストーリー",
+    "flashfiction": "フラッシュフィクション",
+    "lightnovel": "ライトノベル",
+    "webcomic": "ウェブコミック"
+  },
+  "home": {
+    "hero": {
+      "title": "Tale",
+      "subtitle": "あらゆるジャンルの物語を綴る私の個人的な空間",
+      "description": "私の物語の世界へようこそ。ここでは、想像力と経験から生まれた物語、思索、そして感情を共有しています。"
+    },
+    "features": {
+      "title": "ここで見つかるもの",
+      "stories": {
+        "title": "オリジナルストーリー",
+        "description": "ファンタジー、ドラマ、コメディ、そして情熱を込めた個人的な思索"
+      },
+      "serialized": {
+        "title": "連載ストーリー",
+        "description": "章ごとに分かれた長編物語で、没入感ある読書体験を提供します"
+      },
+      "multilang": {
+        "title": "多言語コンテンツ",
+        "description": "イタリア語、英語、スペイン語、フランス語、ドイツ語で利用可能なストーリー"
+      }
+    },
+    "about": {
+      "title": "自己紹介",
+      "description": "物語を語ることが大好きな作家です。この空間では、ファンタジーから現実まで、ドラマからコメディまで、あらゆるジャンルの物語を共有しています。すべての物語は、私の想像の中で生きる感情、状況、キャラクターを探求したいという思いから生まれました。"
+    },
+    "latestStories": {
+      "title": "最新のストーリー",
+      "noStories": "この言語では利用可能なストーリーがありません。"
+    }
+  },
+  "pages": {
+    "stories": {
+      "description": "私の物語とナラティブストーリー"
+    },
+    "comics": {
+      "description": "私の漫画とイラスト付きストーリー",
+      "intro": "私の漫画コレクションをお探しください。ジャンルでフィルタリングし、タイトルや著者で検索し、視覚的な世界へと導く物語を発見してください。"
+    }
+  },
+  "footer": {
+    "description": "情熱を込めて綴った物語とストーリー",
+    "copyright": "Tale. 無断転載禁止。",
+    "madeWith": "❤️ を込めて制作"
+  }
+}

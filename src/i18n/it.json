@@ -1,0 +1,170 @@
+{
+  "nav": {
+    "home": "Home",
+    "stories": "Storie",
+    "comics": "Fumetti",
+    "backToStories": "Torna alle storie",
+    "backToSeries": "Torna alle serie",
+    "backToSerie": "Torna alla serie",
+    "backToComics": "Torna ai fumetti",
+    "backToHome": "Torna alla Home"
+  },
+  "common": {
+    "tagline": "Storie, racconti e riflessioni",
+    "readMore": "Leggi l'intera storia",
+    "seeMore": "Vedi altre storie",
+    "shareOn": "Condividi su",
+    "chapters": "Capitoli",
+    "chapter": "Capitolo",
+    "comic": "Fumetto",
+    "by": "di",
+    "readSeries": "Leggi la serie",
+    "chapterAbbr": "Cap.",
+    "seriesAvailable": "serie disponibili",
+    "storiesAvailable": "storie disponibili",
+    "comicsAvailable": "fumetti disponibili",
+    "noStoriesAvailable": "Nessuna storia disponibile",
+    "noComicsAvailable": "Nessun fumetto disponibile",
+    "comeBackSoon": "Torna presto per nuovi contenuti!",
+    "comeBackSoonStories": "Torna presto per nuove storie!",
+    "comeBackSoonComics": "Torna presto per nuovi fumetti!",
+    "noResults": "Nessun risultato trovato",
+    "tryAdjustingFilters": "Prova a modificare i filtri di ricerca",
+    "comingSoon": "Storie in arrivo...",
+    "shareArticle": "Condividi questo articolo",
+    "copyLink": "Copia link",
+    "linkCopied": "Link copiato!",
+    "close": "Chiudi"
+  },
+  "chapter": {
+    "nextChapter": "Capitolo successivo",
+    "previousChapter": "Capitolo precedente",
+    "nextComic": "Fumetto successivo",
+    "previousComic": "Fumetto precedente",
+    "end": "Fine",
+    "backToSeries": "Torna alla serie"
+  },
+  "sort": {
+    "date": "Data",
+    "title": "Titolo",
+    "author": "Autore"
+  },
+  "filters": {
+    "searchPlaceholder": "Cerca per titolo o autore...",
+    "genre": "Genere:",
+    "sortBy": "Ordina per:",
+    "groupBySeries": "Raggruppa per serie",
+    "clearFilters": "Pulisci filtri"
+  },
+  "site": {
+    "name": "Leone",
+    "description": "Lista nascita per Leone"
+  },
+  "genres": {
+    "all": "Tutti i generi",
+    "fantasy": "Fantasy",
+    "sciencefiction": "Fantascienza",
+    "horror": "Horror",
+    "thriller": "Thriller",
+    "mystery": "Mistero",
+    "crime": "Crime",
+    "adventure": "Avventura",
+    "romance": "Romance",
+    "historicalfiction": "Fiction storica",
+    "contemporaryfiction": "Fiction contemporanea",
+    "satire": "Satira",
+    "comedy": "Commedia",
+    "drama": "Drama",
+    "fairytale": "Fiaba",
+    "allegory": "Allegoria",
+    "children": "Per bambini",
+    "middlegrade": "Ragazzi",
+    "youngadult": "Young Adult",
+    "newadult": "New Adult",
+    "adult": "Adulti",
+    "biography": "Biografia",
+    "autobiography": "Autobiografia",
+    "memoir": "Memoir",
+    "essay": "Saggio",
+    "philosophy": "Filosofia",
+    "science": "Scienza",
+    "history": "Storia",
+    "politics": "Politica",
+    "selfhelp": "Auto-aiuto",
+    "manual": "Manuale",
+    "poetry": "Poesia",
+    "diary": "Diario",
+    "epistolary": "Epistolare",
+    "superhero": "Supereroi",
+    "graphicnovel": "Graphic novel",
+    "sliceoflife": "Slice of life",
+    "comedycomic": "Fumetto comico",
+    "satiricalcomic": "Fumetto satirico",
+    "historicalcomic": "Fumetto storico",
+    "fantasycomic": "Fumetto fantasy",
+    "scificomic": "Fumetto sci-fi",
+    "mysterycomic": "Fumetto mistero",
+    "horrorcomic": "Fumetto horror",
+    "adventurecomic": "Fumetto avventura",
+    "romancecomic": "Fumetto romance",
+    "psychological": "Psicologico",
+    "dark": "Dark",
+    "experimental": "Sperimentale",
+    "realistic": "Realistico",
+    "surreal": "Surreale",
+    "dystopian": "Distopico",
+    "utopian": "Utopico",
+    "postapocalyptic": "Post-apocalittico",
+    "cyberpunk": "Cyberpunk",
+    "steampunk": "Steampunk",
+    "anthology": "Antologia",
+    "shortstory": "Racconto breve",
+    "flashfiction": "Flash fiction",
+    "lightnovel": "Light novel",
+    "webcomic": "Webcomic"
+  },
+  "home": {
+    "hero": {
+      "title": "Tale",
+      "subtitle": "Il mio spazio personale per storie di ogni genere",
+      "description": "Benvenuto nel mio mondo di storie, dove condivido racconti, pensieri e riflessioni nati dall’immaginazione e dall’esperienza."
+    },
+    "features": {
+      "title": "Cosa troverai qui",
+      "stories": {
+        "title": "Storie originali",
+        "description": "Racconti fantasy, drammi, commedie e riflessioni personali scritti con passione"
+      },
+      "serialized": {
+        "title": "Storie a puntate",
+        "description": "Racconti più lunghi suddivisi in capitoli per un’esperienza di lettura coinvolgente"
+      },
+      "multilang": {
+        "title": "Contenuti multilingue",
+        "description": "Storie disponibili in italiano, inglese, spagnolo, francese e tedesco"
+      }
+    },
+    "about": {
+      "title": "Chi sono",
+      "description": "Sono uno scrittore che ama raccontare storie. In questo spazio condivido i miei racconti di ogni genere: dalla fantasia alla realtà, dal dramma alla commedia. Ogni storia nasce dal desiderio di esplorare emozioni, situazioni e personaggi che vivono nella mia immaginazione."
+    },
+    "latestStories": {
+      "title": "Ultime storie",
+      "noStories": "Nessuna storia disponibile in questa lingua."
+    }
+  },
+  "pages": {
+    "stories": {
+      "description": "I miei racconti e storie narrative"
+    },
+    "comics": {
+      "description": "I miei fumetti e storie illustrate",
+      "intro": "Esplora la mia collezione di fumetti. Filtra per genere, cerca per titolo o autore, e scopri storie illustrate che ti trasporteranno in mondi visivi."
+    }
+  },
+  "footer": {
+    "description": "Storie e racconti scritti con passione",
+    "copyright": "Tale. Tutti i diritti riservati.",
+    "madeWith": "Creato con ❤️"
+  }
+}

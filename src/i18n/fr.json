@@ -1,0 +1,170 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "stories": "Histoires",
+    "comics": "Bandes dessinées",
+    "backToStories": "Retour aux histoires",
+    "backToSeries": "Retour aux séries",
+    "backToSerie": "Retour à la série",
+    "backToComics": "Retour aux bandes dessinées",
+    "backToHome": "Retour à l'accueil"
+  },
+  "common": {
+    "tagline": "Histoires, contes et réflexions",
+    "readMore": "Lire l'histoire complète",
+    "seeMore": "Voir plus d'histoires",
+    "shareOn": "Partager sur",
+    "chapters": "Chapitres",
+    "chapter": "Chapitre",
+    "comic": "Bande dessinée",
+    "by": "par",
+    "readSeries": "Lire la série",
+    "chapterAbbr": "Ch.",
+    "seriesAvailable": "séries disponibles",
+    "storiesAvailable": "histoires disponibles",
+    "comicsAvailable": "bandes dessinées disponibles",
+    "noStoriesAvailable": "Aucune histoire disponible",
+    "noComicsAvailable": "Aucune bande dessinée disponible",
+    "comeBackSoon": "Revenez bientôt pour découvrir du nouveau contenu !",
+    "comeBackSoonStories": "Revenez bientôt pour découvrir de nouvelles histoires !",
+    "comeBackSoonComics": "Revenez bientôt pour découvrir de nouvelles bandes dessinées !",
+    "noResults": "Aucun résultat trouvé",
+    "tryAdjustingFilters": "Essayez de modifier vos filtres de recherche",
+    "comingSoon": "Histoires à venir...",
+    "shareArticle": "Partager cet article",
+    "copyLink": "Copier le lien",
+    "linkCopied": "Lien copié !",
+    "close": "Fermer"
+  },
+  "chapter": {
+    "nextChapter": "Chapitre Suivant",
+    "previousChapter": "Chapitre Précédent",
+    "nextComic": "BD Suivante",
+    "previousComic": "BD Précédente",
+    "end": "Fin",
+    "backToSeries": "Retour à la Série"
+  },
+  "sort": {
+    "date": "Date",
+    "title": "Titre",
+    "author": "Auteur"
+  },
+  "filters": {
+    "searchPlaceholder": "Rechercher par titre ou auteur...",
+    "genre": "Genre:",
+    "sortBy": "Trier par:",
+    "groupBySeries": "Grouper par série",
+    "clearFilters": "Effacer les filtres"
+  },
+  "site": {
+    "name": "Tale",
+    "description": "Histoires, contes et pensées"
+  },
+  "genres": {
+    "all": "Tous les genres",
+    "fantasy": "Fantasy",
+    "sciencefiction": "Science-Fiction",
+    "horror": "Horreur",
+    "thriller": "Thriller",
+    "mystery": "Mystère",
+    "crime": "Crime",
+    "adventure": "Aventure",
+    "romance": "Romance",
+    "historicalfiction": "Fiction Historique",
+    "contemporaryfiction": "Fiction Contemporaine",
+    "satire": "Satire",
+    "comedy": "Comédie",
+    "drama": "Drame",
+    "fairytale": "Conte de Fées",
+    "allegory": "Allégorie",
+    "children": "Enfants",
+    "middlegrade": "Pré-adolescent",
+    "youngadult": "Jeune Adulte",
+    "newadult": "Nouvel Adulte",
+    "adult": "Adulte",
+    "biography": "Biographie",
+    "autobiography": "Autobiographie",
+    "memoir": "Mémoires",
+    "essay": "Essai",
+    "philosophy": "Philosophie",
+    "science": "Science",
+    "history": "Histoire",
+    "politics": "Politique",
+    "selfhelp": "Développement Personnel",
+    "manual": "Manuel",
+    "poetry": "Poésie",
+    "diary": "Journal",
+    "epistolary": "Épistolaire",
+    "superhero": "Super-héros",
+    "graphicnovel": "Roman Graphique",
+    "sliceoflife": "Tranche de Vie",
+    "comedycomic": "BD Comique",
+    "satiricalcomic": "BD Satirique",
+    "historicalcomic": "BD Historique",
+    "fantasycomic": "BD Fantasy",
+    "scificomic": "BD Sci-Fi",
+    "mysterycomic": "BD Mystère",
+    "horrorcomic": "BD Horreur",
+    "adventurecomic": "BD Aventure",
+    "romancecomic": "BD Romance",
+    "psychological": "Psychologique",
+    "dark": "Sombre",
+    "experimental": "Expérimental",
+    "realistic": "Réaliste",
+    "surreal": "Surréaliste",
+    "dystopian": "Dystopique",
+    "utopian": "Utopique",
+    "postapocalyptic": "Post-Apocalyptique",
+    "cyberpunk": "Cyberpunk",
+    "steampunk": "Steampunk",
+    "anthology": "Anthologie",
+    "shortstory": "Nouvelle",
+    "flashfiction": "Flash Fiction",
+    "lightnovel": "Light Novel",
+    "webcomic": "Webcomic"
+  },
+  "home": {
+    "hero": {
+      "title": "Tale",
+      "subtitle": "Mon espace personnel pour des histoires de tous genres",
+      "description": "Bienvenue dans mon univers d'histoires, où je partage des contes, des pensées et des réflexions nés de l'imagination et de l'expérience"
+    },
+    "features": {
+      "title": "Ce que vous trouverez ici",
+      "stories": {
+        "title": "Histoires originales",
+        "description": "Contes fantastiques, drames, comédies et réflexions personnelles écrits avec passion"
+      },
+      "serialized": {
+        "title": "Histoires sérialisées",
+        "description": "Des récits plus longs divisés en chapitres pour une expérience de lecture captivante"
+      },
+      "multilang": {
+        "title": "Contenu multilingue",
+        "description": "Histoires disponibles en italien, anglais, espagnol, français et allemand"
+      }
+    },
+    "about": {
+      "title": "À propos de moi",
+      "description": "Je suis un écrivain passionné par la narration. Dans cet espace, je partage mes histoires de tous genres : de la fantaisie à la réalité, du drame à la comédie. Chaque récit naît du désir d'explorer des émotions, des situations et des personnages qui vivent dans mon imagination."
+    },
+    "latestStories": {
+      "title": "Dernières histoires",
+      "noStories": "Aucune histoire disponible dans cette langue."
+    }
+  },
+  "pages": {
+    "stories": {
+      "description": "Mes récits et histoires narratives"
+    },
+    "comics": {
+      "description": "Mes bandes dessinées et histoires illustrées",
+      "intro": "Explorez ma collection de bandes dessinées. Filtrez par genre, recherchez par titre ou auteur, et découvrez des histoires illustrées qui vous transporteront vers des mondes visuels."
+    }
+  },
+  "footer": {
+    "description": "Histoires et contes écrits avec passion",
+    "copyright": "Tale. Tous droits réservés.",
+    "madeWith": "Fait avec ❤️"
+  }
+}

@@ -1,0 +1,160 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Header from '../components/Header.astro';
+
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: calc(100% - 2em);
+				max-width: 100%;
+				margin: 0;
+			}
+			.hero-image {
+				width: 100%;
+			}
+			.hero-image img {
+				display: block;
+				margin: 0 auto;
+				border-radius: 12px;
+				box-shadow: var(--box-shadow);
+			}
+			.prose {
+				width: 720px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 1em;
+				color: rgb(var(--gray-dark));
+			}
+			.title {
+				margin-bottom: 1em;
+				padding: 1em 0;
+				text-align: center;
+				line-height: 1;
+			}
+			.title h1 {
+				margin: 0 0 0.5em 0;
+			}
+			.date {
+				margin-bottom: 0.5em;
+				color: rgb(var(--gray));
+			}
+			.last-updated-on {
+				font-style: italic;
+			}
+			
+			/* Text justification for all prose content */
+			.prose p {
+				text-align: justify !important;
+			}
+			
+			.prose div {
+				text-align: justify !important;
+			}
+			
+			.prose li {
+				text-align: justify !important;
+			}
+			
+			.prose blockquote {
+				text-align: justify !important;
+			}
+			
+			/* Make images take full width of container */
+			.prose img {
+				width: 100% !important;
+				height: auto !important;
+				max-width: 100% !important;
+				display: block !important;
+				margin-left: auto !important;
+				margin-right: auto !important;
+			}
+			
+			/* More aggressive targeting for all images */
+			.prose img,
+			.prose p img,
+			.prose div img,
+			.prose figure img,
+			.prose * img,
+			article img,
+			main img {
+				width: 100% !important;
+				height: auto !important;
+				max-width: 100% !important;
+				display: block !important;
+				margin-left: auto !important;
+				margin-right: auto !important;
+				object-fit: contain !important;
+			}
+			
+			/* Universal image override */
+			img {
+				width: 100% !important;
+				height: auto !important;
+				max-width: 100% !important;
+			}
+			
+			/* Astro component image targeting */
+			:global(img) {
+				width: 100% !important;
+				height: auto !important;
+				max-width: 100% !important;
+				display: block !important;
+				margin-left: auto !important;
+				margin-right: auto !important;
+			}
+			
+			/* Force all images inside slot content */
+			slot img,
+			:global(slot img) {
+				width: 100% !important;
+				height: auto !important;
+				max-width: 100% !important;
+				display: block !important;
+				margin-left: auto !important;
+				margin-right: auto !important;
+			}
+		</style>
+	</head>
+
+	<body>
+		<Header />
+		<main>
+			<article>
+				<div class="hero-image">
+					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
+				</div>
+				<div class="prose">
+					<div class="title">
+						<div class="date">
+							<FormattedDate date={pubDate} />
+							{
+								updatedDate && (
+									<div class="last-updated-on">
+										Last updated on <FormattedDate date={updatedDate} />
+									</div>
+								)
+							}
+						</div>
+						<h1>{title}</h1>
+						<hr />
+					</div>
+					<div style="width: 100%; text-align: justify;">
+						<slot />
+					</div>
+				</div>
+			</article>
+		</main>
+		<Footer />
+	</body>
+</html>

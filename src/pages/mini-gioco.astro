@@ -1,0 +1,172 @@
+---
+// Pagina del mini gioco per Leone
+---
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Gioco - Leone</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: system-ui, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #388e3c;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+        }
+
+        .game-area {
+            margin: 2rem 0;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 1rem;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .coming-soon {
+            font-size: 1.5rem;
+            color: #ff6b35;
+            margin-bottom: 1rem;
+        }
+
+        .description {
+            color: #666;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-home {
+            background: linear-gradient(135deg, #388e3c, #4caf50);
+            color: white;
+        }
+
+        .btn-home:hover {
+            background: linear-gradient(135deg, #2e7d32, #388e3c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .future-features {
+            background: #e8f5e8;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .future-features h3 {
+            color: #388e3c;
+            margin-bottom: 1rem;
+        }
+
+        .future-features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .future-features li {
+            padding: 0.5rem 0;
+            color: #555;
+        }
+
+        .future-features li::before {
+            content: "🎮 ";
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .game-container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1><i class="fa-solid fa-baby"></i> Mini Gioco di Leone</h1>
+        <p class="subtitle">Divertimento in arrivo!</p>
+        
+        <div class="game-area">
+            <div class="coming-soon">
+                <i class="fa-solid fa-hammer"></i> In Costruzione
+            </div>
+            <p class="description">
+                Stiamo preparando dei giochi speciali per celebrare l'arrivo di Leone! 
+                Torna presto per scoprire le sorprese che abbiamo in serbo.
+            </p>
+        </div>
+
+        <div class="future-features">
+            <h3>Giochi in arrivo:</h3>
+            <ul>
+                <li>Memory Game con le foto di Leone</li>
+                <li>Indovina il Regalo della Lista Nascita</li>
+                <li>Quiz sulla famiglia</li>
+                <li>Mini puzzle interattivi</li>
+            </ul>
+        </div>
+
+        <a href="/" class="btn btn-home">
+            <i class="fa-solid fa-home"></i>
+            Torna alla Home
+        </a>
+    </div>
+</body>
+</html>

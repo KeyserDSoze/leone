@@ -1,0 +1,177 @@
+---
+import { createLangUrl } from '../utils/urls';
+import { t } from '../i18n';
+
+const {
+  lang = 'en',
+  title,
+  description = t(lang as any, 'site.description'),
+  alternates = ['it', 'en', 'es', 'fr', 'de', 'zh', 'ja'],
+} = Astro.props;
+
+// Logica per il titolo:
+// - Se non è fornito un titolo, usa solo "Leone"
+// - Se è fornito un titolo e contiene "—", lo usa così com'è
+// - Altrimenti usa solo "Leone"
+const siteName = t(lang as any, 'site.name'); // "Leone"
+const finalTitle = title ? (title.includes('—') ? title : title === siteName ? siteName : `${title} — ${siteName}`) : siteName;
+
+const siteUrl = Astro.site?.origin || 'http://localhost:4321';
+const basePath = import.meta.env.BASE_URL?.replace(/\/$/, '') || '';
+const faviconUrl = `${basePath}/favicon.svg`;
+---
+
+<html lang={lang} class="min-h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Leone" />
+    <meta name="language" content={lang} />
+    <meta name="theme-color" content="#1f2937" />
+    <meta name="msapplication-TileColor" content="#1f2937" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href={`${siteUrl}${Astro.url.pathname}`} />
+    
+    <!-- SEO Meta Tags -->
+    <title>{finalTitle}</title>
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content={finalTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={`${siteUrl}${Astro.url.pathname}`} />
+    <meta property="og:site_name" content={t(lang as any, 'site.name')} />
+    <meta property="og:locale" content={lang} />
+    {alternates.filter((l: string) => l !== lang).map((l: string) => (
+      <meta property="og:locale:alternate" content={l} />
+    ))}
+    
+    <!-- X (Twitter) Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={finalTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:site" content="@leone" />
+    <meta name="twitter:creator" content="@leone" />
+    
+    <!-- Hreflang for SEO -->
+    {alternates.map((l: string) => (
+      <link rel="alternate" hreflang={l} href={`${siteUrl}${createLangUrl(l)}`} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}${basePath}/`} />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href={faviconUrl} />
+    <link rel="shortcut icon" href={faviconUrl} />
+    <link rel="apple-touch-icon" href={faviconUrl} />
+    
+    <!-- Fonts -->
+    <link rel="preload" href={`${basePath}/fonts/atkinson-regular.woff`} as="font" type="font/woff" crossorigin />
+    <link rel="preload" href={`${basePath}/fonts/atkinson-bold.woff`} as="font" type="font/woff" crossorigin />
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json" is:inline>
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Leone",
+        "alternateName": "Leone - Lista nascita",
+        "url": `${siteUrl}`,
+        "description": `${description}`,
+        "inLanguage": `${lang}`,
+        "author": {
+          "@type": "Person",
+          "name": "Leone"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Leone"
+        }
+      }
+    </script>
+    
+    <!-- Dark mode script - must run before body renders -->
+    <script is:inline>
+      // Prevent flash of unstyled content (FOUC)
+      const getThemePreference = () => {
+        const stored = localStorage.getItem('theme');
+        if (stored) return stored;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      };
+      
+      const theme = getThemePreference();
+      const isDark = theme === 'dark' || 
+                    (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
+    
+    <!-- Force image styles with JavaScript -->
+    <script is:inline>
+      function forceImageStyles() {
+        const images = document.querySelectorAll('img');
+        images.forEach(function(img) {
+          // Skip images that are specifically sized (like hero images or favicons)
+          if (!img.closest('.hero-image') && !img.src.includes('favicon') && img.naturalWidth > 0) {
+            // Remove any existing width/height attributes that might interfere
+            img.removeAttribute('width');
+            img.removeAttribute('height');
+            
+            // Force styles with maximum priority
+            img.style.cssText = 'width: 100% !important; height: auto !important; max-width: 100% !important; display: block !important; margin-left: auto !important; margin-right: auto !important; object-fit: contain !important;';
+            
+            // Also set as attributes in case CSS is overridden
+            img.setAttribute('style', img.style.cssText);
+          }
+        });
+      }
+      
+      // Run immediately
+      forceImageStyles();
+      
+      // Run when DOM is loaded
+      document.addEventListener('DOMContentLoaded', forceImageStyles);
+      
+      // Run when window is loaded (for lazy loaded images)
+      window.addEventListener('load', forceImageStyles);
+      
+      // Monitor for new images being added to the DOM
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          mutation.addedNodes.forEach(function(node) {
+            if (node.nodeType === 1) { // Element node
+              if (node.tagName === 'IMG') {
+                forceImageStyles();
+              } else if (node.querySelectorAll) {
+                const images = node.querySelectorAll('img');
+                if (images.length > 0) {
+                  forceImageStyles();
+                }
+              }
+            }
+          });
+        });
+      });
+      
+      // Start observing
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+      } else {
+        document.addEventListener('DOMContentLoaded', function() {
+          observer.observe(document.body, { childList: true, subtree: true });
+        });
+      }
+      
+      // Also run periodically as a fallback
+      setInterval(forceImageStyles, 2000);
+    </script>
+  </head>
+  <body class="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <slot />
+  </body>
+</html>

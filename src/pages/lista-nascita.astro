@@ -1,0 +1,426 @@
+
+---
+import { getCollection } from 'astro:content';
+const lista = await getCollection('lista-nascita');
+---
+
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+</head>
+
+<div class="header">
+  <a href="/" class="btn-home">
+    <i class="fa-solid fa-home"></i>
+    Home
+  </a>
+</div>
+
+<h1 class="main-title">Lista Nascita di Leone</h1>
+<section class="grid">
+  {lista.map((item) => {
+    // Format price in euro
+    const prezzo = item.data.prezzo !== undefined ? `${item.data.prezzo.toFixed(2).replace('.', ',')}` : '';
+    // Se non c'è link o è vuoto, usa Amazon
+    const linkFinale = item.data.link && item.data.link.trim() !== '' ? item.data.link : 'https://amazon.it';
+    return (
+      <div class={`item${item.data.acquistato ? ' acquistato' : ''}`}> 
+        <div class="row">
+          <div class="image-container">
+            {item.data.icona && item.data.icona.trim() !== '' ? (
+              <>
+                <img 
+                  src={item.data.icona} 
+                  alt={item.data.nome} 
+                  class="icona" 
+                  data-image-src={item.data.icona} 
+                  data-image-alt={item.data.nome}
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                />
+                <div class="no-image" style="display: none;">
+                  <i class="fa-solid fa-camera-slash"></i>
+                </div>
+              </>
+            ) : (
+              <div class="no-image">
+                <i class="fa-solid fa-camera-slash"></i>
+              </div>
+            )}
+          </div>
+          <div class="info">
+            <div class="nome">{item.data.nome}</div>
+            <div class="categoria">{item.data.categoria}</div>
+            <div class="negozio">{item.data.negozio}</div>
+            <div class="prezzo">{prezzo} &euro;</div>
+            {!item.data.acquistato && (
+              <a class="link" href={linkFinale} target="_blank">
+                <span class="cart-btn"><i class="fa-solid fa-gift"></i></span>
+                Regala <i class="fa-solid fa-champagne-glasses"></i>
+              </a>
+            )}
+            {item.data.acquistato && (
+              <span class="link disabled" style="pointer-events:none; opacity:0.7; background:#bdbdbd;">
+                <span class="cart-btn"><i class="fa-solid fa-gift"></i></span>
+                Regalato <i class="fa-solid fa-fireworks"></i>
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  })}
+</section>
+
+<!-- Overlay modale completamente fuori dall'alberatura -->
+<div id="global-modal-overlay" class="modal-overlay">
+  <img id="modal-image" src="" alt="" class="modal-image" />
+</div>
+
+<style is:global>
+  body {
+    background: url('/images/background.png') center center/cover no-repeat fixed;
+    min-height: 100vh;
+    font-family: system-ui, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+    position: relative;
+  }
+  
+  /* Overlay per migliorare la leggibilità */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  .header {
+    position: relative;
+    z-index: 10;
+    padding: 1rem 2rem;
+    text-align: left;
+  }
+  
+  .btn-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #388e3c, #4caf50);
+    color: white;
+    text-decoration: none;
+    border-radius: 1rem;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(56, 142, 60, 0.3);
+  }
+  
+  .btn-home:hover {
+    background: linear-gradient(135deg, #2e7d32, #388e3c);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
+  }
+  
+  .btn-home i {
+    font-size: 1.1rem;
+  }
+  
+  .main-title {
+    text-align: center;
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin: 2rem 0 3rem 0;
+    background: linear-gradient(45deg, 
+      #ff0000, #ff8c00, #ffd700, #32cd32, 
+      #1e90ff, #8a2be2, #ff1493, #ff0000);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbow-flow 3s ease-in-out infinite;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 2px;
+    position: relative;
+    z-index: 10;
+  }
+  
+  @keyframes rainbow-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  /* Responsive per il titolo */
+  @media (max-width: 768px) {
+    .main-title {
+      font-size: 2.5rem;
+      margin: 1.5rem 0 2rem 0;
+      letter-spacing: 1px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .main-title {
+      font-size: 2rem;
+      margin: 1rem 0 1.5rem 0;
+      letter-spacing: 0.5px;
+    }
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin: 2rem auto;
+    max-width: 900px;
+    justify-items: center;
+  }
+  
+  @media only screen and (max-width: 768px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin: 1rem;
+      max-width: none;
+      width: calc(100% - 2rem);
+    }
+    
+    .item {
+      max-width: 100%;
+      width: 100%;
+    }
+  }
+
+  .item {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #388e3c;
+    border-radius: 1.2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    min-height: 120px;
+    margin-bottom: 0.5rem;
+  }
+  .row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    gap: 1.5rem;
+  }
+  .item .icona {
+    height: auto;
+    width: 100%;
+    margin: 0 0.5rem 0 0;
+    object-fit: contain;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .item .icona:hover {
+    transform: scale(1.05);
+  }
+  
+  .image-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .no-image {
+    height: 120px;
+    width: 120px;
+    margin: 0 0.5rem 0 0;
+    background: #f5f5f5;
+    border: 2px dashed #ccc;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .no-image i {
+    font-size: 2.5rem;
+    color: #bbb;
+  }
+  
+  .modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 9999 !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .image-container:hover .modal-overlay {
+    /* Non più necessario - overlay gestito globalmente */
+  }
+  
+  .modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .modal-image {
+    max-width: 80vw;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    opacity: 1 !important;
+  }
+  
+  .item.acquistato .modal-overlay {
+    /* Non più necessario - overlay gestito globalmente */
+  }
+  
+  .item.acquistato .image-container:hover .modal-overlay {
+    /* Non più necessario - overlay gestito globalmente */
+  }
+  
+  .item.acquistato .modal-image {
+    opacity: 1 !important;
+  }
+  .info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex: 1;
+    gap: 0.2rem;
+    text-align: right;
+  }
+  .item .nome {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #388e3c;
+    margin-bottom: 0.2rem;
+    text-align: right;
+  }
+  .item .categoria {
+    font-size: 1.0rem;
+    color: #757575;
+    margin-bottom: 0.5rem;
+  }
+  .item .negozio {
+    font-size: 0.8rem;
+    color: #00897b;
+    margin-bottom: 0.5rem;
+  }
+  .item .prezzo {
+    font-size: 1.2rem;
+    color: #f9a825;
+    margin-bottom: 0.5rem;
+  }
+  .item .status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.4rem;
+  }
+  .item .check {
+    color: #388e3c;
+  }
+  .item .present {
+    color: #f06292;
+  }
+  .item.acquistato {
+    opacity: 0.5;
+  }
+  .item .cart {
+    color: #e57373;
+  }
+  .item .link {
+    margin-top: 1rem;
+    background: #ffb300;
+    color: #fff;
+    border-radius: 0.7rem;
+    padding: 0.5rem 1.2rem;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.2s;
+    box-shadow: 0 2px 8px #ffd54f;
+    cursor: pointer;
+    align-self: flex-end;
+  }
+  .item .link:hover {
+    background: #388e3c;
+  }
+  .item .cart-btn {
+    font-size: 1.2rem;
+    margin-right: 0.2rem;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Riferimenti all'overlay globale
+    const globalOverlay = document.getElementById('global-modal-overlay');
+    const modalImage = document.getElementById('modal-image') as HTMLImageElement;
+    
+    if (!globalOverlay || !modalImage) return;
+    
+    // Gestione click per aprire la modale
+    const imageContainers = document.querySelectorAll('.image-container');
+    
+    imageContainers.forEach(container => {
+      const icona = container.querySelector('.icona');
+      
+      // Click sull'immagine per aprire la modale (solo se c'è un'immagine reale)
+      icona?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        // Imposta l'immagine nella modale
+        const imageSrc = icona.getAttribute('data-image-src');
+        const imageAlt = icona.getAttribute('data-image-alt');
+        
+        if (imageSrc) {
+          modalImage.src = imageSrc;
+          modalImage.alt = imageAlt || '';
+          
+          // Mostra l'overlay
+          globalOverlay.classList.add('show');
+        }
+      });
+    });
+    
+    // Click per chiudere la modale
+    globalOverlay.addEventListener('click', function(e) {
+      if (e.target === globalOverlay || e.target === modalImage) {
+        globalOverlay.classList.remove('show');
+      }
+    });
+    
+    // Chiudi con ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        globalOverlay.classList.remove('show');
+      }
+    });
+  });
+</script>

@@ -1,0 +1,169 @@
+{
+  "nav": {
+    "home": "Home",
+    "stories": "Stories",
+    "comics": "Comics",
+    "backToStories": "Back to stories",
+    "backToSerie": "Back to serie",
+    "backToComics": "Back to comics",
+    "backToHome": "Back to Home"
+  },
+  "common": {
+    "tagline": "Stories, tales and reflections",
+    "readMore": "Read full story",
+    "seeMore": "See more stories",
+    "shareOn": "Share on",
+    "chapters": "Chapters",
+    "chapter": "Chapter",
+    "comic": "Comic",
+    "by": "by",
+    "readSeries": "Read series",
+    "chapterAbbr": "Ch.",
+    "seriesAvailable": "series available",
+    "storiesAvailable": "stories available",
+    "comicsAvailable": "comics available",
+    "noStoriesAvailable": "No stories available",
+    "noComicsAvailable": "No comics available",
+    "comeBackSoon": "Come back soon for new content!",
+    "comeBackSoonStories": "Come back soon for new stories!",
+    "comeBackSoonComics": "Come back soon for new comics!",
+    "noResults": "No results found",
+    "tryAdjustingFilters": "Try adjusting your search filters",
+    "comingSoon": "Stories coming soon...",
+    "shareArticle": "Share this article",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied!",
+    "close": "Close"
+  },
+  "chapter": {
+    "nextChapter": "Next Chapter",
+    "previousChapter": "Previous Chapter",
+    "nextComic": "Next Comic",
+    "previousComic": "Previous Comic",
+    "end": "The End",
+    "backToSeries": "Back to Series"
+  },
+  "sort": {
+    "date": "Date",
+    "title": "Title",
+    "author": "Author"
+  },
+  "filters": {
+    "searchPlaceholder": "Search by title or author...",
+    "genre": "Genre:",
+    "sortBy": "Sort by:",
+    "groupBySeries": "Group by series",
+    "clearFilters": "Clear filters"
+  },
+  "site": {
+    "name": "Tale",
+    "description": "Stories, tales and thoughts"
+  },
+  "genres": {
+    "all": "All genres",
+    "fantasy": "Fantasy",
+    "sciencefiction": "Science Fiction",
+    "horror": "Horror",
+    "thriller": "Thriller",
+    "mystery": "Mystery",
+    "crime": "Crime",
+    "adventure": "Adventure",
+    "romance": "Romance",
+    "historicalfiction": "Historical Fiction",
+    "contemporaryfiction": "Contemporary Fiction",
+    "satire": "Satire",
+    "comedy": "Comedy",
+    "drama": "Drama",
+    "fairytale": "Fairy Tale",
+    "allegory": "Allegory",
+    "children": "Children",
+    "middlegrade": "Middle Grade",
+    "youngadult": "Young Adult",
+    "newadult": "New Adult",
+    "adult": "Adult",
+    "biography": "Biography",
+    "autobiography": "Autobiography",
+    "memoir": "Memoir",
+    "essay": "Essay",
+    "philosophy": "Philosophy",
+    "science": "Science",
+    "history": "History",
+    "politics": "Politics",
+    "selfhelp": "Self Help",
+    "manual": "Manual",
+    "poetry": "Poetry",
+    "diary": "Diary",
+    "epistolary": "Epistolary",
+    "superhero": "Superhero",
+    "graphicnovel": "Graphic Novel",
+    "sliceoflife": "Slice of Life",
+    "comedycomic": "Comedy Comic",
+    "satiricalcomic": "Satirical Comic",
+    "historicalcomic": "Historical Comic",
+    "fantasycomic": "Fantasy Comic",
+    "scificomic": "Sci-Fi Comic",
+    "mysterycomic": "Mystery Comic",
+    "horrorcomic": "Horror Comic",
+    "adventurecomic": "Adventure Comic",
+    "romancecomic": "Romance Comic",
+    "psychological": "Psychological",
+    "dark": "Dark",
+    "experimental": "Experimental",
+    "realistic": "Realistic",
+    "surreal": "Surreal",
+    "dystopian": "Dystopian",
+    "utopian": "Utopian",
+    "postapocalyptic": "Post-Apocalyptic",
+    "cyberpunk": "Cyberpunk",
+    "steampunk": "Steampunk",
+    "anthology": "Anthology",
+    "shortstory": "Short Story",
+    "flashfiction": "Flash Fiction",
+    "lightnovel": "Light Novel",
+    "webcomic": "Webcomic"
+  },
+  "home": {
+    "hero": {
+      "title": "Tale",
+      "subtitle": "My personal space for stories of all kinds",
+      "description": "Welcome to my world of stories, where I share tales, thoughts and reflections born from imagination and experience"
+    },
+    "features": {
+      "title": "What You'll Find Here",
+      "stories": {
+        "title": "Original Stories",
+        "description": "Fantasy tales, dramas, comedies and personal reflections written with passion"
+      },
+      "serialized": {
+        "title": "Serialized Stories",
+        "description": "Longer tales divided into chapters for an engaging reading experience"
+      },
+      "multilang": {
+        "title": "Multilingual Content",
+        "description": "Stories available in Italian, English, Spanish, French and German"
+      }
+    },
+    "about": {
+      "title": "About Me",
+      "description": "I'm a writer who loves telling stories. In this space I share my tales of all genres: from fantasy to reality, from drama to comedy. Every story is born from the desire to explore emotions, situations and characters that live in my imagination."
+    },
+    "latestStories": {
+      "title": "Latest Stories",
+      "noStories": "No stories available in this language."
+    }
+  },
+  "pages": {
+    "stories": {
+      "description": "My tales and narrative stories"
+    },
+    "comics": {
+      "description": "My comics and illustrated stories",
+      "intro": "Explore my collection of comics. Filter by genre, search by title or author, and discover illustrated stories that will transport you to visual worlds."
+    }
+  },
+  "footer": {
+    "description": "Stories and tales written with passion",
+    "copyright": "Tale. All rights reserved.",
+    "madeWith": "Made with ❤️"
+  }
+}

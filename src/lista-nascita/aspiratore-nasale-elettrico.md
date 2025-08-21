@@ -1,0 +1,11 @@
+---
+nome: "Aspiratore nasale elettrico"
+categoria: "Igiene & Salute"
+prezzo: 42.90
+negozio: "Mondo Bimbo"
+link: ""
+icona: "/images/stuff/aspiratore-nasale.jpg"
+acquistato: false
+---
+
+Aspiratore nasale elettrico per liberare delicatamente le vie respiratorie del neonato.

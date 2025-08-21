@@ -1,0 +1,170 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "stories": "Geschichten",
+    "comics": "Comics",
+    "backToStories": "Zurück zu den Geschichten",
+    "backToSeries": "Zurück zu den Serien",
+    "backToSerie": "Zurück zur Serie",
+    "backToComics": "Zurück zu den Comics",
+    "backToHome": "Zurück zur Startseite"
+  },
+  "common": {
+    "tagline": "Geschichten, Erzählungen und Gedanken",
+    "readMore": "Ganze Geschichte lesen",
+    "seeMore": "Mehr Geschichten ansehen",
+    "shareOn": "Teilen auf",
+    "chapters": "Kapitel",
+    "chapter": "Kapitel",
+    "comic": "Comic",
+    "by": "von",
+    "readSeries": "Serie lesen",
+    "chapterAbbr": "Kap.",
+    "seriesAvailable": "Serien verfügbar",
+    "storiesAvailable": "Geschichten verfügbar",
+    "comicsAvailable": "Comics verfügbar",
+    "noStoriesAvailable": "Keine Geschichten verfügbar",
+    "noComicsAvailable": "Keine Comics verfügbar",
+    "comeBackSoon": "Kommen Sie bald wieder für neue Inhalte!",
+    "comeBackSoonStories": "Kommen Sie bald wieder für neue Geschichten!",
+    "comeBackSoonComics": "Kommen Sie bald wieder für neue Comics!",
+    "noResults": "Keine Ergebnisse gefunden",
+    "tryAdjustingFilters": "Versuchen Sie, Ihre Suchfilter anzupassen",
+    "comingSoon": "Geschichten bald verfügbar...",
+    "shareArticle": "Diesen Artikel teilen",
+    "copyLink": "Link kopieren",
+    "linkCopied": "Link kopiert!",
+    "close": "Schließen"
+  },
+  "chapter": {
+    "nextChapter": "Nächstes Kapitel",
+    "previousChapter": "Vorheriges Kapitel",
+    "nextComic": "Nächster Comic",
+    "previousComic": "Vorheriger Comic",
+    "end": "Ende",
+    "backToSeries": "Zurück zur Serie"
+  },
+  "sort": {
+    "date": "Datum",
+    "title": "Titel",
+    "author": "Autor"
+  },
+  "filters": {
+    "searchPlaceholder": "Nach Titel oder Autor suchen...",
+    "genre": "Genre:",
+    "sortBy": "Sortieren nach:",
+    "groupBySeries": "Nach Serie gruppieren",
+    "clearFilters": "Filter löschen"
+  },
+  "site": {
+    "name": "Tale",
+    "description": "Geschichten, Erzählungen und Gedanken"
+  },
+  "genres": {
+    "all": "Alle Genres",
+    "fantasy": "Fantasy",
+    "sciencefiction": "Science-Fiction",
+    "horror": "Horror",
+    "thriller": "Thriller",
+    "mystery": "Mystery",
+    "crime": "Krimi",
+    "adventure": "Abenteuer",
+    "romance": "Romantik",
+    "historicalfiction": "Historische Fiktion",
+    "contemporaryfiction": "Zeitgenössische Fiktion",
+    "satire": "Satire",
+    "comedy": "Komödie",
+    "drama": "Drama",
+    "fairytale": "Märchen",
+    "allegory": "Allegorie",
+    "children": "Kinder",
+    "middlegrade": "Mittelstufe",
+    "youngadult": "Jugendbuch",
+    "newadult": "New Adult",
+    "adult": "Erwachsene",
+    "biography": "Biografie",
+    "autobiography": "Autobiografie",
+    "memoir": "Memoiren",
+    "essay": "Essay",
+    "philosophy": "Philosophie",
+    "science": "Wissenschaft",
+    "history": "Geschichte",
+    "politics": "Politik",
+    "selfhelp": "Ratgeber",
+    "manual": "Handbuch",
+    "poetry": "Poesie",
+    "diary": "Tagebuch",
+    "epistolary": "Briefroman",
+    "superhero": "Superheld",
+    "graphicnovel": "Graphic Novel",
+    "sliceoflife": "Alltagsgeschichten",
+    "comedycomic": "Comedy-Comic",
+    "satiricalcomic": "Satirischer Comic",
+    "historicalcomic": "Historischer Comic",
+    "fantasycomic": "Fantasy-Comic",
+    "scificomic": "Sci-Fi-Comic",
+    "mysterycomic": "Mystery-Comic",
+    "horrorcomic": "Horror-Comic",
+    "adventurecomic": "Abenteuer-Comic",
+    "romancecomic": "Romantik-Comic",
+    "psychological": "Psychologisch",
+    "dark": "Düster",
+    "experimental": "Experimentell",
+    "realistic": "Realistisch",
+    "surreal": "Surreal",
+    "dystopian": "Dystopisch",
+    "utopian": "Utopisch",
+    "postapocalyptic": "Postapokalyptisch",
+    "cyberpunk": "Cyberpunk",
+    "steampunk": "Steampunk",
+    "anthology": "Anthologie",
+    "shortstory": "Kurzgeschichte",
+    "flashfiction": "Flash-Fiction",
+    "lightnovel": "Light Novel",
+    "webcomic": "Webcomic"
+  },
+  "home": {
+    "hero": {
+      "title": "Tale",
+      "subtitle": "Mein persönlicher Raum für Geschichten aller Art",
+      "description": "Willkommen in meiner Welt der Geschichten, in der ich Erzählungen, Gedanken und Reflexionen teile, die aus Fantasie und Erfahrung entstanden sind."
+    },
+    "features": {
+      "title": "Was Sie hier finden werden",
+      "stories": {
+        "title": "Originalgeschichten",
+        "description": "Fantastische Erzählungen, Dramen, Komödien und persönliche Reflexionen, mit Leidenschaft geschrieben"
+      },
+      "serialized": {
+        "title": "Fortsetzungsgeschichten",
+        "description": "Längere Erzählungen, aufgeteilt in Kapitel für ein fesselndes Leseerlebnis"
+      },
+      "multilang": {
+        "title": "Mehrsprachige Inhalte",
+        "description": "Geschichten verfügbar auf Italienisch, Englisch, Spanisch, Französisch und Deutsch"
+      }
+    },
+    "about": {
+      "title": "Über mich",
+      "description": "Ich bin ein Schriftsteller, der das Erzählen von Geschichten liebt. In diesem Raum teile ich meine Erzählungen aller Genres: von Fantasie bis Realität, von Drama bis Komödie. Jede Geschichte entsteht aus dem Wunsch, Emotionen, Situationen und Charaktere zu erforschen, die in meiner Vorstellung leben."
+    },
+    "latestStories": {
+      "title": "Neueste Geschichten",
+      "noStories": "Keine Geschichten in dieser Sprache verfügbar."
+    }
+  },
+  "pages": {
+    "stories": {
+      "description": "Meine Erzählungen und Geschichten"
+    },
+    "comics": {
+      "description": "Meine Comics und illustrierten Geschichten",
+      "intro": "Entdecken Sie meine Comics-Sammlung. Filtern Sie nach Genre, suchen Sie nach Titel oder Autor und entdecken Sie illustrierte Geschichten, die Sie in visuelle Welten entführen."
+    }
+  },
+  "footer": {
+    "description": "Geschichten und Erzählungen mit Leidenschaft geschrieben",
+    "copyright": "Tale. Alle Rechte vorbehalten.",
+    "madeWith": "Gemacht mit ❤️"
+  }
+}
