@@ -16,7 +16,7 @@ export function getBasePath(): string {
     }
     // If we're on GitHub Pages, use base path
     if (hostname.includes('github.io')) {
-      return '/leonerapiti';
+      return '/leone';
     }
     // Default to no base path for custom domains
     return '';
@@ -28,11 +28,11 @@ export function getBasePath(): string {
     }
     // Force GitHub Pages build
     if (process.env.DEPLOY_TARGET === 'github') {
-      return '/leonerapiti';
+      return '/leone';
     }
     // Legacy logic
     const isGitHubPages = process.env.GITHUB_PAGES === 'true' || (process.env.CI && !process.env.CUSTOM_DOMAIN);
-    return isGitHubPages ? '/leonerapiti' : '';
+    return isGitHubPages ? '/leone' : '';
   }
 }
 

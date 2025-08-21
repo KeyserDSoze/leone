@@ -12,7 +12,7 @@ const useGitHubConfig = forceGitHubPages || (process.env.CI && !process.env.CUST
 
 // Configurazione URL (da personalizzare con il dominio finale)
 const siteUrl = forceCustomDomain ? 'https://leone.famiglia.it' : (useGitHubConfig ? 'https://keyserdsoze.github.io' : 'https://leone.famiglia.it');
-const baseUrl = (useGitHubConfig && !forceCustomDomain) ? '/leonerapiti' : '';
+const baseUrl = (useGitHubConfig && !forceCustomDomain) ? '/leone' : '';
 
 // https://astro.build/config
 export default defineConfig({
