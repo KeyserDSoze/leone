@@ -30,9 +30,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
 
-      # Imposta automaticamente SITE/BASE_URL e DEPLOY_TARGET
+      # Pulisce cache e reinstalla dipendenze per evitare problemi con moduli nativi
+      - name: Clean and install dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
+
       - name: Compute SITE and BASE_URL
         run: |
           # Controlla se esiste un file CNAME o usa la variabile CUSTOM_DOMAIN
@@ -59,9 +63,6 @@ jobs:
             fi
             echo "Using GitHub Pages default: ${OWNER}.github.io/${REPO}"
           fi
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Build Astro
         env:
