@@ -17,58 +17,50 @@ const lista = await getCollection('lista-nascita');
 </div>
 
 <h1 class="main-title">Lista Nascita di Leone</h1>
-<section class="grid">
-  {lista.map((item) => {
-    // Format price in euro
-    const prezzo = item.data.prezzo !== undefined ? `${item.data.prezzo.toFixed(2).replace('.', ',')}` : '';
-    // Se non c'è link o è vuoto, usa Amazon
-    const linkFinale = item.data.link && item.data.link.trim() !== '' ? item.data.link : 'https://amazon.it';
-    return (
-      <div class={`item${item.data.acquistato ? ' acquistato' : ''}`}> 
-        <div class="row">
-          <div class="image-container">
-            {item.data.icona && item.data.icona.trim() !== '' ? (
-              <>
-                <img 
-                  src={item.data.icona} 
-                  alt={item.data.nome} 
-                  class="icona" 
-                  data-image-src={item.data.icona} 
-                  data-image-alt={item.data.nome}
-                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                />
-                <div class="no-image" style="display: none;">
-                  <i class="fa-solid fa-camera-slash"></i>
-                </div>
-              </>
-            ) : (
-              <div class="no-image">
-                <i class="fa-solid fa-camera-slash"></i>
-              </div>
-            )}
-          </div>
-          <div class="info">
-            <div class="nome">{item.data.nome}</div>
-            <div class="categoria">{item.data.categoria}</div>
-            <div class="negozio">{item.data.negozio}</div>
-            <div class="prezzo">{prezzo} &euro;</div>
-            {!item.data.acquistato && (
-              <a class="link" href={linkFinale} target="_blank">
-                <span class="cart-btn"><i class="fa-solid fa-gift"></i></span>
-                Regala <i class="fa-solid fa-champagne-glasses"></i>
-              </a>
-            )}
-            {item.data.acquistato && (
-              <span class="link disabled" style="pointer-events:none; opacity:0.7; background:#bdbdbd;">
-                <span class="cart-btn"><i class="fa-solid fa-gift"></i></span>
-                Regalato <i class="fa-solid fa-fireworks"></i>
-              </span>
-            )}
-          </div>
-        </div>
+
+<!-- Controlli di filtro e ordinamento -->
+<div class="controls">
+  <div class="filters">
+    <div class="sort-section">
+      <label>Ordina per (seleziona pi&ugrave; opzioni):</label>
+      <div class="sort-options">
+        <label class="checkbox-label">
+          <input type="checkbox" id="sort-priorita" value="priorita" checked />
+          <span class="checkmark"></span>
+          Priorit&agrave;
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="sort-prezzo" value="prezzo" />
+          <span class="checkmark"></span>
+          Prezzo (crescente)
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="sort-prezzo-desc" value="prezzo-desc" />
+          <span class="checkmark"></span>
+          Prezzo (decrescente)
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="sort-nome" value="nome" />
+          <span class="checkmark"></span>
+          Nome
+        </label>
       </div>
-    );
-  })}
+    </div>
+    
+    <div class="filter-section">
+      <label for="negozio-filter">Filtra per negozio:</label>
+      <select id="negozio-filter">
+        <option value="">Tutti i negozi</option>
+        <option value="Amazon">Amazon</option>
+        <option value="Mondo Bimbo">Mondo Bimbo</option>
+      </select>
+    </div>
+  </div>
+</div>
+ 
+
+<section class="grid" id="items-grid">
+  <!-- Gli item verranno generati dinamicamente da JavaScript -->
 </section>
 
 <!-- Overlay modale completamente fuori dall'alberatura -->
@@ -176,6 +168,130 @@ const lista = await getCollection('lista-nascita');
       letter-spacing: 0.5px;
     }
   }
+  
+  /* Controlli di filtro e ordinamento */
+  .controls {
+    max-width: 900px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+  
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .filters label {
+    font-weight: bold;
+    color: #2e7d32;
+    margin-right: 0.5rem;
+  }
+  
+  .filters select {
+    padding: 0.5rem;
+    border: 2px solid #4caf50;
+    border-radius: 0.5rem;
+    background: white;
+    color: #2e7d32;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+  }
+  
+  .filters select:hover, .filters select:focus {
+    border-color: #388e3c;
+    outline: none;
+  }
+  
+  @media (max-width: 768px) {
+    .filters {
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    
+    .filters > div {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+  
+  /* Sezioni di filtro */
+  .sort-section, .filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .sort-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+  }
+  
+  /* Checkbox personalizzate */
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #2e7d32;
+    font-weight: normal !important;
+    margin-right: 0 !important;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+  }
+  
+  .checkbox-label:hover {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: #4caf50;
+  }
+  
+  .checkbox-label input[type="checkbox"] {
+    display: none;
+  }
+  
+  .checkmark {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #4caf50;
+    border-radius: 3px;
+    margin-right: 0.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  
+  .checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background: #4caf50;
+    border-color: #4caf50;
+  }
+  
+  .checkbox-label input[type="checkbox"]:checked + .checkmark:after {
+    content: "✓";
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  
+  .checkbox-label input[type="checkbox"]:checked + .checkmark + span {
+    font-weight: bold;
+  }
+  
   .grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -320,6 +436,12 @@ const lista = await getCollection('lista-nascita');
     color: #388e3c;
     margin-bottom: 0.2rem;
     text-align: right;
+    height: 4.3rem; /* Altezza fissa per 3 righe (1.2rem * 1.2 line-height * 3) */
+    line-height: 1.2;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
   }
   .item .categoria {
     font-size: 1.0rem;
@@ -336,6 +458,14 @@ const lista = await getCollection('lista-nascita');
     color: #f9a825;
     margin-bottom: 0.5rem;
   }
+  
+  .item .priorita {
+    font-size: 0.9rem;
+    color: #8e24aa;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+  }
+  
   .item .status {
     position: absolute;
     top: 1rem;
@@ -380,37 +510,191 @@ const lista = await getCollection('lista-nascita');
   }
 </style>
 
-<script>
+<script define:vars={{ listaData: lista.map(item => ({
+    ...item.data,
+    id: item.id
+  })) }}>
+  
   document.addEventListener('DOMContentLoaded', function() {
     // Riferimenti all'overlay globale
     const globalOverlay = document.getElementById('global-modal-overlay');
-    const modalImage = document.getElementById('modal-image') as HTMLImageElement;
+    const modalImage = document.getElementById('modal-image');
     
     if (!globalOverlay || !modalImage) return;
     
-    // Gestione click per aprire la modale
-    const imageContainers = document.querySelectorAll('.image-container');
+    // Funzioni per gestire la lista
+    let currentData = [...listaData];
     
-    imageContainers.forEach(container => {
-      const icona = container.querySelector('.icona');
+    function getPriorityLabel(priorita) {
+      const labels = {
+        1: '&star;&star;&star;&star;&star; Massima',
+        2: '&star;&star;&star;&star; Alta',
+        3: '&star;&star;&star; Media',
+        4: '&star;&star; Bassa',
+        5: '&star; Minima'
+      };
+      return labels[priorita] || '&star;&star;&star; Media';
+    }
+    
+    function formatPrice(prezzo) {
+      return prezzo !== undefined ? `${prezzo.toFixed(2).replace('.', ',')} &euro;` : '';
+    }
+    
+    function createItemHTML(item) {
+      const prezzo = formatPrice(item.prezzo);
+      const linkFinale = item.link && item.link.trim() !== '' ? item.link : 'https://amazon.it';
+      const prioritaLabel = getPriorityLabel(item.priorita);
       
-      // Click sull'immagine per aprire la modale (solo se c'è un'immagine reale)
-      icona?.addEventListener('click', function(e) {
-        e.stopPropagation();
-        
-        // Imposta l'immagine nella modale
-        const imageSrc = icona.getAttribute('data-image-src');
-        const imageAlt = icona.getAttribute('data-image-alt');
-        
-        if (imageSrc) {
-          modalImage.src = imageSrc;
-          modalImage.alt = imageAlt || '';
+      return `
+        <div class="item${item.acquistato ? ' acquistato' : ''}">
+          <div class="row">
+            <div class="image-container">
+              ${item.icona && item.icona.trim() !== '' ? `
+                <img 
+                  src="${item.icona}" 
+                  alt="${item.nome}" 
+                  class="icona" 
+                  data-image-src="${item.icona}" 
+                  data-image-alt="${item.nome}"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                />
+                <div class="no-image" style="display: none;">
+                  <i class="fa-solid fa-camera-slash"></i>
+                </div>
+              ` : `
+                <div class="no-image">
+                  <i class="fa-solid fa-camera-slash"></i>
+                </div>
+              `}
+            </div>
+            <div class="info">
+              <div class="nome">${item.nome}</div>
+              <div class="categoria">${item.categoria}</div>
+              <div class="negozio">${item.negozio}</div>
+              <div class="prezzo">${prezzo}</div>
+              <div class="priorita">Priorit&agrave;:&nbsp;${prioritaLabel}</div>
+              ${!item.acquistato ? `
+                <a class="link" href="${linkFinale}" target="_blank">
+                  <span class="cart-btn"><i class="fa-solid fa-gift"></i></span>
+                  Regala <i class="fa-solid fa-champagne-glasses"></i>
+                </a>
+              ` : `
+                <span class="link disabled" style="pointer-events:none; opacity:0.7; background:#bdbdbd;">
+                  <span class="cart-btn"><i class="fa-solid fa-gift"></i></span>
+                  Regalato <i class="fa-solid fa-fireworks"></i>
+                </span>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderItems(data) {
+      const grid = document.getElementById('items-grid');
+      if (!grid) return;
+      
+      grid.innerHTML = data.map(item => createItemHTML(item)).join('');
+      
+      // Reattacca event listeners per le immagini
+      attachImageEvents();
+    }
+    
+    function sortData(data, sortCriteria) {
+      if (!sortCriteria || sortCriteria.length === 0) return [...data];
+      
+      const sorted = [...data];
+      
+      return sorted.sort((a, b) => {
+        for (const criterion of sortCriteria) {
+          let comparison = 0;
           
-          // Mostra l'overlay
-          globalOverlay.classList.add('show');
+          switch(criterion) {
+            case 'nome':
+              comparison = a.nome.localeCompare(b.nome);
+              break;
+            case 'prezzo':
+              comparison = (a.prezzo || 0) - (b.prezzo || 0);
+              break;
+            case 'prezzo-desc':
+              comparison = (b.prezzo || 0) - (a.prezzo || 0);
+              break;
+            case 'priorita':
+              comparison = (a.priorita || 3) - (b.priorita || 3);
+              break;
+          }
+          
+          if (comparison !== 0) {
+            return comparison;
+          }
         }
+        return 0;
       });
+    }
+    
+    function getSelectedSortCriteria() {
+      const checkboxes = document.querySelectorAll('.sort-options input[type="checkbox"]:checked');
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+    
+    function filterData(data, negozio) {
+      if (!negozio) return data;
+      return data.filter(item => item.negozio === negozio);
+    }
+    
+    function updateDisplay() {
+      const negozioSelect = document.getElementById('negozio-filter');
+      
+      if (!negozioSelect) return;
+      
+      let filtered = filterData(listaData, negozioSelect.value);
+      let sortCriteria = getSelectedSortCriteria();
+      let sorted = sortData(filtered, sortCriteria);
+      
+      currentData = sorted;
+      renderItems(currentData);
+    }
+    
+    // Event listeners per i controlli
+    const checkboxes = document.querySelectorAll('.sort-options input[type="checkbox"]');
+    const negozioSelect = document.getElementById('negozio-filter');
+    
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', updateDisplay);
     });
+    
+    if (negozioSelect) {
+      negozioSelect.addEventListener('change', updateDisplay);
+    }
+    
+    // Render iniziale
+    updateDisplay();
+    
+    function attachImageEvents() {
+      // Gestione click per aprire la modale
+      const imageContainers = document.querySelectorAll('.image-container');
+      
+      imageContainers.forEach(container => {
+        const icona = container.querySelector('.icona');
+        
+        // Click sull'immagine per aprire la modale (solo se c'è un'immagine reale)
+        icona?.addEventListener('click', function(e) {
+          e.stopPropagation();
+          
+          // Imposta l'immagine nella modale
+          const imageSrc = icona.getAttribute('data-image-src');
+          const imageAlt = icona.getAttribute('data-image-alt');
+          
+          if (imageSrc) {
+            modalImage.src = imageSrc;
+            modalImage.alt = imageAlt || '';
+            
+            // Mostra l'overlay
+            globalOverlay.classList.add('show');
+          }
+        });
+      });
+    }
     
     // Click per chiudere la modale
     globalOverlay.addEventListener('click', function(e) {

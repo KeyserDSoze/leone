@@ -26,6 +26,7 @@ const listaNascita = defineCollection({
 			prezzo: z.number().optional(),
 			acquistato: z.boolean().default(false),
 			icona: z.string().optional(),
+			priorita: z.number().min(1).max(5).default(3), // 1=massima priorità, 5=minima priorità
 		})
 });
 

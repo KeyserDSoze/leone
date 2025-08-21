@@ -6,6 +6,7 @@ link: "https://www.amazon.it/Chicco-Gattino-Dolci-Fusa/dp/B07XYZ1234"
 prezzo: 24.90
 acquistato: false
 icona: "/images/stuff/chicco_gattino.jpg"
+priorita: 2
 quantita: 1
 ---
 
