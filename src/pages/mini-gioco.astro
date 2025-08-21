@@ -1,5 +1,5 @@
 ---
-// Pagina del mini gioco per Leone
+// Forza 4 con Leone - AI imbattibile
 import { createUrl, createAssetUrl } from '../utils/urls';
 
 // Calcola l'URL del favicon
@@ -11,7 +11,7 @@ const faviconUrl = createAssetUrl('/favicon.svg');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Gioco - Leone</title>
+    <title>Forza 4 con Leone</title>
     <link rel="icon" type="image/svg+xml" href={faviconUrl}>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <style>
@@ -27,150 +27,780 @@ const faviconUrl = createAssetUrl('/favicon.svg');
             font-family: system-ui, Arial, sans-serif;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             padding: 1rem;
         }
 
-        .game-container {
-            background: white;
+        .header {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .btn-home {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.8rem 1.5rem;
             border-radius: 2rem;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-home:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1rem;
             text-align: center;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             max-width: 600px;
             width: 100%;
         }
 
-        h1 {
-            color: #388e3c;
-            margin-bottom: 1rem;
-            font-size: 2.5rem;
-        }
-
-        .subtitle {
-            color: #666;
+        .player-selection {
+            text-align: center;
             margin-bottom: 2rem;
-            font-size: 1.2rem;
         }
 
-        .game-area {
-            margin: 2rem 0;
-            padding: 2rem;
-            background: #f8f9fa;
-            border-radius: 1rem;
-            min-height: 200px;
+        .player-selection h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .color-options {
             display: flex;
-            flex-direction: column;
             justify-content: center;
-            align-items: center;
-        }
-
-        .coming-soon {
-            font-size: 1.5rem;
-            color: #ff6b35;
+            gap: 1rem;
+            flex-wrap: wrap;
             margin-bottom: 1rem;
         }
 
-        .description {
-            color: #666;
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
+        .color-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
-        .btn {
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.selected {
+            border-width: 5px;
+            transform: scale(1.2);
+        }
+
+        .color-btn.selected::after {
+            content: "✓";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #4caf50, #8bc34a);
+            color: white;
+            border: none;
             padding: 1rem 2rem;
+            border-radius: 2rem;
             font-size: 1.1rem;
             font-weight: bold;
-            text-decoration: none;
-            border-radius: 1rem;
+            cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .btn-home {
-            background: linear-gradient(135deg, #388e3c, #4caf50);
+        .start-btn:hover {
+            background: linear-gradient(135deg, #388e3c, #689f38);
+            transform: translateY(-2px);
+        }
+
+        .start-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-board {
+            display: none;
+        }
+
+        .game-board.active {
+            display: block;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 1rem;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .player-token {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .leone-token {
+            background: #fff8dc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d4af37;
+            font-weight: bold;
+            border: 2px solid #d4af37;
+            font-size: 28px;
+        }
+
+        .current-turn {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .board {
+            background: #1976d2;
+            border-radius: 1rem;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            min-height: 300px;
+            width: 100%;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 2px solid #0d47a1;
+        }
+
+        .cell:hover {
+            background: #f0f0f0;
+        }
+
+        .cell.occupied {
+            cursor: not-allowed;
+        }
+
+        .cell.occupied:hover {
+            background: white;
+        }
+
+        .token {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
             color: white;
         }
 
-        .btn-home:hover {
-            background: linear-gradient(135deg, #2e7d32, #388e3c);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .future-features {
-            background: #e8f5e8;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            text-align: left;
-        }
-
-        .future-features h3 {
-            color: #388e3c;
+        .game-status {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
             margin-bottom: 1rem;
+            min-height: 2rem;
         }
 
-        .future-features ul {
-            list-style: none;
-            padding: 0;
+        .reset-btn {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
         }
 
-        .future-features li {
-            padding: 0.5rem 0;
-            color: #555;
+        .reset-btn:hover {
+            background: linear-gradient(135deg, #e55a2b, #ff6b35);
+            transform: translateY(-2px);
         }
 
-        .future-features li::before {
-            content: "🎮 ";
-            margin-right: 0.5rem;
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
             h1 {
                 font-size: 2rem;
             }
             
             .game-container {
-                padding: 1.5rem;
+                padding: 1rem;
+            }
+            
+            .color-btn {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .board {
+                gap: 0.3rem;
+                padding: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .btn-home {
+                align-self: flex-start;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1><i class="fa-solid fa-baby"></i> Mini Gioco di Leone</h1>
-        <p class="subtitle">Divertimento in arrivo!</p>
-        
-        <div class="game-area">
-            <div class="coming-soon">
-                <i class="fa-solid fa-hammer"></i> In Costruzione
-            </div>
-            <p class="description">
-                Stiamo preparando dei giochi speciali per celebrare l'arrivo di Leone! 
-                Torna presto per scoprire le sorprese che abbiamo in serbo.
-            </p>
-        </div>
-
-        <div class="future-features">
-            <h3>Giochi in arrivo:</h3>
-            <ul>
-                <li>Memory Game con le foto di Leone</li>
-                <li>Indovina il Regalo della Lista Nascita</li>
-                <li>Quiz sulla famiglia</li>
-                <li>Mini puzzle interattivi</li>
-            </ul>
-        </div>
-
-        <a href={createUrl("/")} class="btn btn-home">
-            <i class="fa-solid fa-home"></i>
-            Torna alla Home
+    <div class="header">
+        <a href={createUrl("/")} class="btn-home">
+            <i class="fa-solid fa-home"></i> Home
         </a>
     </div>
+
+    <h1>🦁 Forza 4 con Leone 🦁</h1>
+
+    <div class="game-container">
+        <!-- Selezione colore giocatore -->
+        <div class="player-selection" id="playerSelection">
+            <h3>Scegli il tuo colore:</h3>
+            <div class="color-options">
+                <div class="color-btn" data-color="#ff0000" style="background: #ff0000;" title="Rosso"></div>
+                <div class="color-btn" data-color="#ff8c00" style="background: #ff8c00;" title="Arancione"></div>
+                <div class="color-btn" data-color="#ffd700" style="background: #ffd700;" title="Giallo"></div>
+                <div class="color-btn" data-color="#32cd32" style="background: #32cd32;" title="Verde"></div>
+                <div class="color-btn" data-color="#00bfff" style="background: #00bfff;" title="Azzurro"></div>
+                <div class="color-btn" data-color="#4169e1" style="background: #4169e1;" title="Blu"></div>
+                <div class="color-btn" data-color="#8a2be2" style="background: #8a2be2;" title="Viola"></div>
+                <div class="color-btn" data-color="#ff1493" style="background: #ff1493;" title="Rosa"></div>
+            </div>
+            <button class="start-btn" id="startGame" disabled>Inizia la Sfida!</button>
+        </div>
+
+        <!-- Gioco -->
+        <div class="game-board" id="gameBoard">
+            <div class="game-info">
+                <div class="player-info">
+                    <div class="player-token" id="playerTokenDisplay"></div>
+                    <span>Tu</span>
+                </div>
+                <div class="current-turn" id="currentTurn">Il tuo turno</div>
+                <div class="player-info">
+                    <div class="player-token leone-token">
+                        🦁
+                    </div>
+                    <span>Leone</span>
+                </div>
+            </div>
+
+            <div class="board" id="board"></div>
+
+            <div class="game-status" id="gameStatus"></div>
+
+            <button class="reset-btn" id="resetGame">Nuova Partita</button>
+        </div>
+    </div>
+
+    <script>
+        class ForceQuattroLeone {
+            constructor() {
+                console.log('Forza 4 - Inizializzazione...');
+                
+                // Costanti di gioco
+                this.ROWS = 6;
+                this.COLS = 7;
+                this.EMPTY = 0;
+                this.PLAYER = 1;
+                this.LEONE = 2;
+                
+                // Stato del gioco
+                this.board = [];
+                this.currentPlayer = this.PLAYER;
+                this.gameOver = false;
+                this.playerColor = null;
+                this.leoneColor = '#e53935';
+                
+                // Inizializza quando il DOM è pronto
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => this.init());
+                } else {
+                    this.init();
+                }
+            }
+            
+            init() {
+                console.log('Inizializzazione elementi DOM...');
+                this.initializeElements();
+                this.initializeBoard();
+                this.setupEventListeners();
+                console.log('Gioco pronto!');
+            }
+            
+            initializeElements() {
+                this.playerSelection = document.getElementById('playerSelection');
+                this.gameBoard = document.getElementById('gameBoard');
+                this.boardElement = document.getElementById('board');
+                this.currentTurnElement = document.getElementById('currentTurn');
+                this.gameStatusElement = document.getElementById('gameStatus');
+                this.playerTokenDisplay = document.getElementById('playerTokenDisplay');
+                this.startGameBtn = document.getElementById('startGame');
+                this.resetGameBtn = document.getElementById('resetGame');
+                
+                console.log('Elementi DOM:', {
+                    board: !!this.boardElement,
+                    selection: !!this.playerSelection,
+                    gameBoard: !!this.gameBoard
+                });
+            }
+            
+            initializeBoard() {
+                // Crea matrice vuota 6x7
+                this.board = [];
+                for (let row = 0; row < this.ROWS; row++) {
+                    this.board[row] = [];
+                    for (let col = 0; col < this.COLS; col++) {
+                        this.board[row][col] = this.EMPTY;
+                    }
+                }
+                console.log('Board inizializzata:', this.board.length + 'x' + this.board[0].length);
+                // Non renderizzare qui - solo quando il gioco inizia
+            }
+            
+            setupEventListeners() {
+                // Gestione selezione colori
+                const colorBtns = document.querySelectorAll('.color-btn');
+                console.log('Bottoni colore trovati:', colorBtns.length);
+                
+                colorBtns.forEach((btn, index) => {
+                    btn.addEventListener('click', (e) => {
+                        console.log(`Colore selezionato: ${e.target.dataset.color}`);
+                        
+                        // Reset selezioni precedenti
+                        colorBtns.forEach(b => b.classList.remove('selected'));
+                        
+                        // Seleziona il nuovo colore
+                        e.target.classList.add('selected');
+                        this.playerColor = e.target.dataset.color;
+                        
+                        // Aggiorna preview
+                        if (this.playerTokenDisplay) {
+                            this.playerTokenDisplay.style.background = this.playerColor;
+                        }
+                        
+                        // Abilita start button
+                        if (this.startGameBtn) {
+                            this.startGameBtn.disabled = false;
+                        }
+                    });
+                });
+                
+                // Start game
+                if (this.startGameBtn) {
+                    this.startGameBtn.addEventListener('click', () => {
+                        console.log('Avvio gioco!');
+                        this.startGame();
+                    });
+                }
+                
+                // Reset game
+                if (this.resetGameBtn) {
+                    this.resetGameBtn.addEventListener('click', () => {
+                        console.log('Reset gioco!');
+                        this.resetGame();
+                    });
+                }
+            }
+            
+            startGame() {
+                console.log('=== START GAME ===');
+                console.log('Player color selected:', this.playerColor);
+                
+                if (this.playerSelection) {
+                    this.playerSelection.style.display = 'none';
+                    console.log('✅ Player selection nascosta');
+                }
+                
+                if (this.gameBoard) {
+                    this.gameBoard.classList.add('active');
+                    this.gameBoard.style.display = 'block';
+                    console.log('✅ Game board mostrata');
+                }
+                
+                // Forza il rendering della board
+                console.log('🔄 Forzando rendering board...');
+                this.updateTurnDisplay();
+                
+                // Doppio rendering per sicurezza
+                setTimeout(() => {
+                    this.renderBoard();
+                    console.log('🔄 Secondo rendering completato');
+                }, 100);
+                
+                this.renderBoard();
+                console.log('=== START GAME COMPLETE ===');
+            }
+            
+            renderBoard() {
+                console.log('=== RENDER BOARD START ===');
+                
+                const boardEl = document.getElementById('board');
+                console.log('✅ Board element trovato:', !!boardEl);
+                
+                if (!boardEl) {
+                    console.error('❌ Element board non trovato!');
+                    return;
+                }
+                
+                console.log('✅ Board size:', this.board?.length, 'x', this.board?.[0]?.length);
+                
+                // Pulisci la board
+                boardEl.innerHTML = '';
+                
+                // Debug styling
+                boardEl.style.border = '3px solid red';
+                boardEl.style.minHeight = '300px';
+                boardEl.style.background = '#1976d2';
+                
+                // Crea semplicemente 42 celle (6x7)
+                for (let i = 0; i < 42; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    // Calcola riga e colonna
+                    const row = Math.floor(i / 7);
+                    const col = i % 7;
+                    
+                    cell.dataset.row = row.toString();
+                    cell.dataset.col = col.toString();
+                    
+                    // Stile base
+                    cell.style.cssText = `
+                        background: white;
+                        border: 2px solid #333;
+                        border-radius: 50%;
+                        aspect-ratio: 1;
+                        min-width: 40px;
+                        min-height: 40px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    `;
+                    
+                    // Controlla se c'è un token
+                    if (this.board && this.board[row] && this.board[row][col] !== this.EMPTY) {
+                        if (this.board[row][col] === this.PLAYER && this.playerColor) {
+                            cell.style.background = this.playerColor;
+                        } else if (this.board[row][col] === this.LEONE) {
+                            // Token di Leone: testa di leone grande che riempie tutta la cella
+                            cell.style.background = '#fff8dc'; // Sfondo crema chiaro per contrasto
+                            cell.innerHTML = '🦁';
+                            cell.style.fontSize = '36px'; // Testa di leone molto più grande
+                            cell.style.lineHeight = '1';
+                            cell.style.display = 'flex';
+                            cell.style.alignItems = 'center';
+                            cell.style.justifyContent = 'center';
+                        }
+                    }
+                    
+                    // Click handler
+                    cell.addEventListener('click', () => {
+                        console.log(`🖱️ Click colonna: ${col}`);
+                        if (!this.gameOver && this.currentPlayer === this.PLAYER) {
+                            this.makeMove(col);
+                        }
+                    });
+                    
+                    boardEl.appendChild(cell);
+                    console.log(`📦 Cella ${i} aggiunta (${row},${col})`);
+                }
+                
+                console.log('✅ RENDER COMPLETATO - Celle totali:', boardEl.children.length);
+            }
+            
+            makeMove(col) {
+                console.log(`Tentativo mossa colonna ${col}`);
+                
+                if (this.gameOver || !this.canDropPiece(col)) {
+                    console.log('Mossa non valida');
+                    return;
+                }
+                
+                const row = this.dropPiece(col, this.currentPlayer);
+                if (row === -1) {
+                    console.log('Impossibile droppare in colonna ' + col);
+                    return;
+                }
+                
+                console.log(`Token piazzato in ${row},${col}`);
+                this.renderBoard();
+                
+                // Controlla vittoria
+                if (this.checkWin(row, col, this.currentPlayer)) {
+                    this.gameOver = true;
+                    const message = this.currentPlayer === this.PLAYER ? 
+                        '🎉 Hai vinto! Incredibile!' : '🦁 Leone ha vinto!';
+                    this.gameStatusElement.textContent = message;
+                    console.log('Partita finita:', message);
+                    return;
+                }
+                
+                // Controlla pareggio
+                if (this.isBoardFull()) {
+                    this.gameOver = true;
+                    this.gameStatusElement.textContent = '🤝 Pareggio! Leone è soddisfatto!';
+                    console.log('Pareggio!');
+                    return;
+                }
+                
+                // Cambia turno
+                this.currentPlayer = this.currentPlayer === this.PLAYER ? this.LEONE : this.PLAYER;
+                this.updateTurnDisplay();
+                
+                // Turno dell'AI (Leone)
+                if (this.currentPlayer === this.LEONE && !this.gameOver) {
+                    console.log('Turno di Leone...');
+                    setTimeout(() => {
+                        const aiCol = this.getBestMove();
+                        console.log(`Leone sceglie colonna: ${aiCol}`);
+                        
+                        const aiRow = this.dropPiece(aiCol, this.LEONE);
+                        this.renderBoard();
+                        
+                        if (this.checkWin(aiRow, aiCol, this.LEONE)) {
+                            this.gameOver = true;
+                            this.gameStatusElement.textContent = '🦁 Leone ha vinto! Era inevitabile!';
+                            return;
+                        }
+                        
+                        if (this.isBoardFull()) {
+                            this.gameOver = true;
+                            this.gameStatusElement.textContent = '🤝 Pareggio! Leone è soddisfatto!';
+                            return;
+                        }
+                        
+                        this.currentPlayer = this.PLAYER;
+                        this.updateTurnDisplay();
+                    }, 1500);
+                }
+            }
+            
+            canDropPiece(col) {
+                return this.board[0][col] === this.EMPTY;
+            }
+            
+            dropPiece(col, player) {
+                for (let row = this.ROWS - 1; row >= 0; row--) {
+                    if (this.board[row][col] === this.EMPTY) {
+                        this.board[row][col] = player;
+                        return row;
+                    }
+                }
+                return -1;
+            }
+            
+            checkWin(row, col, player) {
+                return this.checkDirection(row, col, player, 0, 1) ||  // orizzontale
+                       this.checkDirection(row, col, player, 1, 0) ||  // verticale
+                       this.checkDirection(row, col, player, 1, 1) ||  // diagonale \
+                       this.checkDirection(row, col, player, 1, -1);   // diagonale /
+            }
+            
+            checkDirection(row, col, player, deltaRow, deltaCol) {
+                let count = 1;
+                
+                // Controlla una direzione
+                for (let i = 1; i < 4; i++) {
+                    const newRow = row + i * deltaRow;
+                    const newCol = col + i * deltaCol;
+                    if (newRow < 0 || newRow >= this.ROWS || newCol < 0 || newCol >= this.COLS || 
+                        this.board[newRow][newCol] !== player) break;
+                    count++;
+                }
+                
+                // Controlla direzione opposta
+                for (let i = 1; i < 4; i++) {
+                    const newRow = row - i * deltaRow;
+                    const newCol = col - i * deltaCol;
+                    if (newRow < 0 || newRow >= this.ROWS || newCol < 0 || newCol >= this.COLS || 
+                        this.board[newRow][newCol] !== player) break;
+                    count++;
+                }
+                
+                return count >= 4;
+            }
+            
+            isBoardFull() {
+                return this.board[0].every(cell => cell !== this.EMPTY);
+            }
+            
+            updateTurnDisplay() {
+                if (this.gameOver || !this.currentTurnElement) return;
+                this.currentTurnElement.textContent = 
+                    this.currentPlayer === this.PLAYER ? 'Il tuo turno' : 'Turno di Leone';
+            }
+            
+            // AI IMBATTIBILE - Minimax con Alpha-Beta Pruning
+            getBestMove() {
+                let bestScore = -Infinity;
+                let bestCol = 3; // Default centro
+                
+                for (let col = 0; col < this.COLS; col++) {
+                    if (this.canDropPiece(col)) {
+                        const row = this.findLowestRow(col);
+                        this.board[row][col] = this.LEONE;
+                        
+                        const score = this.minimax(0, false, -Infinity, Infinity);
+                        this.board[row][col] = this.EMPTY;
+                        
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestCol = col;
+                        }
+                    }
+                }
+                
+                return bestCol;
+            }
+            
+            minimax(depth, isMaximizing, alpha, beta) {
+                const leoneWin = this.hasWinningPosition(this.LEONE);
+                const playerWin = this.hasWinningPosition(this.PLAYER);
+                
+                if (leoneWin) return 1000 - depth;
+                if (playerWin) return -1000 + depth;
+                if (this.isBoardFull() || depth >= 7) return 0;
+                
+                if (isMaximizing) {
+                    let maxEval = -Infinity;
+                    for (let col = 0; col < this.COLS; col++) {
+                        if (this.canDropPiece(col)) {
+                            const row = this.findLowestRow(col);
+                            this.board[row][col] = this.LEONE;
+                            const evaluation = this.minimax(depth + 1, false, alpha, beta);
+                            this.board[row][col] = this.EMPTY;
+                            maxEval = Math.max(maxEval, evaluation);
+                            alpha = Math.max(alpha, evaluation);
+                            if (beta <= alpha) break;
+                        }
+                    }
+                    return maxEval;
+                } else {
+                    let minEval = Infinity;
+                    for (let col = 0; col < this.COLS; col++) {
+                        if (this.canDropPiece(col)) {
+                            const row = this.findLowestRow(col);
+                            this.board[row][col] = this.PLAYER;
+                            const evaluation = this.minimax(depth + 1, true, alpha, beta);
+                            this.board[row][col] = this.EMPTY;
+                            minEval = Math.min(minEval, evaluation);
+                            beta = Math.min(beta, evaluation);
+                            if (beta <= alpha) break;
+                        }
+                    }
+                    return minEval;
+                }
+            }
+            
+            hasWinningPosition(player) {
+                for (let row = 0; row < this.ROWS; row++) {
+                    for (let col = 0; col < this.COLS; col++) {
+                        if (this.board[row][col] === player) {
+                            if (this.checkWin(row, col, player)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            
+            findLowestRow(col) {
+                for (let row = this.ROWS - 1; row >= 0; row--) {
+                    if (this.board[row][col] === this.EMPTY) {
+                        return row;
+                    }
+                }
+                return -1;
+            }
+            
+            resetGame() {
+                console.log('Reset del gioco...');
+                
+                this.gameOver = false;
+                this.currentPlayer = this.PLAYER;
+                this.playerColor = null;
+                this.initializeBoard();
+                
+                if (this.gameStatusElement) this.gameStatusElement.textContent = '';
+                if (this.playerSelection) this.playerSelection.style.display = 'block';
+                if (this.gameBoard) {
+                    this.gameBoard.classList.remove('active');
+                    this.gameBoard.style.display = 'none';
+                }
+                if (this.startGameBtn) this.startGameBtn.disabled = true;
+                if (this.playerTokenDisplay) this.playerTokenDisplay.style.background = '';
+                
+                document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+            }
+        }
+        
+        // Avvia il gioco
+        console.log('Caricamento Forza 4...');
+        new ForceQuattroLeone();
+    </script>
 </body>
 </html>
