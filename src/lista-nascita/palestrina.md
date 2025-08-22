@@ -1,6 +1,6 @@
 ---
 nome: "Palestrina"
-categoria: "Altro"
+categoria: "Giochi"
 prezzo: 124.84
 negozio: "Amazon"
 link: "https://www.amazon.it/dp/B09GPNMX6X/ref=br_dsk_yr_itemdt_dp?colid=3QGQUT8WCNDK0&coliid=I2T2EFJ8XLAOZF&th=1"
