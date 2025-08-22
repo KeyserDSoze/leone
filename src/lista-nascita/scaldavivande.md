@@ -1,11 +1,11 @@
 ---
-nome: "Nuvita 1980 Pappa'n'Go Scaldavivande Portatile"
+nome: "Scaldavivande portatile Nuvita"
 categoria: "Pappa"
 prezzo: 89.88
 negozio: "Amazon"
-link: ""
+link: "https://www.amazon.it/dp/B0DQ5WHFTB/ref=br_dsk_yr_itemdt_dp?colid=3QGQUT8WCNDK0&coliid=ILGCSCXL5OY5J"
 icona: "/images/stuff/scaldavivande.jpg"
 acquistato: false
----
+---priorita: 4
 
 Scaldavivande portatile Nuvita per riscaldare la pappa del bambino ovunque ci si trovi.
