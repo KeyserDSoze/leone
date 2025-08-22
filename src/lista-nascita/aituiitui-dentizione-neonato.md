@@ -4,7 +4,7 @@ categoria: "Altro"
 prezzo: 17.99
 negozio: "Amazon"
 link: ""
-icona: "/images/stuff/dentizione-neonato.jpg"
+icona: "/images/stuff/dentizione-neonatoa.jpg"
 acquistato: false
 ---
 
