@@ -47,13 +47,24 @@ const lista = await getCollection('lista-nascita');
       </div>
     </div>
     
-    <div class="filter-section">
-      <label for="negozio-filter">Filtra per negozio:</label>
-      <select id="negozio-filter">
-        <option value="">Tutti i negozi</option>
-        <option value="Amazon">Amazon</option>
-        <option value="Mondo Bimbo">Mondo Bimbo</option>
-      </select>
+    <div class="filter-row">
+      <div class="filter-section">
+        <label for="negozio-filter">Filtra per negozio:</label>
+        <select id="negozio-filter">
+          <option value="">Tutti i negozi</option>
+          <option value="Amazon">Amazon</option>
+          <option value="Mondo Bimbo">Mondo Bimbo</option>
+        </select>
+      </div>
+      
+      <div class="filter-section">
+        <label for="stato-filter">Filtra per stato:</label>
+        <select id="stato-filter">
+          <option value="tutti">Tutti gli oggetti</option>
+          <option value="da-regalare">Regalabili</option>
+          <option value="regalati">Regalati</option>
+        </select>
+      </div>
     </div>
   </div>
 </div>
@@ -229,6 +240,24 @@ const lista = await getCollection('lista-nascita');
     flex-direction: column;
     gap: 0.5rem;
     align-items: center;
+  }
+  
+  .filter-row {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+    width: 100%;
+  }
+  
+  @media (max-width: 768px) {
+    .filter-row {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
   }
   
   .sort-options {
@@ -637,17 +666,33 @@ const lista = await getCollection('lista-nascita');
       return Array.from(checkboxes).map(cb => cb.value);
     }
     
-    function filterData(data, negozio) {
-      if (!negozio) return data;
-      return data.filter(item => item.negozio === negozio);
+    function filterData(data, negozio, stato) {
+      let filtered = data;
+      
+      // Filtro per negozio
+      if (negozio) {
+        filtered = filtered.filter(item => item.negozio === negozio);
+      }
+      
+      // Filtro per stato (regalato/da regalare)
+      if (stato && stato !== 'tutti') {
+        if (stato === 'regalati') {
+          filtered = filtered.filter(item => item.acquistato === true);
+        } else if (stato === 'da-regalare') {
+          filtered = filtered.filter(item => !item.acquistato);
+        }
+      }
+      
+      return filtered;
     }
     
     function updateDisplay() {
       const negozioSelect = document.getElementById('negozio-filter');
+      const statoSelect = document.getElementById('stato-filter');
       
-      if (!negozioSelect) return;
+      if (!negozioSelect || !statoSelect) return;
       
-      let filtered = filterData(listaData, negozioSelect.value);
+      let filtered = filterData(listaData, negozioSelect.value, statoSelect.value);
       let sortCriteria = getSelectedSortCriteria();
       let sorted = sortData(filtered, sortCriteria);
       
@@ -658,6 +703,7 @@ const lista = await getCollection('lista-nascita');
     // Event listeners per i controlli
     const checkboxes = document.querySelectorAll('.sort-options input[type="checkbox"]');
     const negozioSelect = document.getElementById('negozio-filter');
+    const statoSelect = document.getElementById('stato-filter');
     
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', updateDisplay);
@@ -665,6 +711,10 @@ const lista = await getCollection('lista-nascita');
     
     if (negozioSelect) {
       negozioSelect.addEventListener('change', updateDisplay);
+    }
+    
+    if (statoSelect) {
+      statoSelect.addEventListener('change', updateDisplay);
     }
     
     // Render iniziale
