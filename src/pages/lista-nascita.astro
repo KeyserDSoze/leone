@@ -808,28 +808,22 @@ const lista = await getCollection('lista-nascita');
       const prezzo = formatPrice(item.prezzo);
       const linkFinale = item.link && item.link.trim() !== '' ? item.link : 'https://amazon.it';
       const prioritaLabel = getPriorityLabel(item.priorita);
-      
+      const imageUri = createAssetUrl(item.icona);
       return `
         <div class="item${item.acquistato ? ' acquistato' : ''}">
           <div class="row">
             <div class="image-container">
-              ${item.icona && item.icona.trim() !== '' ? `
                 <img 
-                  src="${item.icona}" 
+                  src="${imageUri}" 
                   alt="${item.nome}" 
                   class="icona" 
-                  data-image-src="${item.icona}" 
+                  data-image-src="${imageUri}" 
                   data-image-alt="${item.nome}"
                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                 />
                 <div class="no-image" style="display: none;">
                   <i class="fa-solid fa-camera-slash"></i>
                 </div>
-              ` : `
-                <div class="no-image">
-                  <i class="fa-solid fa-camera-slash"></i>
-                </div>
-              `}
             </div>
             <div class="info">
               <div class="nome">${item.nome}</div>

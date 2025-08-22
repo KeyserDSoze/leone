@@ -10,6 +10,7 @@ const categorieListaNascita = [
 	'Sedute/Trasporto',
 	'Nanna',
 	'Pappa',
+	'Libri',
 	'Accessori genitori'
 ] as const;
 
