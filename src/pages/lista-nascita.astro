@@ -1,7 +1,7 @@
 
 ---
 import { getCollection } from 'astro:content';
-import { createUrl } from '../utils/urls';
+import { createUrl, createAssetUrl } from '../utils/urls';
 const lista = await getCollection('lista-nascita');
 ---
 
@@ -788,6 +788,26 @@ const lista = await getCollection('lista-nascita');
     
     // Funzioni per gestire la lista
     let currentData = [...listaData];
+    
+    // Funzione per creare URL degli asset (client-side)
+    function createAssetUrl(assetPath) {
+      if (!assetPath) return '';
+      
+      // Determina il base path
+      const hostname = window.location.hostname;
+      const customDomains = ['leone.famiglia.it', 'www.leone.famiglia.it'];
+      let basePath = '';
+      
+      if (hostname.includes('github.io')) {
+        basePath = '/leone';
+      } else if (!customDomains.includes(hostname)) {
+        // Per sviluppo locale o altri domini
+        basePath = '';
+      }
+      
+      const cleanPath = assetPath.startsWith('/') ? assetPath : `/${assetPath}`;
+      return `${basePath}${cleanPath}`;
+    }
     
     function getPriorityLabel(priorita) {
       const labels = {
