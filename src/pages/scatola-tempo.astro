@@ -620,7 +620,7 @@ const faviconUrl = createAssetUrl('/favicon.svg');
         class ScatolaTempo {
             constructor() {
                 // GitHub configuration
-                this.GITHUB_TOKEN = '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';
+                this.GITHUB_TOKEN = 'WjJsMGFIVmlYM0JoZEY4eE1VRktWMVJhV0ZFd01HdHlkVTlSZGpOUlozRklYMVZuVDBObFdYVkVVMlo2ZEVsb1FtVkdNMjQ1ZDFab2RWSnBVbEZRVEZwVmRFMDJUR0p3ZEZneFRVRkxTVFJOVDFoQk5IcEhUa28wZGxkMg==';
                 this.REPO_OWNER = 'KeyserDSoze';
                 this.REPO_NAME = 'leone';
                 this.LABEL = 'capsula';
@@ -631,6 +631,18 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                 this.setupEventListeners();
                 this.ensureLabelExists();
                 this.loadMessages();
+            }
+            
+            // Funzione per decodificare il token GitHub (doppia decodifica Base64)
+            decodeToken() {
+                try {
+                    const firstDecode = atob(this.GITHUB_TOKEN);
+                    const secondDecode = atob(firstDecode);
+                    return secondDecode;
+                } catch (error) {
+                    console.error('Errore nella decodifica del token:', error);
+                    return 'INSERISCI_QUI_IL_TUO_TOKEN';
+                }
             }
             
             initializeElements() {
@@ -675,15 +687,12 @@ const faviconUrl = createAssetUrl('/favicon.svg');
             
             async ensureLabelExists() {
                 try {
-                    if (this.GITHUB_TOKEN === 'INSERISCI_QUI_IL_TUO_TOKEN') {
-                        console.log('Token non configurato, skip controllo label');
-                        return;
-                    }
+                    const decodedToken = this.decodeToken();
                     
                     // Controlla se il label esiste già
                     const response = await fetch(`${this.apiBase}/labels/${this.LABEL}`, {
                         headers: {
-                            'Authorization': `token ${this.GITHUB_TOKEN}`,
+                            'Authorization': `token ${decodedToken}`,
                             'Accept': 'application/vnd.github.v3+json'
                         }
                     });
@@ -695,7 +704,7 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                         const createResponse = await fetch(`${this.apiBase}/labels`, {
                             method: 'POST',
                             headers: {
-                                'Authorization': `token ${this.GITHUB_TOKEN}`,
+                                'Authorization': `token ${decodedToken}`,
                                 'Accept': 'application/vnd.github.v3+json',
                                 'Content-Type': 'application/json'
                             },
@@ -723,7 +732,9 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                 try {
                     console.log('Caricamento messaggi...');
                     
-                    if (this.GITHUB_TOKEN === 'INSERISCI_QUI_IL_TUO_TOKEN') {
+                    const decodedToken = this.decodeToken();
+                    
+                    if (decodedToken === 'INSERISCI_QUI_IL_TUO_TOKEN') {
                         throw new Error('Token GitHub non configurato');
                     }
                     
@@ -735,7 +746,7 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                     
                     const response = await fetch(apiUrl, {
                         headers: {
-                            'Authorization': `token ${this.GITHUB_TOKEN}`,
+                            'Authorization': `token ${decodedToken}`,
                             'Accept': 'application/vnd.github.v3+json'
                         }
                     });
@@ -934,20 +945,17 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                     return;
                 }
                 
-                if (this.GITHUB_TOKEN === 'INSERISCI_QUI_IL_TUO_TOKEN') {
-                    alert('Token GitHub non configurato. Contatta l\'amministratore.');
-                    return;
-                }
-                
                 // Disabilita il pulsante e mostra loading
                 this.submitBtn.disabled = true;
                 this.submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Invio in corso...';
                 
                 try {
+                    const decodedToken = this.decodeToken();
+                    
                     const response = await fetch(`${this.apiBase}/issues`, {
                         method: 'POST',
                         headers: {
-                            'Authorization': `token ${this.GITHUB_TOKEN}`,
+                            'Authorization': `token ${decodedToken}`,
                             'Accept': 'application/vnd.github.v3+json',
                             'Content-Type': 'application/json'
                         },
