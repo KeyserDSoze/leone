@@ -1,11 +1,13 @@
+---
 nome: "Buoni spesa"
 categoria: "Altro"
-prezzo:
+prezzo: 0
 negozio: "Mondo Bimbo"
 link: ""
 icona: "/images/stuff/buono spesa.png"
 acquistato: false
-priorita: 3
+priorita: 1
 ---
 
 
+Buoni spesa

@@ -108,6 +108,17 @@ import { createUrl } from '../utils/urls';
 			box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 		}
 
+		.btn-tempo {
+			background: linear-gradient(135deg, #8e24aa, #ba68c8);
+			color: white;
+		}
+
+		.btn-tempo:hover {
+			background: linear-gradient(135deg, #7b1fa2, #8e24aa);
+			transform: translateY(-3px);
+			box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+		}
+
 		.btn i {
 			font-size: 1.5rem;
 		}
@@ -158,6 +169,11 @@ import { createUrl } from '../utils/urls';
 			<a href={createUrl("/mini-gioco")} class="btn btn-gioco">
 				<i class="fa-solid fa-gamepad"></i>
 				Gioca con Leone
+			</a>
+			
+			<a href={createUrl("/scatola-tempo")} class="btn btn-tempo">
+				<i class="fa-solid fa-hourglass-half"></i>
+				Scatola del Tempo
 			</a>
 		</div>
 	</div>

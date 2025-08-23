@@ -24,13 +24,8 @@ const lista = await getCollection('lista-nascita');
 <div class="controls">
   <div class="filters">
     <div class="sort-section">
-      <label>Ordina per (seleziona pi&ugrave; opzioni):</label>
+      <label>Ordina per (di default per priorit&agrave;):</label>
       <div class="sort-options">
-        <label class="checkbox-label">
-          <input type="checkbox" id="sort-priorita" value="priorita" checked />
-          <span class="checkmark"></span>
-          Priorit&agrave;
-        </label>
         <label class="checkbox-label">
           <input type="checkbox" id="sort-prezzo" value="prezzo" />
           <span class="checkmark"></span>
@@ -809,25 +804,37 @@ const lista = await getCollection('lista-nascita');
       return `${basePath}${cleanPath}`;
     }
     
-    function getPriorityLabel(priorita) {
-      const labels = {
-        1: '&star;&star;&star;&star;&star; Massima',
-        2: '&star;&star;&star;&star; Alta',
-        3: '&star;&star;&star; Media',
-        4: '&star;&star; Bassa',
-        5: '&star; Minima'
-      };
-      return labels[priorita] || '&star;&star;&star; Media';
-    }
-    
     function formatPrice(prezzo) {
-      return prezzo !== undefined ? `${prezzo.toFixed(2).replace('.', ',')} &euro;` : '';
+      if (prezzo === undefined) return '';
+      if (prezzo === 0) return '<span style="color: #f9a825; font-weight: bold;">Importo a scelta</span>';
+      return `${prezzo.toFixed(2).replace('.', ',')} &euro;`;
     }
     
     function createItemHTML(item) {
       const prezzo = formatPrice(item.prezzo);
-      const linkFinale = item.link && item.link.trim() !== '' ? item.link : 'https://amazon.it';
-      const prioritaLabel = getPriorityLabel(item.priorita);
+      
+      // Logica per i link: se è Mondo Bimbo, usa la pagina di istruzioni
+      let linkFinale;
+      let linkTarget = '_blank';
+      
+      if (item.negozio === 'Mondo Bimbo') {
+        // Crea URL per la pagina di istruzioni Mondo Bimbo usando la stessa logica degli asset
+        const hostname = window.location.hostname;
+        const customDomains = ['leone.famiglia.it', 'www.leone.famiglia.it'];
+        let basePath = '';
+        
+        if (hostname.includes('github.io')) {
+          basePath = '/leone';
+        } else if (!customDomains.includes(hostname)) {
+          basePath = '';
+        }
+        
+        linkFinale = `${basePath}/mondo-bimbo-guida`;
+        linkTarget = '_self'; // Rimani nello stesso tab per le pagine interne
+      } else {
+        linkFinale = item.link && item.link.trim() !== '' ? item.link : 'https://amazon.it';
+      }
+      
       const imageUri = createAssetUrl(item.icona);
       return `
         <div class="item${item.acquistato ? ' acquistato' : ''}">
@@ -850,11 +857,9 @@ const lista = await getCollection('lista-nascita');
               <div class="categoria">${item.categoria}</div>
               <div class="negozio">${item.negozio}</div>
               <div class="prezzo">${prezzo}</div>
-              <div class="priorita">Priorit&agrave;:&nbsp;${prioritaLabel}</div>
               ${!item.acquistato ? `
-                <a class="link" href="${linkFinale}" target="_blank">
-                  <span class="cart-btn"><i class="fa-solid fa-gift"></i></span>
-                  Regala <i class="fa-solid fa-champagne-glasses"></i>
+                <a class="link" href="${linkFinale}" target="${linkTarget}">
+                  <span class="cart-btn"><i class="fa-solid fa-gift"></i></span> Regala <i class="fa-solid fa-champagne-glasses"></i>
                 </a>
               ` : `
                 <span class="link disabled" style="pointer-events:none; opacity:0.7; background:#bdbdbd;">
@@ -892,10 +897,16 @@ const lista = await getCollection('lista-nascita');
               comparison = a.nome.localeCompare(b.nome);
               break;
             case 'prezzo':
-              comparison = (a.prezzo || 0) - (b.prezzo || 0);
+              // Per i prezzi, considera 0 come "infinito" per metterli alla fine
+              const prezzoA = a.prezzo === 0 ? Number.MAX_VALUE : (a.prezzo || 0);
+              const prezzoB = b.prezzo === 0 ? Number.MAX_VALUE : (b.prezzo || 0);
+              comparison = prezzoA - prezzoB;
               break;
             case 'prezzo-desc':
-              comparison = (b.prezzo || 0) - (a.prezzo || 0);
+              // Per prezzo decrescente, considera 0 come valore più alto
+              const prezzoDscA = a.prezzo === 0 ? Number.MAX_VALUE : (a.prezzo || 0);
+              const prezzoDscB = b.prezzo === 0 ? Number.MAX_VALUE : (b.prezzo || 0);
+              comparison = prezzoDscB - prezzoDscA;
               break;
             case 'priorita':
               comparison = (a.priorita || 3) - (b.priorita || 3);
@@ -912,7 +923,14 @@ const lista = await getCollection('lista-nascita');
     
     function getSelectedSortCriteria() {
       const checkboxes = document.querySelectorAll('.sort-options input[type="checkbox"]:checked');
-      return Array.from(checkboxes).map(cb => cb.value);
+      const selectedCriteria = Array.from(checkboxes).map(cb => cb.value);
+      
+      // Se non ci sono criteri selezionati, usa la priorità come default
+      if (selectedCriteria.length === 0) {
+        return ['priorita'];
+      }
+      
+      return selectedCriteria;
     }
     
     function filterData(data, negozio, stato) {
