@@ -482,18 +482,20 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                     cell.dataset.col = col.toString();
                     
                     // Stile base
-                    cell.style.cssText = `
-                        background: white;
-                        border: 2px solid #333;
-                        border-radius: 50%;
-                        aspect-ratio: 1;
-                        min-width: 54px;
-                        min-height: 54px;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    `;
+                        const isDesktop = window.innerWidth >= 1024;
+                        const size = isDesktop ? 54 : 40;
+                        cell.style.cssText = `
+                            background: white;
+                            border: 2px solid #333;
+                            border-radius: 50%;
+                            aspect-ratio: 1;
+                            min-width: ${size}px;
+                            min-height: ${size}px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        `;
                     
                     // Controlla se c'è un token
                     if (this.board && this.board[row] && this.board[row][col] !== this.EMPTY) {
