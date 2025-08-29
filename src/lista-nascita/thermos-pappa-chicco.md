@@ -6,6 +6,7 @@ negozio: "Mondo Bimbo"
 link: ""
 icona: "/images/stuff/thermos pappa.jpg"
 acquistato: false
----priorita: 4
+priorita: 4
+---
 
 Thermos per la pappa Chicco, mantiene la temperatura ideale dei cibi durante gli spostamenti.

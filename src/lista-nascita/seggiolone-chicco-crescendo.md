@@ -6,6 +6,7 @@ negozio: "Mondo Bimbo"
 link: ""
 icona: "/images/stuff/seggiolone chicco.jpg"
 acquistato: true
----priorita: 5
+priorita: 5
+---
 
 Seggiolone evolutivo Chicco che cresce con il bambino, regolabile in altezza e profondità.

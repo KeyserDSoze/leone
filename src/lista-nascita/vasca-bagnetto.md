@@ -6,6 +6,7 @@ negozio: "Amazon"
 link: "https://www.amazon.it/dp/B0BK5L5SJY/ref=br_dsk_yr_itemdt_dp?colid=3QGQUT8WCNDK0&coliid=I16D14TU9OL9B9&psc=1"
 icona: "/images/stuff/vasca bagnetto.jpg"
 acquistato: false
----priorita: 5
+priorita: 5
+---
 
 Vasca bagnetto.
