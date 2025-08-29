@@ -10,7 +10,7 @@ export function getBasePath(): string {
     // Browser environment - check the current hostname
     const hostname = window.location.hostname;
     // If we're on any of the custom domains, don't use base path
-    const customDomains = ['leonerapiti.com', 'www.leonerapiti.com', 'leone.famiglia.it', 'www.leone.famiglia.it'];
+    const customDomains = ['leonerapiti.com', 'www.leonerapiti.com'];
     if (customDomains.includes(hostname)) {
       return '';
     }
