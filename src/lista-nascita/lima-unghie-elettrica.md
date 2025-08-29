@@ -1,5 +1,5 @@
 ---
-nome: "Lima unghie elettrica neonato"
+nome: "Lima unghie elettrica"
 categoria: "Igiene & Salute"
 prezzo: 25.90
 negozio: "Mondo Bimbo"
