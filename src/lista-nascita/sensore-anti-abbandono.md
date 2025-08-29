@@ -6,6 +6,7 @@ negozio: "Mondo Bimbo"
 link: ""
 icona: "/images/stuff/sensore.jpg"
 acquistato: false
----priorita: 5
+priorita: 5
+---
 
 Sensore anti abbandono per seggiolino auto, dispositivo di sicurezza obbligatorio per legge.
