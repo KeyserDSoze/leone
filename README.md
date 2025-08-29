@@ -1,17 +1,21 @@
-# Catenaccio - Piattaforma di Analisi Calcistica
+# 🦁 Leone Rapiti - Sito di Nascita e Celebrazione
 
-Una piattaforma web multilingue dedicata all'analisi tattica e agli approfondimenti calcistici, costruita con Astro.
+Un sito web dedicato alla celebrazione della nascita di Leone, con lista nascita interattiva, mini-giochi e una scatola del tempo per messaggi speciali.
+
+## 🌐 Domini
+
+- **Produzione**: https://leonerapiti.com
+- **Sviluppo**: https://keyserdsoze.github.io/leone
 
 ## 🚀 Caratteristiche
 
-- ✅ Supporto multilingue (Italiano, Inglese, Spagnolo)
-- ✅ Dark mode con toggle manuale e preferenze di sistema
-- ✅ Ottimizzazione SEO con URL canonici e OpenGraph
-- ✅ Sistema di condivisione social integrato
-- ✅ Design responsive e mobile-friendly
-- ✅ Performance ottimizzate con Lighthouse 100/100
-- ✅ Feed RSS multilingue
-- ✅ Supporto Markdown & MDX
+- ✅ Lista nascita interattiva con filtri e ordinamento
+- ✅ Mini-gioco Connect Four personalizzato
+- ✅ Scatola del Tempo con integrazione GitHub Issues
+- ✅ Supporto per acquisti presso Mondo Bimbo con guida dedicata
+- ✅ Design responsive ottimizzato per mobile
+- ✅ Gestione automatica degli URL per diversi ambienti di deploy
+- ✅ Integrazione con dominio personalizzato leonerapiti.com
 
 ## 🏗️ Struttura del Progetto
 

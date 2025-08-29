@@ -2,7 +2,7 @@
 
 /**
  * Get the base path for the current environment
- * Returns '/leonerapiti' for GitHub Pages, '' for custom domains (leone.famiglia.it)
+ * Returns '/leone' for GitHub Pages, '' for custom domains (leonerapiti.com)
  */
 export function getBasePath(): string {
   // Check if we're in the browser or server
@@ -10,7 +10,7 @@ export function getBasePath(): string {
     // Browser environment - check the current hostname
     const hostname = window.location.hostname;
     // If we're on any of the custom domains, don't use base path
-    const customDomains = ['leone.famiglia.it', 'www.leone.famiglia.it'];
+    const customDomains = ['leonerapiti.com', 'www.leonerapiti.com', 'leone.famiglia.it', 'www.leone.famiglia.it'];
     if (customDomains.includes(hostname)) {
       return '';
     }

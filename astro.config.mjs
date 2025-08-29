@@ -10,8 +10,8 @@ const forceGitHubPages = process.env.DEPLOY_TARGET === 'github';
 const forceCustomDomain = process.env.DEPLOY_TARGET === 'custom';
 const useGitHubConfig = forceGitHubPages || (process.env.CI && !process.env.CUSTOM_DOMAIN && !forceCustomDomain);
 
-// Configurazione URL (da personalizzare con il dominio finale)
-const siteUrl = forceCustomDomain ? 'https://leone.famiglia.it' : (useGitHubConfig ? 'https://keyserdsoze.github.io' : 'https://leone.famiglia.it');
+// Configurazione URL con supporto per leonerapiti.com
+const siteUrl = forceCustomDomain ? 'https://leonerapiti.com' : (useGitHubConfig ? 'https://keyserdsoze.github.io' : 'https://leonerapiti.com');
 const baseUrl = (useGitHubConfig && !forceCustomDomain) ? '/leone' : '';
 
 // https://astro.build/config
