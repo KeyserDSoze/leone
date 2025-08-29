@@ -27,9 +27,9 @@
     margin: 0;
     position: relative;
   }
-h1 {
+h1, .rainbow-text {
   font-family: 'Playfull Rocket', system-ui, Arial, sans-serif;
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: bold;
   color: #4B6F44;
   text-align: center;
@@ -42,7 +42,7 @@ h1 {
   text-align: center;
   margin-bottom: 3rem;
 }
-.rainbow-text {
+.rainbow-text2 {
   background: linear-gradient(45deg, #1e90ff, #8a2be2, #ff1493, #ff0000);
   background-size: 400% 400%;
   -webkit-background-clip: text;
@@ -106,4 +106,10 @@ h1 {
   width: 100%;
   margin: 0 auto;
   padding: 0 1rem;
+}
+
+/* Mobile: riduci dimensione titoli e rainbow-text per leggibilità */
+@media (max-width: 768px) {
+  h1, .rainbow-text { font-size: 1.4rem; }
+  .main-title { font-size: 2rem; }
 }
