@@ -1,7 +1,7 @@
 ---
 nome: "Scaldavivande portatile Nuvita"
 categoria: "Pappa"
-prezzo: 89.88
+prezzo: 90.08
 negozio: "Amazon"
 link: "https://www.amazon.it/dp/B0DQ5WHFTB/ref=br_dsk_yr_itemdt_dp?colid=3QGQUT8WCNDK0&coliid=ILGCSCXL5OY5J"
 icona: "/images/stuff/scaldavivande.jpg"
