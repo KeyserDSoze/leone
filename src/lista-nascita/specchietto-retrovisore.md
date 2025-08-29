@@ -4,7 +4,7 @@ categoria: "Sedute/Trasporto"
 prezzo: 29.90
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/specchietto-retrovisore.jpg"
+icona: "/images/stuff/specchietto.jpg"
 acquistato: false
 ---
 

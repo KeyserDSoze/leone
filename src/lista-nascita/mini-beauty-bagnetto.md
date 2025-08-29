@@ -4,7 +4,7 @@ categoria: "Igiene & Salute"
 prezzo: 32.90
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/mini-beauty-bagnetto.jpg"
+icona: "/images/stuff/beauty.jpg"
 acquistato: false
 ---
 

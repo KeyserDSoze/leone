@@ -4,7 +4,7 @@ categoria: "Igiene & Salute"
 prezzo: 42.90
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/aspiratore-nasale.jpg"
+icona: "/images/stuff/aspiratore.jpg"
 acquistato: false
 ---
 

@@ -4,7 +4,7 @@ categoria: "Sedute/Trasporto"
 prezzo: 89.90
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/marsupio-6in1.jpg"
+icona: "/images/stuff/marsupio.jpg"
 acquistato: false
 ---
 

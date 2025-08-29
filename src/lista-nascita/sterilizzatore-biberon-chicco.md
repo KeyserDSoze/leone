@@ -4,7 +4,7 @@ categoria: "Pappa"
 prezzo: 59.90
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/sterilizzatore-chicco.jpg"
+icona: "/images/stuff/sterilizzatore biberon.jpg"
 acquistato: false
 ---
 

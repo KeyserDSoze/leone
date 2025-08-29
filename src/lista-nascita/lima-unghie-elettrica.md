@@ -4,7 +4,7 @@ categoria: "Igiene & Salute"
 prezzo: 25.90
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/lima-unghie-elettrica.jpg"
+icona: "/images/stuff/lima.jpg"
 acquistato: false
 ---
 

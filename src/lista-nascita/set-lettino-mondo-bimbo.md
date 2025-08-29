@@ -4,7 +4,7 @@ categoria: "Nanna"
 prezzo: 60.00
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/set-lettino.jpg"
+icona: "/images/stuff/set lettino.jpg"
 acquistato: false
 ---
 

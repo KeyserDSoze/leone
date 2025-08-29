@@ -4,7 +4,7 @@ categoria: "Nanna"
 prezzo: 57.00
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/set-culla.jpg"
+icona: "/images/stuff/set culla.jpg"
 acquistato: false
 ---
 

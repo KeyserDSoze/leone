@@ -4,7 +4,7 @@ categoria: "Nanna"
 prezzo: 79.00
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/cuscino-allattamento.jpg"
+icona: "/images/stuff/cuscino allattamento.jpg"
 acquistato: false
 ---
 
