@@ -4,7 +4,7 @@ categoria: "Nanna"
 prezzo: 129.00
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/riduttore-letto.jpg"
+icona: "/images/stuff/welcome.jpg"
 acquistato: false
 ---
 

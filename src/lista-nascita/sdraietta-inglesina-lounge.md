@@ -4,7 +4,7 @@ categoria: "Sedute/Trasporto"
 prezzo: 119.00
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/sdraietta-inglesina.jpg"
+icona: "/images/stuff/sdraietta.jpg"
 acquistato: false
 ---
 
