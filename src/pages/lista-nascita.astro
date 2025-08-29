@@ -1,4 +1,3 @@
-
 ---
 import { getCollection } from 'astro:content';
 import { createUrl, createAssetUrl } from '../utils/urls';
@@ -77,10 +76,20 @@ const lista = await getCollection('lista-nascita');
 </div>
 
 <style is:global>
+@font-face {
+  font-family: 'Playfull Rocket';
+  src: url('/fonts/playfull_rocket.ttf') format('truetype');
+  font-display: swap;
+}
+body {
+  font-family: system-ui, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+}
+h1 {
+  font-family: 'Playfull Rocket', system-ui, Arial, sans-serif;
+}
   body {
     background: url('../images/background.png') center center/cover no-repeat fixed;
     min-height: 100vh;
-    font-family: system-ui, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
     display: flex;
     flex-direction: column;
     align-items: center;

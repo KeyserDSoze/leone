@@ -4,7 +4,7 @@ categoria: "Nanna"
 prezzo: 79.00
 negozio: "Mondo Bimbo"
 link: ""
-icona: "/images/stuff/sacco nanna.jpg"
+icona: "/images/stuff/sacco nanna glam.jpeg"
 acquistato: false
 ---
 

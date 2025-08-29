@@ -11,7 +11,18 @@ import { createUrl } from '../utils/urls';
 	<title>Benvenuto Leone</title>
 	<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-	<style>
+	<style is:global>
+		@font-face {
+  font-family: 'Playfull Rocket';
+  src: url('/fonts/playfull_rocket.ttf') format('truetype');
+  font-display: swap;
+}
+body {
+  font-family: system-ui, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+}
+h1 {
+  font-family: 'Playfull Rocket', system-ui, Arial, sans-serif;
+}
 		* {
 			margin: 0;
 			padding: 0;
@@ -81,7 +92,7 @@ import { createUrl } from '../utils/urls';
 			display: flex;
 			align-items: center;
 			gap: 1rem;
-			min-width: 280px;
+			min-width: 360px;
 			justify-content: center;
 			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 		}
@@ -115,6 +126,17 @@ import { createUrl } from '../utils/urls';
 
 		.btn-tempo:hover {
 			background: linear-gradient(135deg, #7b1fa2, #8e24aa);
+			transform: translateY(-3px);
+			box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+		}
+
+		.btn-storia {
+			background: linear-gradient(135deg, #2196f3, #64b5f6);
+			color: white;
+		}
+
+		.btn-storia:hover {
+			background: linear-gradient(135deg, #1976d2, #2196f3);
 			transform: translateY(-3px);
 			box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 		}
@@ -175,6 +197,12 @@ import { createUrl } from '../utils/urls';
 				<i class="fa-solid fa-hourglass-half"></i>
 				Scatola del Tempo
 			</a>
+			
+			<a href="https://narrarium.com/it/series/leone/" class="btn btn-storia">
+				<i class="fa-solid fa-book-open"></i>
+				Leggi una storia
+			</a>
+			
 		</div>
 	</div>
 </body>
