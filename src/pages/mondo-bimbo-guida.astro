@@ -22,14 +22,13 @@ import { createUrl } from '../utils/urls';
 <div class="content-container">
   <div class="instruction-card">
     <div class="icon-header">
-      <i class="fa-solid fa-phone"></i>
       <h2>Procedura per Mondo Bimbo</h2>
     </div>
     
     <div class="steps">
-      <div class="dual-option-card vertical">
+      <div class="dual-option-card vertical step">
+        <div class="step-number">1</div>
         <div class="option-step">
-          <div class="step-number">1</div>
           <div class="option">
             <div class="option-icon"><i class="fa-solid fa-phone"></i></div>
             <div class="option-title">Chiama o contatta su Whatsapp</div>
@@ -58,9 +57,9 @@ import { createUrl } from '../utils/urls';
         </div>
       </div>
       
-      <div class="dual-option-card vertical">
+      <div class="dual-option-card vertical step">
+        <div class="step-number">3</div>
         <div class="option-step">
-          <div class="step-number">3</div>
           <div class="option">
             <div class="option-icon"><i class="fa-solid fa-info-circle"></i></div>
             <div class="option-title">Chiedi informazioni sul prodotto</div>
@@ -83,11 +82,18 @@ import { createUrl } from '../utils/urls';
         <div class="step-content">
           <h3>Accordati per il ritiro/consegna</h3>
           <p>Stabilisci insieme al personale:</p>
-          <ul>
-            <li>Modalità di pagamento</li>
-            <li>Tempi</li>
-            <li>Ritiro in negozio o consegna (possiamo ritirare anche noi)</li>
-          </ul>
+            <p class="highlight-text">
+              <i class="fa-solid fa-credit-card"></i>
+              Modalità di pagamento
+            </p>
+            <p class="highlight-text">
+              <i class="fa-solid fa-hourglass-half"></i>
+              Tempi
+            </p>
+            <p class="highlight-text">
+              <i class="fa-solid fa-truck"></i>
+              Ritiro in negozio o consegna (possiamo ritirare anche noi)
+            </p>
         </div>
       </div>
     </div>
@@ -350,16 +356,11 @@ body::before {
   border: 1px solid #c8e6c9;
 }
 .divider {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
   font-size: 1.1rem;
   font-weight: bold;
+  width: 100%;
+  text-align: center;
   color: #4caf50;
-  padding: 0.5rem 0 0.5rem 56px;
-  min-width: unset;
-  background: none;
-  border: none;
   position: relative;
 }
 .option-step {
@@ -409,6 +410,19 @@ body::before {
     padding: 0.5rem 0;
     min-width: unset;
   }
+}
+
+/* Posiziona il numero del passo sopra la card (overlay) per tutti i passi */
+.step, .option-step {
+  position: relative;
+}
+.step .step-number, .option-step .step-number {
+  position: absolute;
+  top: -20px;
+  left: 16px;
+  margin-right: 0;
+  transform: none;
+  z-index: 5;
 }
 
 /* Responsive */
