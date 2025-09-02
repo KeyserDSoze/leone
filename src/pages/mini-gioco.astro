@@ -510,7 +510,7 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                         this.statsIssueNumber = statsIssue.number;
                         try {
                             const statsData = JSON.parse(statsIssue.body);
-                            this.currentStats = { ...this.currentStats, ...statsData };
+                            this.currentStats = { ...statsData };
                             console.log('Statistiche caricate da GitHub (issue #' + this.statsIssueNumber + '):', this.currentStats);
                         } catch (parseError) {
                             console.warn('Errore nel parsing delle statistiche, uso valori di default:', parseError);
