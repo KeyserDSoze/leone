@@ -486,16 +486,16 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                 try {
                     const decodedToken = this.decodeToken();
                     if (!decodedToken) {
-                        console.warn('Token non disponibile, uso statistiche locali');
-                        this.loadLocalStats();
+                        console.warn('Token non disponibile, uso valori di default');
                         return;
                     }
                     
-                    // Cerca l'issue con titolo "stats"
-                    const response = await fetch(`${this.apiBase}/issues?state=open`, {
+                    // Cerca l'issue con titolo "stats" - EVITA CACHE
+                    const timestamp = Date.now();
+                    const response = await fetch(`${this.apiBase}/issues?state=open&_t=${timestamp}`, {
                         headers: {
                             'Authorization': `token ${decodedToken}`,
-                            'Accept': 'application/vnd.github.v3+json'
+                            'Accept': 'application/vnd.github.v3+json',
                         }
                     });
                     
@@ -509,8 +509,7 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                     if (statsIssue) {
                         this.statsIssueNumber = statsIssue.number;
                         try {
-                            const statsData = JSON.parse(statsIssue.body);
-                            this.currentStats = { ...statsData };
+                            this.currentStats = JSON.parse(statsIssue.body);
                             console.log('Statistiche caricate da GitHub (issue #' + this.statsIssueNumber + '):', this.currentStats);
                         } catch (parseError) {
                             console.warn('Errore nel parsing delle statistiche, uso valori di default:', parseError);
@@ -522,7 +521,6 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                     
                 } catch (error) {
                     console.warn('Errore nel caricamento statistiche da GitHub:', error);
-                    this.loadLocalStats();
                 }
             }
             
@@ -555,35 +553,38 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                 }
             }
             
-            loadLocalStats() {
-                const stored = localStorage.getItem('leone-forza4-stats');
-                if (stored) {
-                    try {
-                        this.currentStats = { ...this.currentStats, ...JSON.parse(stored) };
-                    } catch (error) {
-                        console.warn('Errore nel caricamento statistiche locali');
-                    }
-                }
-            }
-            
-            saveLocalStats() {
-                localStorage.setItem('leone-forza4-stats', JSON.stringify(this.currentStats));
-            }
-            
             async updateStats(result) {
-                // 1. Prima rileggi le statistiche da GitHub per vedere se qualcun altro ha giocato
-                console.log('Ricaricando statistiche da GitHub prima dell\'aggiornamento...');
+                console.log('🎮 Inizio aggiornamento statistiche per risultato:', result);
+                
+                // 1. Prima invalida qualsiasi cache e rileggi da GitHub
+                console.log('📥 Ricaricando statistiche da GitHub (forzando reload)...');
+                this.statsIssueNumber = null; // Forza la ricerca dell'issue
                 await this.loadStats();
                 
-                // 2. Aggiorna le statistiche locali (+1 sul risultato corrente)
+                // 2. Aggiorna le statistiche (+1 sul risultato corrente)
+                const oldStats = { ...this.currentStats };
                 this.currentStats[result]++;
-                console.log(`Aggiornate statistiche - ${result}:`, this.currentStats);
+                console.log('📊 Statistiche aggiornate:');
+                console.log('   Prima:', oldStats);
+                console.log('   Dopo:', this.currentStats);
                 
-                // 3. Salva localmente
-                this.saveLocalStats();
+                // 3. Aggiorna su GitHub con i nuovi valori
+                console.log('💾 Salvataggio su GitHub...');
+                const saveSuccess = await this.saveStatsToGitHub();
                 
-                // 4. Aggiorna su GitHub con i nuovi valori
-                await this.saveStatsToGitHub();
+                if (saveSuccess) {
+                    console.log('✅ Aggiornamento completato con successo!');
+                    // Piccolo delay per far sì che GitHub processi l'update
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // 4. Ricarica una volta di più per verificare che tutto sia sincronizzato
+                    console.log('🔄 Verifica finale sincronizzazione...');
+                    this.statsIssueNumber = null;
+                    await this.loadStats();
+                } else {
+                    console.error('❌ Errore nel salvataggio, ripristino valori precedenti');
+                    this.currentStats = oldStats;
+                }
                 
                 // 5. Aggiorna la visualizzazione
                 this.renderStats();
@@ -594,7 +595,7 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                     const decodedToken = this.decodeToken();
                     if (!decodedToken) {
                         console.warn('Token non disponibile per GitHub');
-                        return;
+                        return false;
                     }
                     
                     // Se non abbiamo un numero di issue, proviamo a trovarla di nuovo
@@ -603,16 +604,21 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                         await this.loadStats();
                         if (!this.statsIssueNumber) {
                             console.warn('Impossibile trovare o creare issue stats');
-                            return;
+                            return false;
                         }
                     }
+                    
+                    console.log('Salvataggio su GitHub - Issue #' + this.statsIssueNumber, this.currentStats);
                     
                     const response = await fetch(`${this.apiBase}/issues/${this.statsIssueNumber}`, {
                         method: 'PATCH',
                         headers: {
                             'Authorization': `token ${decodedToken}`,
                             'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache',
+                            'Expires': '0'
                         },
                         body: JSON.stringify({
                             body: JSON.stringify(this.currentStats, null, 2)
@@ -620,13 +626,20 @@ const faviconUrl = createAssetUrl('/favicon.svg');
                     });
                     
                     if (response.ok) {
-                        console.log('Statistiche aggiornate su GitHub issue #' + this.statsIssueNumber);
+                        const updatedIssue = await response.json();
+                        console.log('✅ Statistiche salvate con successo su GitHub issue #' + this.statsIssueNumber);
+                        console.log('✅ Contenuto aggiornato:', JSON.parse(updatedIssue.body));
+                        return true;
                     } else {
-                        console.warn('Errore nel salvataggio su GitHub:', response.status);
+                        console.error('❌ Errore nel salvataggio su GitHub:', response.status, response.statusText);
+                        const errorText = await response.text();
+                        console.error('❌ Dettagli errore:', errorText);
+                        return false;
                     }
                     
                 } catch (error) {
-                    console.warn('Errore nel salvataggio su GitHub:', error);
+                    console.error('❌ Errore nel salvataggio su GitHub:', error);
+                    return false;
                 }
             }
             
