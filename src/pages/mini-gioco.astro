@@ -571,17 +571,21 @@ const faviconUrl = createAssetUrl('/favicon.svg');
             }
             
             async updateStats(result) {
-                // Aggiorna le statistiche locali
+                // 1. Prima rileggi le statistiche da GitHub per vedere se qualcun altro ha giocato
+                console.log('Ricaricando statistiche da GitHub prima dell\'aggiornamento...');
+                await this.loadStats();
+                
+                // 2. Aggiorna le statistiche locali (+1 sul risultato corrente)
                 this.currentStats[result]++;
                 console.log(`Aggiornate statistiche - ${result}:`, this.currentStats);
                 
-                // Salva localmente
+                // 3. Salva localmente
                 this.saveLocalStats();
                 
-                // Aggiorna su GitHub
+                // 4. Aggiorna su GitHub con i nuovi valori
                 await this.saveStatsToGitHub();
                 
-                // Aggiorna la visualizzazione
+                // 5. Aggiorna la visualizzazione
                 this.renderStats();
             }
             
