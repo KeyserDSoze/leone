@@ -5,7 +5,7 @@ prezzo: 89.90
 negozio: "Mondo Bimbo"
 link: ""
 icona: "/images/stuff/marsupio.png"
-acquistato: false
+acquistato: true
 ---
 
 Marsupio ergonomico 6 in 1 che si adatta alle diverse fasi di crescita del bambino.
