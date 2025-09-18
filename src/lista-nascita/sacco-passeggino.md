@@ -1,10 +1,10 @@
 ---
-nome: "Sacco passeggino e seggiolino"
+nome: "Sacco seggiolino e carrozzina"
 categoria: "Nanna"
-prezzo: 41.99
+prezzo: 61.67
 negozio: "Amazon"
-link: "https://amazon.it/dp/B08CV5SB7Z/ref=br_dsk_yr_itemdt_dp?colid=3QGQUT8WCNDK0&coliid=IA0MJKAL0300U&psc=1"
-icona: "/images/stuff/sacco1.jpg"
+link: "https://www.amazon.it/dp/B0CKTS1339/ref=br_dsk_yr_item_seebyopt?colid=3QGQUT8WCNDK0&coliid=I1PKG2ZFJHO44R&th=1"
+icona: "/images/stuff/sacco_ovetto.jpg"
 acquistato: false
 priorita: 1
 ---
