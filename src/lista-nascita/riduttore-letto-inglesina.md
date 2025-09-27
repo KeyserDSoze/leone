@@ -5,7 +5,7 @@ prezzo: 129.00
 negozio: "Mondo Bimbo"
 link: ""
 icona: "/images/stuff/welcome.jpg"
-acquistato: false
+acquistato: true
 ---
 
 Riduttore letto Baby Nest Inglesina Welcome Pod per far dormire il neonato in sicurezza.

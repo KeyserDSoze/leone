@@ -5,7 +5,7 @@ prezzo: 49.67
 negozio: "Amazon"
 link: "https://www.amazon.it/dp/B0BGJDK1VQ/ref=br_dsk_yr_item_seebyopt?colid=3QGQUT8WCNDK0&coliid=I1PKG2ZFJHO44R&th=1"
 icona: "/images/stuff/sacco_ovetto.jpg"
-acquistato: false
+acquistato: true
 priorita: 1
 ---
 
