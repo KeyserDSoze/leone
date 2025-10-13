@@ -5,7 +5,7 @@ prezzo: 26.99
 negozio: "Amazon"
 link: "https://www.amazon.it/dp/B0DZ27NKBL/ref=br_dsk_yr_itemdt_dp?colid=3QGQUT8WCNDK0&coliid=I2EM65HKLO607J&th=1"
 icona: "/images/stuff/sterilizzatore ciucci.jpg"
-acquistato: false
+acquistato: true
 priorita: 3
 ---
 
