@@ -5,7 +5,7 @@ prezzo: 6.99
 negozio: "Amazon"
 link: "https://www.amazon.it/dp/B0CRZ1JV5K/ref=br_dsk_yr_itemdt_dp?colid=3QGQUT8WCNDK0&coliid=I1H7UY22VXTVX4&th=1"
 icona: "/images/stuff/Libro di Stoffa Forest.jpg"
-acquistato: false
+acquistato: true
 priorita: 1
 ---
 
