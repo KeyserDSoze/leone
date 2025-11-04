@@ -5,7 +5,7 @@ prezzo: 0
 negozio: "Mondo Bimbo"
 link: ""
 icona: "/images/stuff/buono spesa.png"
-acquistato: false
+acquistato: true
 priorita: 1
 ---
 
