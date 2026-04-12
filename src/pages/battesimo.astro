@@ -576,7 +576,7 @@ import { createUrl } from '../utils/urls';
     const ISSUE_TITLE = 'RSVP Battesimo Leone \u2013 lista partecipanti';
     const API_BASE   = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 
-    const ALLERGENS = ['Glutine', 'Lattosio', 'Frutta secca', 'Crostacei', 'Uova', 'Pesce', 'Soia', 'Sesamo'];
+    const ALLERGENS = ['Lattosio', 'Glutine', 'Nichel', 'Frutta secca', 'Pesce', 'Crostacei', 'Uova', 'Cipolla', 'Aglio'];
 
     function decodeToken(): string {
         try { return atob(atob(GITHUB_TOKEN)); } catch { return ''; }
