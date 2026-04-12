@@ -13,7 +13,7 @@ import { createUrl } from '../utils/urls';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
+    <style is:global>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -244,7 +244,7 @@ import { createUrl } from '../utils/urls';
             margin-bottom: 1.4rem;
         }
 
-        .form-group label {
+        .form-group > label {
             display: block;
             font-size: 0.82rem;
             font-weight: 600;
@@ -370,6 +370,87 @@ import { createUrl } from '../utils/urls';
             border: 1px solid #fca5a5;
         }
 
+        /* ── Allergen section ── */
+        .allergen-section {
+            border: 1.5px solid #b8d4e8;
+            border-radius: 1rem;
+            padding: 1.2rem 1rem 1rem;
+            margin-bottom: 1.4rem;
+            background: #f0f8ff;
+        }
+        .allergen-section-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #4a6a80;
+            margin-bottom: 0.3rem;
+        }
+        .allergen-section-hint {
+            font-size: 0.82rem;
+            color: #5a8fa8;
+            font-style: italic;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        .add-person-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+            padding: 0.55rem 1.2rem;
+            border: 1.5px solid #7aabcf;
+            border-radius: 2rem;
+            background: #fff;
+            color: #2c82b0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .add-person-btn:hover { background: #7aabcf; color: #fff; }
+
+        /* ── Person cards ── */
+        .person-card {
+            border: 1.5px solid #b8d4e8;
+            border-radius: 1rem;
+            padding: 1.1rem 1rem 0.4rem;
+            margin-bottom: 1rem;
+            background: #eef6fd;
+        }
+
+        .person-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.85rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #b8d4e8;
+        }
+        .person-number {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #4a8ab5;
+        }
+        .person-remove-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 1rem;
+            line-height: 1;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.4rem;
+            transition: color 0.2s, background 0.2s;
+        }
+        .person-remove-btn:hover { color: #dc2626; background: #fee2e2; }
+
+        .person-card .form-group { margin-bottom: 0.9rem; }
+
         /* Responsive */
         @media (max-width: 480px) {
             .invite-name  { font-size: 3.5rem; }
@@ -439,7 +520,7 @@ import { createUrl } from '../utils/urls';
 
         <form id="rsvpForm">
             <div class="form-group">
-                <label for="rsvpName">Il tuo nome *</label>
+                <label for="rsvpName">Il tuo nome (referente) *</label>
                 <input type="text" id="rsvpName" name="name" required maxlength="80"
                        placeholder="Nome e cognome">
             </div>
@@ -451,45 +532,25 @@ import { createUrl } from '../utils/urls';
             </div>
 
             <div class="form-group">
-                <label>Intolleranze alimentari</label>
-                <div class="allergens-grid">
-                    <label class="allergen-label">
-                        <input type="checkbox" name="allergen" value="Glutine"> Glutine
-                    </label>
-                    <label class="allergen-label">
-                        <input type="checkbox" name="allergen" value="Lattosio"> Lattosio
-                    </label>
-                    <label class="allergen-label">
-                        <input type="checkbox" name="allergen" value="Frutta secca"> Frutta secca
-                    </label>
-                    <label class="allergen-label">
-                        <input type="checkbox" name="allergen" value="Crostacei"> Crostacei
-                    </label>
-                    <label class="allergen-label">
-                        <input type="checkbox" name="allergen" value="Uova"> Uova
-                    </label>
-                    <label class="allergen-label">
-                        <input type="checkbox" name="allergen" value="Pesce"> Pesce
-                    </label>
-                    <label class="allergen-label">
-                        <input type="checkbox" name="allergen" value="Soia"> Soia
-                    </label>
-                    <label class="allergen-label">
-                        <input type="checkbox" name="allergen" value="Sesamo"> Sesamo
-                    </label>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="rsvpOtherAllergens">Altre intolleranze</label>
-                <input type="text" id="rsvpOtherAllergens" name="otherAllergens" maxlength="200"
-                       placeholder="es. arachidi, sulfiti…">
+                <label for="rsvpBambini">Di cui menù bambini</label>
+                <input type="number" id="rsvpBambini" name="bambini" min="0" max="20"
+                       placeholder="es. 1 (0 se nessuno)">
+                <p style="font-size:0.78rem;color:#5a8fa8;font-style:italic;margin-top:0.35rem;">I neonati che non mangiano non vanno conteggiati</p>
             </div>
 
             <div class="form-group">
                 <label for="rsvpNotes">Note aggiuntive</label>
                 <textarea id="rsvpNotes" name="notes" maxlength="500"
                           placeholder="Qualcosa che dobbiamo sapere?"></textarea>
+            </div>
+
+            <div class="allergen-section">
+                <p class="allergen-section-title">Intolleranze alimentari</p>
+                <p class="allergen-section-hint">Se qualcuno del tuo gruppo ha intolleranze, aggiungilo qui con nome e allergie. Lascia vuoto se nessuno ne ha.</p>
+                <div id="peopleContainer"></div>
+                <button type="button" class="add-person-btn" id="addPersonBtn">
+                    <i class="fa-solid fa-plus"></i>&nbsp; Aggiungi persona intollerante
+                </button>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">
@@ -515,12 +576,10 @@ import { createUrl } from '../utils/urls';
     const ISSUE_TITLE = 'RSVP Battesimo Leone \u2013 lista partecipanti';
     const API_BASE   = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 
+    const ALLERGENS = ['Glutine', 'Lattosio', 'Frutta secca', 'Crostacei', 'Uova', 'Pesce', 'Soia', 'Sesamo'];
+
     function decodeToken(): string {
-        try {
-            return atob(atob(GITHUB_TOKEN));
-        } catch {
-            return '';
-        }
+        try { return atob(atob(GITHUB_TOKEN)); } catch { return ''; }
     }
 
     function authHeaders(): Record<string, string> {
@@ -532,6 +591,8 @@ import { createUrl } from '../utils/urls';
     }
 
     interface GithubIssue { number: number; title: string; body: string | null; }
+    interface PersonEntry { nome: string; bambino: boolean; allergeni: string[]; altriAllergeni: string; }
+    interface RsvpEntry { referente: string; numeroPersone: number; bambini: number; intolleranti: PersonEntry[]; note: string; timestamp: string; }
 
     async function getOrCreateIssue(): Promise<GithubIssue> {
         const res = await fetch(
@@ -542,9 +603,7 @@ import { createUrl } from '../utils/urls';
         const issues: GithubIssue[] = await res.json();
         const existing = issues.find((i) => i.title === ISSUE_TITLE);
         if (existing) return existing;
-
         await ensureLabel();
-
         const create = await fetch(`${API_BASE}/issues`, {
             method: 'POST',
             headers: authHeaders(),
@@ -565,26 +624,14 @@ import { createUrl } from '../utils/urls';
         }
     }
 
-    interface RsvpEntry {
-        nome: string;
-        persone: number;
-        allergeni: string[];
-        altriAllergeni: string;
-        note: string;
-        timestamp: string;
-    }
-
     async function submitRsvp(entry: RsvpEntry): Promise<void> {
         const issue = await getOrCreateIssue();
-
         let list: RsvpEntry[] = [];
         try {
             const parsed: unknown = JSON.parse(issue.body ?? '[]');
             if (Array.isArray(parsed)) list = parsed as RsvpEntry[];
         } catch { list = []; }
-
         list.push(entry);
-
         const update = await fetch(`${API_BASE}/issues/${issue.number}`, {
             method: 'PATCH',
             headers: authHeaders(),
@@ -593,6 +640,66 @@ import { createUrl } from '../utils/urls';
         if (!update.ok) throw new Error(`Errore aggiornamento issue: ${update.status}`);
     }
 
+    // ── Manual add/remove person cards ──
+    let personCount = 0;
+
+    function escapeAttr(s: string): string {
+        return s.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function renumberCards(): void {
+        const container = document.getElementById('peopleContainer');
+        if (!container) return;
+        container.querySelectorAll<HTMLElement>('.person-number').forEach((el, idx) => {
+            el.textContent = `Persona intollerante ${idx + 1}`;
+        });
+    }
+
+    function addPersonCard(): void {
+        const container = document.getElementById('peopleContainer');
+        if (!container) return;
+        personCount++;
+        const card = document.createElement('div');
+        card.className = 'person-card';
+        card.innerHTML = `
+            <div class="person-card-header">
+                <span class="person-number">Persona intollerante ${personCount}</span>
+                <button type="button" class="person-remove-btn" title="Rimuovi">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" class="person-name" maxlength="80" placeholder="Nome e cognome">
+            </div>
+            <div class="form-group">
+                <label class="allergen-label" style="display:inline-flex;border-color:#fbbf24;background:#fffbeb;">
+                    <input type="checkbox" class="person-bambino"> Menù bambino
+                </label>
+            </div>
+            <div class="form-group">
+                <label>Intolleranze</label>
+                <div class="allergens-grid">
+                    ${ALLERGENS.map(a => `
+                    <label class="allergen-label">
+                        <input type="checkbox" class="person-allergen" value="${a}"> ${a}
+                    </label>`).join('')}
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Altre intolleranze</label>
+                <input type="text" class="person-other-allergens" maxlength="200"
+                       placeholder="es. arachidi, sulfiti\u2026">
+            </div>`;
+        card.querySelector('.person-remove-btn')?.addEventListener('click', () => {
+            card.remove();
+            renumberCards();
+        });
+        container.appendChild(card);
+    }
+
+    document.getElementById('addPersonBtn')?.addEventListener('click', addPersonCard);
+
     // ── Form submit ──
     const form = document.getElementById('rsvpForm') as HTMLFormElement | null;
     const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement | null;
@@ -600,16 +707,24 @@ import { createUrl } from '../utils/urls';
     form?.addEventListener('submit', async (e: Event) => {
         e.preventDefault();
 
-        const name    = (document.getElementById('rsvpName') as HTMLInputElement).value.trim();
-        const people  = parseInt((document.getElementById('rsvpPeople') as HTMLInputElement).value, 10);
-        const allergens = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="allergen"]:checked')).map((c) => c.value);
-        const otherAllergens = (document.getElementById('rsvpOtherAllergens') as HTMLInputElement).value.trim();
-        const notes   = (document.getElementById('rsvpNotes') as HTMLTextAreaElement).value.trim();
+        const referente = (document.getElementById('rsvpName') as HTMLInputElement).value.trim();
+        const numeroPersone = parseInt((document.getElementById('rsvpPeople') as HTMLInputElement).value, 10);
+        const bambini = parseInt((document.getElementById('rsvpBambini') as HTMLInputElement).value || '0', 10) || 0;
+        const notes = (document.getElementById('rsvpNotes') as HTMLTextAreaElement).value.trim();
 
-        if (!name || !people || people < 1) {
+        if (!referente || !numeroPersone || numeroPersone < 1) {
             showToast('error', 'Compila nome e numero di persone.');
             return;
         }
+
+        const intolleranti: PersonEntry[] = [];
+        document.querySelectorAll<HTMLElement>('.person-card').forEach((card) => {
+            const nome = (card.querySelector('.person-name') as HTMLInputElement)?.value.trim() ?? '';
+            const bambino = (card.querySelector('.person-bambino') as HTMLInputElement)?.checked ?? false;
+            const allergeni = Array.from(card.querySelectorAll<HTMLInputElement>('.person-allergen:checked')).map(c => c.value);
+            const altriAllergeni = (card.querySelector('.person-other-allergens') as HTMLInputElement)?.value.trim() ?? '';
+            intolleranti.push({ nome, bambino, allergeni, altriAllergeni });
+        });
 
         if (submitBtn) {
             submitBtn.disabled = true;
@@ -617,8 +732,10 @@ import { createUrl } from '../utils/urls';
         }
 
         try {
-            await submitRsvp({ nome: name, persone: people, allergeni: allergens, altriAllergeni: otherAllergens, note: notes, timestamp: new Date().toISOString() });
+            await submitRsvp({ referente, numeroPersone, bambini, intolleranti, note: notes, timestamp: new Date().toISOString() });
             form?.reset();
+            const container = document.getElementById('peopleContainer');
+            if (container) container.innerHTML = '';
             showToast('success', '');
         } catch (err) {
             console.error(err);
