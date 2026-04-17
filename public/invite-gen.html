@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore link invito – Battesimo Leone</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: sans-serif;
+            background: #dbeafe;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .card {
+            background: #fff;
+            border-radius: 1.2rem;
+            padding: 2rem;
+            max-width: 560px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(74,138,181,0.15);
+        }
+        h2 { color: #1e293b; margin-bottom: 0.5rem; }
+        .hint { font-size: 0.88rem; color: #5a8fa8; margin-bottom: 1.5rem; line-height: 1.6; }
+        label { display: block; font-size: 0.82rem; font-weight: 600; color: #4a6a80; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.4rem; }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            border: 1.5px solid #b8d4e8;
+            border-radius: 0.75rem;
+            font-size: 0.97rem;
+            font-family: inherit;
+            background: #f7fbff;
+            color: #1e293b;
+            margin-bottom: 1.2rem;
+        }
+        textarea { min-height: 80px; resize: vertical; }
+        textarea:focus, input:focus { outline: none; border-color: #7aabcf; }
+        button {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #7aabcf, #4a8ab5);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 2rem;
+            cursor: pointer;
+            letter-spacing: 0.06em;
+        }
+        button:hover { background: linear-gradient(135deg, #4a8ab5, #2c6284); }
+        #result {
+            margin-top: 1.5rem;
+            background: #eef6fd;
+            border: 1.5px solid #b8d4e8;
+            border-radius: 0.75rem;
+            padding: 1.1rem;
+            display: none;
+        }
+        #result strong { font-size: 0.82rem; color: #4a6a80; text-transform: uppercase; letter-spacing: 0.06em; }
+        #link {
+            display: block;
+            margin-top: 0.6rem;
+            word-break: break-all;
+            font-size: 0.88rem;
+            color: #1e4f6a;
+            cursor: pointer;
+            user-select: all;
+        }
+        #copyBtn {
+            margin-top: 0.8rem;
+            padding: 0.5rem 1.2rem;
+            width: auto;
+            font-size: 0.85rem;
+            border-radius: 2rem;
+        }
+        #copyFeedback { font-size: 0.82rem; color: #16a34a; margin-top: 0.4rem; display: none; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>🦁 Generatore invito personalizzato</h2>
+    <p class="hint">
+        Inserisci i nomi separati da virgola.<br>
+        Il <strong>primo</strong> è il capogruppo (nome e cognome), gli altri solo il nome.<br>
+        <em>Esempio: <code>Alessandro Rapiti, Francesca, Leone</code></em>
+    </p>
+
+    <label for="names">Nomi degli invitati</label>
+    <textarea id="names" placeholder="es. Mario Rossi, Giulia, Elena"></textarea>
+
+    <label for="baseUrl">URL base del sito</label>
+    <input type="text" id="baseUrl" value="https://leonerapiti.it/battesimo">
+
+    <button onclick="generate()">Genera link</button>
+
+    <div id="result">
+        <strong>Link da mandare:</strong>
+        <code id="link"></code>
+        <button id="copyBtn" onclick="copyLink()">📋 Copia link</button>
+        <p id="copyFeedback">✅ Copiato!</p>
+    </div>
+</div>
+
+<script>
+    const INVITE_SECRET = 'battesimo-leone-2026';
+
+    async function getInviteKey() {
+        const enc = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey(
+            'raw', enc.encode(INVITE_SECRET), 'PBKDF2', false, ['deriveKey']
+        );
+        return crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: enc.encode('leone-battesimo-salt'), iterations: 100000, hash: 'SHA-256' },
+            keyMaterial,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['encrypt', 'decrypt']
+        );
+    }
+
+    async function encryptInvite(text) {
+        const key = await getInviteKey();
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const enc = new TextEncoder();
+        const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(text));
+        const buf = new Uint8Array(12 + cipher.byteLength);
+        buf.set(iv, 0);
+        buf.set(new Uint8Array(cipher), 12);
+        return btoa(String.fromCharCode(...buf))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
+
+    async function generate() {
+        const names = document.getElementById('names').value.trim();
+        if (!names) { alert('Inserisci almeno un nome.'); return; }
+        const baseUrl = document.getElementById('baseUrl').value.trim().replace(/\/$/, '');
+        const encrypted = await encryptInvite(names);
+        const url = `${baseUrl}?p=${encrypted}`;
+        document.getElementById('link').textContent = url;
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('copyFeedback').style.display = 'none';
+    }
+
+    async function copyLink() {
+        const link = document.getElementById('link').textContent;
+        await navigator.clipboard.writeText(link);
+        const fb = document.getElementById('copyFeedback');
+        fb.style.display = 'block';
+        setTimeout(() => { fb.style.display = 'none'; }, 2500);
+    }
+</script>
+</body>
+</html>
