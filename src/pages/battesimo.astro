@@ -815,8 +815,17 @@ import { createUrl } from '../utils/urls';
         return s.trim().split(/\s+/).map(capitalizeFirst).join(' ');
     }
 
-    function getFirstName(fullName: string): string {
-        return capitalizeFirst(fullName.trim().split(/\s+/)[0]);
+    // First person has surname → drop last word to keep only the given name(s)
+    // e.g. "Maria Pia Cioccolini" → "Maria Pia", "Alessandro Rapiti" → "Alessandro"
+    function extractLeaderName(fullName: string): string {
+        const words = fullName.trim().split(/\s+/);
+        const nameWords = words.length > 1 ? words.slice(0, -1) : words;
+        return nameWords.map(capitalizeFirst).join(' ');
+    }
+
+    // From second person onward: no surname, use the whole string
+    function extractGuestName(name: string): string {
+        return name.trim().split(/\s+/).map(capitalizeFirst).join(' ');
     }
 
     async function initPersonalizedInvite(): Promise<void> {
@@ -829,16 +838,24 @@ import { createUrl } from '../utils/urls';
 
         const guestsEl = document.getElementById('inviteGuests');
         if (guestsEl) {
-            const firstNames = parts.map(getFirstName);
-            const nameList = firstNames.length === 1
-                ? firstNames[0]
-                : firstNames.slice(0, -1).join(', ') + ' e ' + firstNames[firstNames.length - 1];
-            let saluto = 'Cari';
-            if (firstNames.length === 1) {
-                const n = firstNames[0].toLowerCase();
+            const displayNames = parts.map((part: string, i: number) =>
+                i === 0 ? extractLeaderName(part) : extractGuestName(part)
+            );
+            const nameList = displayNames.length === 1
+                ? displayNames[0]
+                : displayNames.slice(0, -1).join(', ') + ' e ' + displayNames[displayNames.length - 1];
+
+            let saluto: string;
+            if (displayNames.length === 1) {
+                const n = displayNames[0].toLowerCase();
                 if (n.endsWith('a')) saluto = 'Cara';
                 else if (n.endsWith('o')) saluto = 'Caro';
+                else saluto = 'Cari';
+            } else {
+                const allFeminine = displayNames.every((n: string) => n.toLowerCase().endsWith('a'));
+                saluto = allFeminine ? 'Care' : 'Cari';
             }
+
             guestsEl.textContent = `${saluto} ${nameList},`;
             guestsEl.style.display = 'block';
         }
