@@ -7,6 +7,474 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Presenze – Battesimo Leone</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #eef5fb;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        .page-header {
+            background: linear-gradient(135deg, #2c6284 0%, #4a8ab5 60%, #7aabcf 100%);
+            padding: 2.5rem 2rem 2rem;
+            color: #fff;
+        }
+        .page-header h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            line-height: 1.1;
+            margin-bottom: 0.25rem;
+        }
+        .page-header .subtitle {
+            font-size: 0.82rem;
+            font-weight: 400;
+            opacity: 0.8;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* ── STATS BAR ── */
+        .stats-section {
+            background: #fff;
+            border-bottom: 1px solid #dbeafe;
+            padding: 1.5rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stats-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #f0f8ff;
+            border: 1.5px solid #c8dff0;
+            border-radius: 0.9rem;
+            padding: 0.65rem 1.1rem;
+        }
+        .stat-icon {
+            width: 2.2rem;
+            height: 2.2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .stat-icon.blue  { background: #dbeafe; color: #1d4ed8; }
+        .stat-icon.teal  { background: #ccfbf1; color: #0f766e; }
+        .stat-icon.amber { background: #fef9c3; color: #92400e; }
+        .stat-icon.green { background: #dcfce7; color: #166534; }
+        .stat-text {}
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-top: 0.1rem;
+        }
+        .refresh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.4rem;
+            background: linear-gradient(135deg, #4a8ab5, #2c6284);
+            color: #fff;
+            border: none;
+            border-radius: 2rem;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 2px 8px rgba(44,98,132,0.25);
+            flex-shrink: 0;
+        }
+        .refresh-btn:hover { background: linear-gradient(135deg, #2c6284, #1a4a66); transform: translateY(-1px); }
+        .refresh-btn:disabled { background: #b8d4e8; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ── MAIN CONTENT ── */
+        .content {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        #status {
+            text-align: center;
+            color: #5a8fa8;
+            font-size: 0.92rem;
+            padding: 3rem 1rem;
+            background: #fff;
+            border-radius: 1.2rem;
+            border: 1.5px dashed #c8dff0;
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: #fff;
+            border-radius: 1.2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 12px rgba(44,98,132,0.07);
+            overflow: hidden;
+            border: 1px solid #dbeafe;
+            transition: box-shadow 0.2s;
+        }
+        .card:hover { box-shadow: 0 4px 20px rgba(44,98,132,0.13); }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            padding: 1.1rem 1.4rem 1rem;
+            border-bottom: 1px solid #f0f8ff;
+            background: linear-gradient(90deg, #f7fbff, #fff);
+        }
+        .card-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .card-avatar {
+            width: 2.4rem;
+            height: 2.4rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7aabcf, #4a8ab5);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.88rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .card-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .card-num {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+        .card-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            align-items: center;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.28rem 0.7rem;
+            border-radius: 2rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .badge-people  { background: #dbeafe; color: #1d4ed8; }
+        .badge-bambini { background: #fef9c3; color: #854d0e; }
+        .badge-time    { background: #f1f5f9; color: #475569; }
+
+        .card-body {
+            padding: 0.9rem 1.4rem 1.1rem;
+        }
+        .detail-row {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 0.82rem;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+        .detail-row:last-child { margin-bottom: 0; }
+        .detail-row strong { color: #334155; }
+
+        .intoll-section {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed #e2ecf6;
+        }
+        .intoll-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #94a3b8;
+            margin-bottom: 0.6rem;
+        }
+        .person-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 0.4rem;
+            padding: 0.5rem 0.75rem;
+            background: #fef9f9;
+            border-radius: 0.75rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.82rem;
+        }
+        .person-row:last-child { margin-bottom: 0; }
+        .person-row-name {
+            font-weight: 700;
+            color: #1e293b;
+            margin-right: 0.2rem;
+        }
+        .allergen-tag {
+            display: inline-flex;
+            align-items: center;
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 0.4rem;
+            padding: 0.12rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 540px) {
+            .page-header { padding: 2rem 1.2rem 1.5rem; }
+            .stats-section { padding: 1.2rem; flex-direction: column; align-items: stretch; }
+            .stats-group { justify-content: stretch; }
+            .stat { flex: 1; min-width: 0; }
+            .refresh-btn { width: 100%; justify-content: center; }
+            .content { padding: 1.2rem 1rem 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="page-header">
+    <h1>🦁 Presenze &mdash; Battesimo Leone</h1>
+    <p class="subtitle">7 Giugno 2026 &middot; Lista confermati</p>
+</header>
+
+<div class="stats-section" id="statsSection" style="display:none">
+    <div class="stats-group">
+        <div class="stat">
+            <div class="stat-icon blue"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="stat-text">
+                <div class="stat-value" id="totFamiglie">–</div>
+                <div class="stat-label">Gruppi</div>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon teal"><i class="fa-solid fa-users"></i></div>
+            <div class="stat-text">
+                <div class="stat-value" id="totPersone">–</div>
+                <div class="stat-label">Persone</div>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon green"><i class="fa-solid fa-utensils"></i></div>
+            <div class="stat-text">
+                <div class="stat-value" id="totAdulti">–</div>
+                <div class="stat-label">Adulti</div>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon amber"><i class="fa-solid fa-baby"></i></div>
+            <div class="stat-text">
+                <div class="stat-value" id="totBambini">–</div>
+                <div class="stat-label">Bambini</div>
+            </div>
+        </div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn">
+        <i class="fa-solid fa-rotate-right"></i> Aggiorna
+    </button>
+</div>
+
+<!-- refresh btn visible before data loads -->
+<div style="padding:1.2rem 2rem 0; display:flex; justify-content:flex-end; max-width:760px; margin:0 auto" id="refreshTop">
+    <button class="refresh-btn" id="refreshBtnTop">
+        <i class="fa-solid fa-rotate-right"></i> Aggiorna lista
+    </button>
+</div>
+
+<div class="content">
+    <div id="status">Caricamento in corso…</div>
+    <div id="list"></div>
+</div>
+
+<script is:inline>
+(function () {
+    const GITHUB_TOKEN = 'WjJsMGFIVmlYM0JoZEY4eE1VRktWMVJhV0ZFd01HdHlkVTlSZGpOUlozRklYMVZuVDBObFdYVkVVMlo2ZEVsb1FtVkdNMjQ1ZDFab2RWSnBVbEZRVEZwVmRFMDJUR0p3ZEZneFRVRkxTVFJOVDFoQk5IcEhUa28wZGxkMg==';
+    const REPO_OWNER = 'KeyserDSoze';
+    const REPO_NAME  = 'leone';
+    const LABEL      = 'battesimo-rsvp';
+    const ISSUE_TITLE = 'RSVP Battesimo Leone \u2013 lista partecipanti';
+    const API_BASE   = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+    function decodeToken() {
+        try { return atob(atob(GITHUB_TOKEN)); } catch { return ''; }
+    }
+    function authHeaders() {
+        return { 'Authorization': `token ${decodeToken()}`, 'Accept': 'application/vnd.github.v3+json' };
+    }
+    function esc(s) {
+        return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function formatTimestamp(ts) {
+        if (!ts) return '';
+        try {
+            return new Date(ts).toLocaleString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch { return ts; }
+    }
+    function initials(name) {
+        return String(name ?? '').trim().split(/\s+/).slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase();
+    }
+
+    function setDisabled(v) {
+        ['refreshBtn', 'refreshBtnTop'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = v;
+        });
+    }
+
+    async function load() {
+        const statusEl  = document.getElementById('status');
+        const listEl    = document.getElementById('list');
+        const statsSection = document.getElementById('statsSection');
+        const refreshTop   = document.getElementById('refreshTop');
+
+        setDisabled(true);
+        statusEl.style.display = 'block';
+        statusEl.textContent = 'Caricamento in corso…';
+        listEl.innerHTML = '';
+
+        try {
+            const res = await fetch(
+                `${API_BASE}/issues?state=open&labels=${encodeURIComponent(LABEL)}&per_page=10`,
+                { headers: authHeaders() }
+            );
+            if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+            const issues = await res.json();
+            const issue = issues.find(i => i.title === ISSUE_TITLE);
+
+            if (!issue) {
+                statusEl.textContent = 'Nessun RSVP ricevuto ancora.';
+                setDisabled(false);
+                return;
+            }
+
+            let list = [];
+            try {
+                const parsed = JSON.parse(issue.body ?? '[]');
+                if (Array.isArray(parsed)) list = parsed;
+            } catch { list = []; }
+
+            if (list.length === 0) {
+                statusEl.textContent = 'Nessun RSVP ricevuto ancora.';
+                statsSection.style.display = 'none';
+                setDisabled(false);
+                return;
+            }
+
+            // Totals
+            const totPersone = list.reduce((s, e) => s + (Number(e.numeroPersone) || 0), 0);
+            const totBambini = list.reduce((s, e) => s + (Number(e.bambini) || 0), 0);
+            document.getElementById('totFamiglie').textContent = list.length;
+            document.getElementById('totPersone').textContent  = totPersone;
+            document.getElementById('totBambini').textContent  = totBambini;
+            document.getElementById('totAdulti').textContent   = totPersone - totBambini;
+            statsSection.style.display = 'flex';
+            if (refreshTop) refreshTop.style.display = 'none';
+            statusEl.style.display = 'none';
+
+            // Cards
+            listEl.innerHTML = list.map((e, idx) => {
+                const hasBambini = Number(e.bambini) > 0;
+                const hasIntoll  = Array.isArray(e.intolleranti) && e.intolleranti.length > 0;
+                const hasNote    = e.note && e.note.trim();
+
+                const intolleranti = hasIntoll
+                    ? e.intolleranti.map(p => {
+                        const tags = (p.allergeni ?? []).map(a =>
+                            `<span class="allergen-tag">${esc(a)}</span>`
+                        ).join(' ');
+                        const altri = p.altriAllergeni
+                            ? p.altriAllergeni.split(',').map(a =>
+                                `<span class="allergen-tag">${esc(a.trim())}</span>`
+                              ).join(' ')
+                            : '';
+                        const bambino = p.bambino ? ' <em style="color:#64748b;font-size:0.7rem">(bambino)</em>' : '';
+                        return `<div class="person-row">
+                            <span class="person-row-name">${esc(p.nome)}${bambino}</span>
+                            ${tags}${altri ? ' ' + altri : ''}
+                        </div>`;
+                    }).join('')
+                    : '';
+
+                const bodyContent = [
+                    hasNote    ? `<div class="detail-row"><i class="fa-regular fa-comment-dots" style="color:#94a3b8;margin-top:0.1rem;flex-shrink:0"></i><span><strong>Note:</strong> ${esc(e.note)}</span></div>` : '',
+                    hasIntoll  ? `<div class="intoll-section"><div class="intoll-title"><i class="fa-solid fa-triangle-exclamation" style="margin-right:0.3rem"></i>Intolleranze</div>${intolleranti}</div>` : ''
+                ].filter(Boolean).join('');
+
+                return `<div class="card">
+                    <div class="card-header">
+                        <div class="card-left">
+                            <div class="card-avatar">${esc(initials(e.referente))}</div>
+                            <div>
+                                <div class="card-name">${esc(e.referente)}</div>
+                                <div class="card-num">#${idx + 1}</div>
+                            </div>
+                        </div>
+                        <div class="card-badges">
+                            <span class="badge badge-people"><i class="fa-solid fa-users"></i> ${esc(e.numeroPersone)} pers.</span>
+                            ${hasBambini ? `<span class="badge badge-bambini"><i class="fa-solid fa-baby"></i> ${esc(e.bambini)}</span>` : ''}
+                            <span class="badge badge-time"><i class="fa-regular fa-clock"></i> ${esc(formatTimestamp(e.timestamp))}</span>
+                        </div>
+                    </div>
+                    ${bodyContent ? `<div class="card-body">${bodyContent}</div>` : ''}
+                </div>`;
+            }).join('');
+
+        } catch (err) {
+            statusEl.style.display = 'block';
+            statusEl.textContent = `Errore: ${err && err.message ? err.message : err}`;
+        }
+
+        setDisabled(false);
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', load);
+    document.getElementById('refreshBtnTop').addEventListener('click', load);
+    load();
+})();
+</script>
+</body>
+</html>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
