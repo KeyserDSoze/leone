@@ -817,8 +817,15 @@ import { createUrl } from '../utils/urls';
 
     // First person has surname → drop last word to keep only the given name(s)
     // e.g. "Maria Pia Cioccolini" → "Maria Pia", "Alessandro Rapiti" → "Alessandro"
+    // Special case: compound surnames with particles (del, di, de, della…)
+    // e.g. "Fabio del Citto" → "Fabio"
     function extractLeaderName(fullName: string): string {
         const words = fullName.trim().split(/\s+/);
+        const particles = ['del', 'di', 'de', 'della', 'degli', 'dei', 'dal', 'dalla', 'dello'];
+        const particleIdx = words.findIndex(w => particles.includes(w.toLowerCase()));
+        if (particleIdx > 0) {
+            return words.slice(0, particleIdx).map(capitalizeFirst).join(' ');
+        }
         const nameWords = words.length > 1 ? words.slice(0, -1) : words;
         return nameWords.map(capitalizeFirst).join(' ');
     }
