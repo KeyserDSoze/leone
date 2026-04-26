@@ -1,0 +1,316 @@
+---
+---
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presenze – Battesimo Leone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #f0f8ff;
+            color: #1e293b;
+            min-height: 100vh;
+            padding: 2rem 1.5rem 4rem;
+        }
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.8rem, 5vw, 2.6rem);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: #1e293b;
+            margin-bottom: 0.3rem;
+        }
+        .subtitle {
+            font-size: 0.85rem;
+            color: #5a8fa8;
+            margin-bottom: 2rem;
+            letter-spacing: 0.05em;
+        }
+        .summary-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat {
+            background: #fff;
+            border: 1.5px solid #b8d4e8;
+            border-radius: 1rem;
+            padding: 0.9rem 1.5rem;
+            text-align: center;
+            min-width: 130px;
+            box-shadow: 0 2px 8px rgba(74,138,181,0.08);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #7aabcf;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #4a6a80;
+            margin-top: 0.3rem;
+        }
+        .refresh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.4rem;
+            background: linear-gradient(135deg, #7aabcf, #4a8ab5);
+            color: #fff;
+            border: none;
+            border-radius: 2rem;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            transition: all 0.25s;
+        }
+        .refresh-btn:hover { background: linear-gradient(135deg, #4a8ab5, #2c6284); }
+        .refresh-btn:disabled { background: #b8d4e8; cursor: not-allowed; }
+        .card {
+            background: #fff;
+            border: 1.5px solid #c8dff0;
+            border-radius: 1.2rem;
+            padding: 1.4rem 1.5rem;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 2px 10px rgba(74,138,181,0.08);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+        .card-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.7rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        .badge-people { background: #dbeafe; color: #1d4ed8; }
+        .badge-bambini { background: #fef9c3; color: #854d0e; }
+        .badge-time { background: #f0fdf4; color: #166534; font-size: 0.7rem; }
+        .card-detail {
+            font-size: 0.82rem;
+            color: #475569;
+            margin-top: 0.4rem;
+            line-height: 1.7;
+        }
+        .card-detail strong { color: #1e293b; }
+        .allergen-tag {
+            display: inline-block;
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 0.5rem;
+            padding: 0.15rem 0.55rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin: 0.1rem;
+        }
+        .person-row {
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.8rem;
+            background: #fef9f9;
+            border-radius: 0.75rem;
+            font-size: 0.82rem;
+        }
+        .person-row-name { font-weight: 700; color: #1e293b; margin-bottom: 0.2rem; }
+        #status {
+            text-align: center;
+            color: #5a8fa8;
+            font-size: 0.95rem;
+            padding: 2rem;
+        }
+        #list { max-width: 720px; }
+        .header-row { max-width: 720px; }
+        @media (max-width: 480px) {
+            .stat { min-width: 90px; padding: 0.7rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-row">
+    <h1>🦁 Presenze – Battesimo Leone</h1>
+    <p class="subtitle">Lista di chi ha confermato la partecipazione</p>
+
+    <div class="summary-bar" id="summaryBar" style="display:none">
+        <div class="stat">
+            <div class="stat-value" id="totFamiglie">–</div>
+            <div class="stat-label">Famiglie / Gruppi</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="totPersone">–</div>
+            <div class="stat-label">Persone totali</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="totBambini">–</div>
+            <div class="stat-label">Menù bambini</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="totAdulti">–</div>
+            <div class="stat-label">Menù adulti</div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" id="refreshBtn">
+        <i class="fa-solid fa-rotate-right"></i> Aggiorna lista
+    </button>
+</div>
+
+<div id="status">Caricamento in corso…</div>
+<div id="list"></div>
+
+<script is:inline>
+(function () {
+    const GITHUB_TOKEN = 'WjJsMGFIVmlYM0JoZEY4eE1VRktWMVJhV0ZFd01HdHlkVTlSZGpOUlozRklYMVZuVDBObFdYVkVVMlo2ZEVsb1FtVkdNMjQ1ZDFab2RWSnBVbEZRVEZwVmRFMDJUR0p3ZEZneFRVRkxTVFJOVDFoQk5IcEhUa28wZGxkMg==';
+    const REPO_OWNER = 'KeyserDSoze';
+    const REPO_NAME  = 'leone';
+    const LABEL      = 'battesimo-rsvp';
+    const ISSUE_TITLE = 'RSVP Battesimo Leone \u2013 lista partecipanti';
+    const API_BASE   = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+    function decodeToken() {
+        try { return atob(atob(GITHUB_TOKEN)); } catch { return ''; }
+    }
+    function authHeaders() {
+        return {
+            'Authorization': `token ${decodeToken()}`,
+            'Accept': 'application/vnd.github.v3+json'
+        };
+    }
+
+    function esc(s) {
+        return String(s ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function formatTimestamp(ts) {
+        if (!ts) return '';
+        try {
+            return new Date(ts).toLocaleString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch { return ts; }
+    }
+
+    async function load() {
+        const statusEl = document.getElementById('status');
+        const listEl   = document.getElementById('list');
+        const btn      = document.getElementById('refreshBtn');
+        const summaryBar = document.getElementById('summaryBar');
+
+        btn.disabled = true;
+        statusEl.style.display = 'block';
+        statusEl.textContent = 'Caricamento in corso…';
+        listEl.innerHTML = '';
+
+        try {
+            const res = await fetch(
+                `${API_BASE}/issues?state=open&labels=${encodeURIComponent(LABEL)}&per_page=10`,
+                { headers: authHeaders() }
+            );
+            if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+            const issues = await res.json();
+            const issue = issues.find(i => i.title === ISSUE_TITLE);
+
+            if (!issue) {
+                statusEl.textContent = 'Nessun RSVP ricevuto ancora.';
+                btn.disabled = false;
+                return;
+            }
+
+            let list = [];
+            try {
+                const parsed = JSON.parse(issue.body ?? '[]');
+                if (Array.isArray(parsed)) list = parsed;
+            } catch { list = []; }
+
+            if (list.length === 0) {
+                statusEl.textContent = 'Nessun RSVP ricevuto ancora.';
+                summaryBar.style.display = 'none';
+                btn.disabled = false;
+                return;
+            }
+
+            // Totals
+            const totPersone = list.reduce((s, e) => s + (Number(e.numeroPersone) || 0), 0);
+            const totBambini = list.reduce((s, e) => s + (Number(e.bambini) || 0), 0);
+            document.getElementById('totFamiglie').textContent = list.length;
+            document.getElementById('totPersone').textContent  = totPersone;
+            document.getElementById('totBambini').textContent  = totBambini;
+            document.getElementById('totAdulti').textContent   = totPersone - totBambini;
+            summaryBar.style.display = 'flex';
+            statusEl.style.display = 'none';
+
+            // Cards
+            listEl.innerHTML = list.map((e, idx) => {
+                const hasBambini   = Number(e.bambini) > 0;
+                const hasIntoll    = Array.isArray(e.intolleranti) && e.intolleranti.length > 0;
+                const hasNote      = e.note && e.note.trim();
+
+                const intolleranti = hasIntoll
+                    ? e.intolleranti.map(p => {
+                        const tags = (p.allergeni ?? []).map(a => `<span class="allergen-tag">${esc(a)}</span>`).join('');
+                        const altri = p.altriAllergeni ? `<span class="allergen-tag">${esc(p.altriAllergeni)}</span>` : '';
+                        const bambino = p.bambino ? ' <em>(bambino)</em>' : '';
+                        return `<div class="person-row">
+                            <div class="person-row-name">${esc(p.nome)}${bambino}</div>
+                            <div>${tags}${altri}</div>
+                        </div>`;
+                    }).join('')
+                    : '';
+
+                return `<div class="card">
+                    <div class="card-header">
+                        <span class="card-name">${idx + 1}. ${esc(e.referente)}</span>
+                        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center">
+                            <span class="badge badge-people"><i class="fa-solid fa-users"></i> ${esc(e.numeroPersone)} pers.</span>
+                            ${hasBambini ? `<span class="badge badge-bambini"><i class="fa-solid fa-baby"></i> ${esc(e.bambini)} bamb.</span>` : ''}
+                            <span class="badge badge-time"><i class="fa-regular fa-clock"></i> ${esc(formatTimestamp(e.timestamp))}</span>
+                        </div>
+                    </div>
+                    ${hasNote ? `<div class="card-detail"><strong>Note:</strong> ${esc(e.note)}</div>` : ''}
+                    ${hasIntoll ? `<div class="card-detail" style="margin-top:0.6rem"><strong>Intolleranze:</strong>${intolleranti}</div>` : ''}
+                </div>`;
+            }).join('');
+
+        } catch (err) {
+            statusEl.style.display = 'block';
+            statusEl.textContent = `Errore: ${err.message}`;
+        }
+
+        btn.disabled = false;
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', load);
+    load();
+})();
+</script>
+</body>
+</html>
