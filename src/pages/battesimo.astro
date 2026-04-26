@@ -845,14 +845,20 @@ import { createUrl } from '../utils/urls';
                 ? displayNames[0]
                 : displayNames.slice(0, -1).join(', ') + ' e ' + displayNames[displayNames.length - 1];
 
+            const masculineExceptions = ['luca', 'andrea'];
+            const isFeminine = (n: string) => {
+                const lower = n.toLowerCase().split(' ')[0];
+                return lower.endsWith('a') && !masculineExceptions.includes(lower);
+            };
+
             let saluto: string;
             if (displayNames.length === 1) {
-                const n = displayNames[0].toLowerCase();
-                if (n.endsWith('a')) saluto = 'Cara';
-                else if (n.endsWith('o')) saluto = 'Caro';
+                const firstName = displayNames[0].toLowerCase().split(' ')[0];
+                if (isFeminine(displayNames[0])) saluto = 'Cara';
+                else if (firstName.endsWith('o') || masculineExceptions.includes(firstName)) saluto = 'Caro';
                 else saluto = 'Cari';
             } else {
-                const allFeminine = displayNames.every((n: string) => n.toLowerCase().endsWith('a'));
+                const allFeminine = displayNames.every((n: string) => isFeminine(n));
                 saluto = allFeminine ? 'Care' : 'Cari';
             }
 
