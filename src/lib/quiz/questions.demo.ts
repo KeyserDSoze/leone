@@ -3,6 +3,7 @@ import type { Question } from "./types";
 export const demoQuestion: Question = {
   id: "demo_battesimo_leone",
   category: "demo",
+  subcategory: "demo",
   text: "Quando è stato battezzato Leone?",
   answers: [
     { id: "A", text: "5 giugno" },
@@ -10,6 +11,6 @@ export const demoQuestion: Question = {
     { id: "C", text: "7 giugno" },
     { id: "D", text: "8 giugno" },
   ],
-  correctAnswerId: "C",
+  correctAnswerIds: ["C"],
   explanation: "Era facile: siete tutti qui per il 7 giugno! 🦁",
 };

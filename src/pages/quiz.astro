@@ -366,6 +366,21 @@
   </div>
 </div>
 
+<!-- PREVIEW — mostrata quando questionVisible=false -->
+<div id="screen-preview" class="screen">
+  <div class="card">
+    <div class="progress-row">
+      <span id="preview-progress" class="progress-label">Domanda</span>
+      <span id="preview-category" class="category-badge cat-general">Cultura</span>
+    </div>
+    <span style="font-size:64px;display:block;margin:20px 0">🤔</span>
+    <p style="font-size:17px;font-weight:600;color:#1F2937;margin-bottom:8px">
+      L'host sta per rivelare la domanda…
+    </p>
+    <p class="lobby-waiting">⏳ Tieniti pronto!</p>
+  </div>
+</div>
+
 <!-- QUESTION (also used for "answered" state — buttons disabled + selected highlighted) -->
 <div id="screen-question" class="screen">
   <div class="card">
@@ -452,7 +467,28 @@ import type {
   PublicResult,
   PublicAnswerStats,
   LeaderboardEntry,
+  AnswerId,
 } from "../lib/quiz/types";
+
+// ── Labels sottocategorie ──────────────────────────────────────────────────
+const SUB_LABELS: Record<string, string> = {
+  "geografia":           "Geografia 🌍",
+  "storia-antica":       "Storia Antica 🏛️",
+  "storia-moderna":      "Storia Moderna 📜",
+  "tecnologia":          "Tecnologia 💻",
+  "politica-italia":     "Politica 🇮🇹",
+  "grammatica-italiana": "Italiano 📝",
+  "matematica":          "Matematica 🔢",
+  "fisica-chimica":      "Scienze 🔬",
+  "arte":                "Arte & Letteratura 🎨",
+  "musica":              "Musica 🎵",
+  "leone":               "Leone 🦁",
+  "demo":                "Demo",
+};
+
+function humanizeSub(sub?: string): string {
+  return sub ? (SUB_LABELS[sub] ?? "Cultura") : "Cultura";
+}
 
 // ── State ──────────────────────────────────────────────────────────────────
 let currentUid: string | null = null;
@@ -523,6 +559,33 @@ function stopTimer() {
   }
 }
 
+// ── Render preview (questionVisible=false) ─────────────────────────────────
+function showPreview(pq: PublicQuestion) {
+  stopTimer();
+  const progressEl = document.getElementById("preview-progress");
+  const categoryEl = document.getElementById("preview-category");
+
+  if (progressEl) {
+    progressEl.textContent =
+      pq.category === "demo" ? "Domanda demo" : `Domanda ${pq.index} / ${pq.total}`;
+  }
+
+  if (categoryEl) {
+    if (pq.category === "leone") {
+      categoryEl.textContent = "Leone 🦁";
+      categoryEl.className = "category-badge cat-leone";
+    } else if (pq.category === "demo") {
+      categoryEl.textContent = "Demo";
+      categoryEl.className = "category-badge cat-demo";
+    } else {
+      categoryEl.textContent = humanizeSub(pq.subcategory);
+      categoryEl.className = "category-badge cat-general";
+    }
+  }
+
+  showScreen("preview");
+}
+
 // ── Render question ────────────────────────────────────────────────────────
 function renderQuestion(
   q: PublicQuestion,
@@ -548,7 +611,7 @@ function renderQuestion(
       categoryEl.textContent = "Leone 🦁";
       categoryEl.className = "category-badge cat-leone";
     } else {
-      categoryEl.textContent = "Cultura";
+      categoryEl.textContent = humanizeSub(q.subcategory);
       categoryEl.className = "category-badge cat-general";
     }
   }
@@ -585,8 +648,9 @@ function renderResult(
   const container = document.getElementById("result-content");
   if (!container) return;
 
-  const correct = result.correctAnswerId;
-  const isCorrect = myAnswerIdSnap === correct;
+  const correctIds = result.correctAnswerIds ?? [];
+  const isCorrect =
+    myAnswerIdSnap !== null && correctIds.includes(myAnswerIdSnap as AnswerId);
   const skipped = !myAnswerIdSnap;
 
   // Calculate points client-side (mirrors host calculation for display)
@@ -606,11 +670,19 @@ function renderResult(
   let icon: string;
   let outcomeText: string;
   let outcomeColor: string;
+
+  const allCorrect = correctIds.length === 4; // tutte le risposte corrette (Q leone_001)
+
   if (skipped) {
     summaryClass = "skip";
     icon = "⏱️";
     outcomeText = "Tempo scaduto!";
     outcomeColor = "#374151";
+  } else if (allCorrect) {
+    summaryClass = "correct";
+    icon = "✅";
+    outcomeText = "Tutti corretti! Era una domanda speciale 🦁";
+    outcomeColor = "#166534";
   } else if (isCorrect) {
     summaryClass = "correct";
     icon = "✅";
@@ -651,7 +723,7 @@ function renderResult(
           .map((id) => {
             const count = stats[id] ?? 0;
             const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-            const isThisCorrect = id === correct;
+            const isThisCorrect = correctIds.includes(id);
             const isMyWrongAnswer = id === myAnswerIdSnap && !isCorrect;
             const fillClass = isThisCorrect
               ? "bar-correct"
@@ -772,11 +844,6 @@ async function renderLeaderboard(revealStep: number, isFinished = false) {
 }
 
 // ── Restore answer from Firebase after F5 / reconnect ─────────────────────
-/**
- * Called whenever we first encounter a question ID we haven't seen yet.
- * Reads the player's answer from Firebase so that selectedId / myAnsweredAt
- * survive a page refresh.
- */
 async function restoreAnswerIfNeeded(questionId: string): Promise<void> {
   if (lastQuestionId === questionId) return; // already set up for this question
 
@@ -817,11 +884,22 @@ async function handleGameState(game: GameState) {
       const isNew = pq.id !== lastQuestionId;
       if (isNew) {
         await restoreAnswerIfNeeded(pq.id);
-        renderQuestion(pq, game.questionEndsAt!,
+      }
+
+      // Question not yet revealed: show preview
+      if (!game.questionVisible) {
+        showPreview(pq);
+        break;
+      }
+
+      // Question visible: show it
+      if (isNew) {
+        renderQuestion(
+          pq,
+          game.questionEndsAt!,
           hasAnswered ? { disabled: true, selectedId: myAnswerId } : {}
         );
       } else if (!hasAnswered) {
-        // Same question, not answered — keep screen/timer current
         if (!document.getElementById("screen-question")?.classList.contains("active")) {
           renderQuestion(pq, game.questionEndsAt!);
         }

@@ -5,9 +5,12 @@ export type AnswerId = "A" | "B" | "C" | "D";
 export type Question = {
   id: string;
   category: QuestionCategory;
+  /** Sottocategoria per il round-robin generali (es. "geografia", "arte", …) */
+  subcategory?: string;
   text: string;
   answers: { id: AnswerId; text: string }[];
-  correctAnswerId: AnswerId;
+  /** Uno o più ID corretti (risposta multipla supportata) */
+  correctAnswerIds: AnswerId[];
   explanation?: string;
 };
 
@@ -31,13 +34,15 @@ export type PublicQuestion = {
   index: number;
   total: number;
   category: QuestionCategory;
+  subcategory?: string;
   text: string;
   answers: { id: AnswerId; text: string }[];
 };
 
 export type PublicResult = {
   questionId: string;
-  correctAnswerId: AnswerId;
+  /** Uno o più ID corretti */
+  correctAnswerIds: AnswerId[];
   explanation: string | null;
 };
 
@@ -56,6 +61,8 @@ export type GameState = {
   currentQuestionId: string | null;
   questionStartedAt: number | null;
   questionEndsAt: number | null;
+  /** false = solo anteprima categoria (host non ha ancora avviato il timer) */
+  questionVisible: boolean;
   showResults: boolean;
   /** true = mostra barre distribuzione risposte ai player */
   showStats: boolean;

@@ -238,6 +238,19 @@
       font-size: 16px;
     }
 
+    /* Anteprima host (questionVisible=false) */
+    .preview-banner {
+      background: #FEF3C7;
+      border: 2px dashed #F59E0B;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #92400E;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
     /* ── Host timer ── */
     .host-timer {
       font-size: 52px;
@@ -254,6 +267,34 @@
       font-size: 15px;
       color: #6B7280;
       margin-top: 4px;
+    }
+
+    /* ── Next question panel ── */
+    .next-q-panel {
+      background: #F0FDF4;
+      border: 2px solid #86EFAC;
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+    }
+    .next-q-panel .nq-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #15803D;
+      margin-bottom: 6px;
+    }
+    .next-q-panel .nq-meta {
+      font-size: 12px;
+      color: #6B7280;
+      margin-bottom: 4px;
+    }
+    .next-q-panel .nq-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #166534;
+      line-height: 1.4;
     }
 
     /* ── Leaderboard ── */
@@ -356,6 +397,13 @@
     <!-- ── RIGHT COLUMN ── -->
     <div>
 
+      <!-- Prossima domanda (visibile durante answer/leaderboard) -->
+      <div class="next-q-panel" id="next-q-panel" style="display:none">
+        <p class="nq-title">📋 Prossima domanda</p>
+        <p class="nq-meta" id="next-q-meta"></p>
+        <p class="nq-text" id="next-q-text"></p>
+      </div>
+
       <!-- Stato / domanda corrente -->
       <div class="question-panel" id="question-panel">
         <div class="q-meta">
@@ -387,6 +435,7 @@ import {
   resetGame,
   initGameIfNeeded,
   startQuestion,
+  revealQuestion,
   closeQuestion,
   reopenQuestion,
   revealStats,
@@ -412,6 +461,25 @@ let currentPlayers: Record<string, Player> = {};
 let currentAnswers: Record<string, { answerId: string }> = {};
 let answersUnsub: (() => void) | null = null;
 let autoCloseTimeout: ReturnType<typeof setTimeout> | null = null;
+
+// Sottocategorie label (per il pannello "prossima domanda")
+const SUB_LABELS: Record<string, string> = {
+  "geografia":           "Geografia 🌍",
+  "storia-antica":       "Storia Antica 🏛️",
+  "storia-moderna":      "Storia Moderna 📜",
+  "tecnologia":          "Tecnologia 💻",
+  "politica-italia":     "Politica 🇮🇹",
+  "grammatica-italiana": "Italiano 📝",
+  "matematica":          "Matematica 🔢",
+  "fisica-chimica":      "Scienze 🔬",
+  "arte":                "Arte & Letteratura 🎨",
+  "musica":              "Musica 🎵",
+  "leone":               "Leone 🦁",
+  "demo":                "Demo",
+};
+function humanizeSub(sub?: string): string {
+  return sub ? (SUB_LABELS[sub] ?? "Cultura") : "Cultura";
+}
 
 // ── QR Code generation ────────────────────────────────────────────────────
 async function generateQR() {
@@ -522,6 +590,8 @@ function startAnswerTracking(questionId: string) {
     // Auto-close: all active players have answered
     if (!currentGame) return;
     if (currentGame.status !== "demo" && currentGame.status !== "question") return;
+    // Solo se la domanda è visibile (timer avviato)
+    if (!currentGame.questionVisible) return;
     if (currentGame.currentQuestionId !== questionId) return;
 
     const playerCount = getActivePlayerCount();
@@ -559,23 +629,28 @@ function renderQuestionPanel(game: GameState) {
     if (answersEl) answersEl.innerHTML = "";
     if (answerCountEl) answerCountEl.style.display = "none";
     stopHostTimer();
+    renderNextQuestionPanel(game);
     return;
   }
 
   const isDemo = pq.category === "demo";
+  const isPreview = (game.status === "demo" || game.status === "question") && !game.questionVisible;
+
   if (indexLabel) {
+    const subcatLabel = pq.subcategory ? ` · ${humanizeSub(pq.subcategory)}` : "";
     indexLabel.textContent = isDemo
-      ? "Domanda demo (non vale punti)"
-      : `Domanda ${pq.index} / ${pq.total}${pq.category === "leone" ? " 🦁 Leone" : ""}`;
+      ? `Domanda demo (non vale punti)${isPreview ? " — ANTEPRIMA HOST" : ""}`
+      : `Domanda ${pq.index} / ${pq.total}${pq.category === "leone" ? " 🦁 Leone" : subcatLabel}${isPreview ? " — ANTEPRIMA HOST" : ""}`;
   }
 
   if (textEl) { textEl.textContent = pq.text; textEl.style.color = "#1F2937"; }
 
   if (answersEl) {
     const ids = ["A", "B", "C", "D"] as const;
+    const correctIds = pr?.correctAnswerIds ?? [];
     answersEl.innerHTML = ids.map((id) => {
       const ans = pq.answers.find((a) => a.id === id);
-      const isCorrect = pr && pr.correctAnswerId === id;
+      const isCorrect = correctIds.includes(id);
       return `<div class="answer-card ac-${id} ${isCorrect ? "correct-reveal" : ""}">
         <span class="alabel">${id}</span>${ans?.text ?? ""}
         ${isCorrect ? '<span class="correct-check">✅</span>' : ""}
@@ -583,11 +658,50 @@ function renderQuestionPanel(game: GameState) {
     }).join("");
   }
 
-  if ((game.status === "demo" || game.status === "question") && game.questionEndsAt) {
+  // Timer: solo quando questionVisible=true
+  if ((game.status === "demo" || game.status === "question") && game.questionEndsAt && game.questionVisible) {
     startHostTimer(game.questionEndsAt);
-  } else {
+  } else if (game.status !== "demo" && game.status !== "question") {
     stopHostTimer();
   }
+
+  renderNextQuestionPanel(game);
+}
+
+// ── Render "prossima domanda" panel ───────────────────────────────────────
+function renderNextQuestionPanel(game: GameState) {
+  const panel = document.getElementById("next-q-panel");
+  const metaEl = document.getElementById("next-q-meta");
+  const textEl = document.getElementById("next-q-text");
+  if (!panel) return;
+
+  const showNext =
+    (game.status === "answer" || game.status === "leaderboard") &&
+    game.currentQuestionIndex >= 0;
+
+  if (!showNext) {
+    panel.style.display = "none";
+    return;
+  }
+
+  const nextIdx = game.currentQuestionIndex + 1;
+  if (nextIdx <= 0 || nextIdx >= questions.length) {
+    panel.style.display = "none";
+    return;
+  }
+
+  const nextQ = questions[nextIdx];
+  panel.style.display = "block";
+
+  if (metaEl) {
+    const subLabel = nextQ.subcategory ? humanizeSub(nextQ.subcategory) : nextQ.category;
+    metaEl.textContent =
+      nextIdx === 0
+        ? "Demo"
+        : `Domanda ${nextIdx} / 20 · ${subLabel}`;
+  }
+
+  if (textEl) textEl.textContent = nextQ.text;
 }
 
 // ── Render players (filters out host, shows answer status) ─────────────────
@@ -671,6 +785,7 @@ function renderControls(game: GameState) {
 
   const idx = game.currentQuestionIndex;
   const status = game.status;
+  const qVisible = game.questionVisible === true;
   const isLastQuestion = idx === 20;
   const isAfterDemo = idx === 0 && status === "answer";
   const revealStep = game.leaderboardRevealStep ?? -1;
@@ -682,7 +797,12 @@ function renderControls(game: GameState) {
     btns.push({ label: "▶️ Avvia quiz (salta demo)", cls: "btn-blue", id: "btn-start-quiz" });
   }
 
-  if (status === "demo" || status === "question") {
+  if ((status === "demo" || status === "question") && !qVisible) {
+    // Domanda avviata ma non ancora rivelata ai player
+    btns.push({ label: "▶️ Avvia timer (20s)", cls: "btn-green", id: "btn-reveal-q" });
+  }
+
+  if ((status === "demo" || status === "question") && qVisible) {
     btns.push({ label: "⏱️ Chiudi risposte", cls: "btn-amber", id: "btn-close-q" });
   }
 
@@ -745,6 +865,19 @@ function renderControls(game: GameState) {
 
   document.getElementById("btn-start-quiz")?.addEventListener("click", async () => {
     await startQuestion(questions[1], 1);
+  });
+
+  document.getElementById("btn-reveal-q")?.addEventListener("click", async () => {
+    const btn = document.getElementById("btn-reveal-q") as HTMLButtonElement | null;
+    if (btn) btn.disabled = true;
+    const qIdx = game.currentQuestionIndex;
+    if (qIdx < 0 || qIdx >= questions.length) return;
+    try {
+      await revealQuestion(questions[qIdx], 20);
+    } catch (err) {
+      console.error(err);
+      if (btn) btn.disabled = false;
+    }
   });
 
   document.getElementById("btn-close-q")?.addEventListener("click", async () => {
@@ -817,7 +950,7 @@ function renderControls(game: GameState) {
 
 // ── Firebase listeners ─────────────────────────────────────────────────────
 function startListeners() {
-  let prevQuestionId: string | null = null;
+  let prevTrackedQuestionId: string | null = null;
 
   // Game state
   onValue(ref(db, `games/${GAME_ID}`), (snap) => {
@@ -827,19 +960,17 @@ function startListeners() {
     renderQuestionPanel(currentGame);
     renderControls(currentGame);
 
-    // Start/stop answer tracking when question changes
     const isActive =
       currentGame.status === "demo" || currentGame.status === "question";
     const qId = currentGame.currentQuestionId;
+    const isVisible = currentGame.questionVisible === true;
 
-    if (isActive && qId && qId !== prevQuestionId) {
-      prevQuestionId = qId;
+    // Start answer tracking only when question is revealed (visible)
+    if (isActive && isVisible && qId && qId !== prevTrackedQuestionId) {
+      prevTrackedQuestionId = qId;
       startAnswerTracking(qId);
-    } else if (!isActive) {
-      // Don't cancel answers listener immediately on "locked" (might still update)
-      if (currentGame.status !== "locked") {
-        stopAnswerTracking();
-      }
+    } else if (!isActive && currentGame.status !== "locked") {
+      stopAnswerTracking();
     }
 
     if (

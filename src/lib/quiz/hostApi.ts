@@ -1,7 +1,7 @@
 import { ref, get, set, update } from "firebase/database";
 import { db } from "../firebase";
-import { GAME_ID, INITIAL_GAME_STATE } from "./config";
-import type { Question, GameStatus, PublicQuestion, PublicAnswerStats } from "./types";
+import { GAME_ID, INITIAL_GAME_STATE, DEMO_ANSWER_SECONDS, QUESTION_ANSWER_SECONDS } from "./config";
+import type { Question, GameStatus, PublicQuestion, PublicAnswerStats, AnswerId } from "./types";
 import { calculatePoints } from "./scoring";
 
 /** Controlla se l'uid corrente è admin */
@@ -51,18 +51,20 @@ function toPublicQuestion(
     index,
     total,
     category: question.category,
+    subcategory: question.subcategory,
     text: question.text,
     answers: question.answers,
   };
 }
 
-/** Avvia una domanda */
+/**
+ * Avvia una domanda con questionVisible:false.
+ * I player vedono solo la sottocategoria finché l'host non chiama revealQuestion().
+ */
 export async function startQuestion(
   question: Question,
   index: number
 ): Promise<void> {
-  const now = Date.now();
-  const answerSeconds = question.category === "demo" ? 20 : 20;
   const status: GameStatus =
     question.category === "demo" ? "demo" : "question";
 
@@ -70,20 +72,42 @@ export async function startQuestion(
     status,
     currentQuestionIndex: index,
     currentQuestionId: question.id,
-    questionStartedAt: now,
-    questionEndsAt: now + answerSeconds * 1000,
+    questionStartedAt: null,
+    questionEndsAt: null,
+    questionVisible: false,
     showResults: false,
     showLeaderboard: false,
     leaderboardRevealStep: -1,
     publicCurrentQuestion: toPublicQuestion(question, index, 20),
     publicCurrentResult: null,
     publicAnswerStats: null,
+    showStats: false,
+  });
+}
+
+/**
+ * Rivela la domanda ai player e avvia il timer.
+ * Va chiamata dopo startQuestion() quando l'host vuole avviare il conto alla rovescia.
+ */
+export async function revealQuestion(
+  question: Question,
+  seconds?: number
+): Promise<void> {
+  const now = Date.now();
+  const answerSeconds =
+    seconds ??
+    (question.category === "demo" ? DEMO_ANSWER_SECONDS : QUESTION_ANSWER_SECONDS);
+
+  await update(ref(db, `games/${GAME_ID}`), {
+    questionVisible: true,
+    questionStartedAt: now,
+    questionEndsAt: now + answerSeconds * 1000,
   });
 }
 
 /**
  * Riapre una domanda già chiusa (es. clic accidentale su "Chiudi risposte").
- * Ripristina lo stato question/demo e aggiunge 20s di finestra al timer.
+ * Aggiunge 20s di finestra al timer e riporta la domanda visibile.
  * Le risposte già inviate restano valide (Firebase ".write: !data.exists()").
  */
 export async function reopenQuestion(question: Question): Promise<void> {
@@ -91,6 +115,8 @@ export async function reopenQuestion(question: Question): Promise<void> {
   const status: GameStatus = question.category === "demo" ? "demo" : "question";
   await update(ref(db, `games/${GAME_ID}`), {
     status,
+    questionVisible: true,
+    questionStartedAt: now,
     questionEndsAt: now + 20 * 1000,
     publicCurrentResult: null,
     publicAnswerStats: null,
@@ -99,9 +125,10 @@ export async function reopenQuestion(question: Question): Promise<void> {
 
 /**
  * Chiude la domanda: calcola punti (con penalità per risposte sbagliate veloci),
- * pubblica distribuzione risposte e risposta corretta.
+ * pubblica distribuzione risposte e risposte corrette.
  * Idempotente: se publicCurrentResult per questa domanda è già settato,
  * ri-pubblica solo lo stato "answer" senza ricalcolare i punteggi.
+ * Supporta correctAnswerIds[] (risposta multipla).
  */
 export async function closeQuestion(question: Question): Promise<void> {
   await update(ref(db, `games/${GAME_ID}`), {
@@ -151,7 +178,9 @@ export async function closeQuestion(question: Question): Promise<void> {
 
     const answer = answers[uid];
     const isCorrect =
-      !isDemo && answer?.answerId === question.correctAnswerId;
+      !isDemo &&
+      Boolean(answer?.answerId) &&
+      question.correctAnswerIds.includes(answer.answerId as AnswerId);
 
     const points = isDemo
       ? 0
@@ -188,10 +217,10 @@ export async function closeQuestion(question: Question): Promise<void> {
 
   updates[`games/${GAME_ID}/status`] = "answer" as GameStatus;
   updates[`games/${GAME_ID}/showResults`] = true;
-  updates[`games/${GAME_ID}/showStats`] = false;   // host deve cliccare "Mostra statistiche" per rivelare le barre
+  updates[`games/${GAME_ID}/showStats`] = false; // host clicca "Mostra statistiche" per rivelare le barre
   updates[`games/${GAME_ID}/publicCurrentResult`] = {
     questionId: question.id,
-    correctAnswerId: question.correctAnswerId,
+    correctAnswerIds: question.correctAnswerIds,
     explanation: question.explanation ?? null,
   };
   updates[`games/${GAME_ID}/publicAnswerStats`] = stats;
