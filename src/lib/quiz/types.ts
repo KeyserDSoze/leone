@@ -57,6 +57,8 @@ export type GameState = {
   questionStartedAt: number | null;
   questionEndsAt: number | null;
   showResults: boolean;
+  /** true = mostra barre distribuzione risposte ai player */
+  showStats: boolean;
   showLeaderboard: boolean;
   /** -1 = classifica non mostrata, 0 = mostrata senza top5, 1-5 = rivelazione progressiva */
   leaderboardRevealStep: number;

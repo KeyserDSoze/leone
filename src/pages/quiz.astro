@@ -771,8 +771,38 @@ async function renderLeaderboard(revealStep: number, isFinished = false) {
   showScreen("leaderboard");
 }
 
+// ── Restore answer from Firebase after F5 / reconnect ─────────────────────
+/**
+ * Called whenever we first encounter a question ID we haven't seen yet.
+ * Reads the player's answer from Firebase so that selectedId / myAnsweredAt
+ * survive a page refresh.
+ */
+async function restoreAnswerIfNeeded(questionId: string): Promise<void> {
+  if (lastQuestionId === questionId) return; // already set up for this question
+
+  lastQuestionId = questionId;
+  currentQuestionId = questionId;
+  hasAnswered = false;
+  myAnswerId = null;
+  myAnsweredAt = null;
+
+  if (!currentUid) return;
+
+  try {
+    const ansSnap = await get(ref(db, `answers/${GAME_ID}/${questionId}/${currentUid}`));
+    if (ansSnap.exists()) {
+      const ans = ansSnap.val() as { answerId: string; answeredAt: number };
+      hasAnswered = true;
+      myAnswerId = ans.answerId as typeof myAnswerId;
+      myAnsweredAt = ans.answeredAt;
+    }
+  } catch {
+    // network error — keep defaults
+  }
+}
+
 // ── Game state handler ─────────────────────────────────────────────────────
-function handleGameState(game: GameState) {
+async function handleGameState(game: GameState) {
   switch (game.status) {
     case "lobby":
       stopTimer();
@@ -784,55 +814,67 @@ function handleGameState(game: GameState) {
       const pq = game.publicCurrentQuestion;
       if (!pq) return;
 
-      if (pq.id !== lastQuestionId) {
-        // New question: reset state and render fresh
-        lastQuestionId = pq.id;
-        currentQuestionId = pq.id;
-        hasAnswered = false;
-        myAnswerId = null;
-        myAnsweredAt = null;
-        renderQuestion(pq, game.questionEndsAt!);
+      const isNew = pq.id !== lastQuestionId;
+      if (isNew) {
+        await restoreAnswerIfNeeded(pq.id);
+        renderQuestion(pq, game.questionEndsAt!,
+          hasAnswered ? { disabled: true, selectedId: myAnswerId } : {}
+        );
       } else if (!hasAnswered) {
-        // Same question, not answered yet: ensure question screen is shown
-        renderQuestion(pq, game.questionEndsAt!);
+        // Same question, not answered — keep screen/timer current
+        if (!document.getElementById("screen-question")?.classList.contains("active")) {
+          renderQuestion(pq, game.questionEndsAt!);
+        }
       }
-      // If hasAnswered: already on question screen with disabled + selected state; no re-render
+      // hasAnswered + same question → already showing question with selection; no re-render
       break;
     }
 
     case "locked": {
-      // Host closed the question: stop timer, disable all buttons
+      const pq = game.publicCurrentQuestion;
+      if (!pq) break;
+
+      if (pq.id !== lastQuestionId) {
+        await restoreAnswerIfNeeded(pq.id);
+      }
+
       stopTimer();
       const timerEl = document.getElementById("question-timer");
-      if (timerEl) {
-        timerEl.textContent = "0";
-        timerEl.classList.add("urgent");
-      }
+      if (timerEl) { timerEl.textContent = "0"; timerEl.classList.add("urgent"); }
+
+      // Ensure all buttons are disabled and selection is shown
       (["A", "B", "C", "D"] as const).forEach((id) => {
         const b = document.getElementById(`btn-${id}`) as HTMLButtonElement | null;
-        if (b) b.disabled = true;
+        if (b) {
+          b.disabled = true;
+          b.classList.toggle("selected", myAnswerId === id);
+        }
       });
-      // Edge case: player joined mid-question and isn't on question screen yet
+
       if (!document.getElementById("screen-question")?.classList.contains("active")) {
-        const pq = game.publicCurrentQuestion;
-        if (pq) renderQuestion(pq, 0, { disabled: true, selectedId: myAnswerId });
+        renderQuestion(pq, 0, { disabled: true, selectedId: myAnswerId });
       }
       break;
     }
 
-    case "answer":
+    case "answer": {
+      const pq = game.publicCurrentQuestion;
+      if (pq && pq.id !== lastQuestionId) {
+        await restoreAnswerIfNeeded(pq.id);
+      }
       if (game.showResults && game.publicCurrentResult) {
         renderResult(
           game.publicCurrentResult,
-          (game as any).publicAnswerStats ?? null,
+          game.showStats ? (game.publicAnswerStats ?? null) : null,
           myAnswerId,
           myAnsweredAt,
           game.questionStartedAt,
           game.questionEndsAt,
-          game.publicCurrentQuestion?.category === "demo"
+          pq?.category === "demo"
         );
       }
       break;
+    }
 
     case "leaderboard":
       if (game.showLeaderboard && game.leaderboardRevealStep >= 0) {
@@ -851,7 +893,7 @@ function startListening() {
   const gameRef = ref(db, `games/${GAME_ID}`);
   const unsub = onValue(gameRef, (snap) => {
     if (!snap.exists()) return;
-    handleGameState(snap.val() as GameState);
+    handleGameState(snap.val() as GameState).catch(console.error);
   });
   gameUnsubscribe = unsub;
 }

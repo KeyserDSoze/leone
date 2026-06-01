@@ -20,6 +20,7 @@ export const INITIAL_GAME_STATE = {
   questionStartedAt: null,
   questionEndsAt: null,
   showResults: false,
+  showStats: false,
   showLeaderboard: false,
   leaderboardRevealStep: -1,
   settings: {

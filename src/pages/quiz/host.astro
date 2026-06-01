@@ -389,6 +389,7 @@ import {
   startQuestion,
   closeQuestion,
   reopenQuestion,
+  revealStats,
   showLeaderboard,
   revealNextLeaderboardStep,
   finishGame,
@@ -693,7 +694,11 @@ function renderControls(game: GameState) {
   if (status === "answer") {
     if (isAfterDemo) {
       btns.push({ label: "▶️ Inizia il quiz", cls: "btn-green", id: "btn-next" });
+    } else if (!game.showStats) {
+      // Scores computed but bars not yet revealed
+      btns.push({ label: "📊 Mostra statistiche", cls: "btn-amber", id: "btn-reveal-stats" });
     } else {
+      // Stats visible → proceed to leaderboard
       btns.push({ label: "🏆 Mostra classifica", cls: "btn-purple", id: "btn-show-lb" });
     }
   }
@@ -768,6 +773,12 @@ function renderControls(game: GameState) {
       console.error(err);
       if (btn) btn.disabled = false;
     }
+  });
+
+  document.getElementById("btn-reveal-stats")?.addEventListener("click", async () => {
+    const btn = document.getElementById("btn-reveal-stats") as HTMLButtonElement | null;
+    if (btn) btn.disabled = true;
+    await revealStats();
   });
 
   document.getElementById("btn-show-lb")?.addEventListener("click", async () => {

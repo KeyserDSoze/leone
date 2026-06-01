@@ -188,6 +188,7 @@ export async function closeQuestion(question: Question): Promise<void> {
 
   updates[`games/${GAME_ID}/status`] = "answer" as GameStatus;
   updates[`games/${GAME_ID}/showResults`] = true;
+  updates[`games/${GAME_ID}/showStats`] = false;   // host deve cliccare "Mostra statistiche" per rivelare le barre
   updates[`games/${GAME_ID}/publicCurrentResult`] = {
     questionId: question.id,
     correctAnswerId: question.correctAnswerId,
@@ -196,6 +197,13 @@ export async function closeQuestion(question: Question): Promise<void> {
   updates[`games/${GAME_ID}/publicAnswerStats`] = stats;
 
   await update(ref(db), updates);
+}
+
+/** Rivela le barre distribuzione risposte a tutti i player */
+export async function revealStats(): Promise<void> {
+  await update(ref(db, `games/${GAME_ID}`), {
+    showStats: true,
+  });
 }
 
 /** Passa allo stato classifica (step 0 = mostra tutti tranne top 5) */
