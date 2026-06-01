@@ -20,7 +20,7 @@ export async function checkUsernameTaken(username: string): Promise<boolean> {
   if (!snap.exists()) return false;
   const players = snap.val() as Record<string, { username: string }>;
   return Object.values(players).some(
-    (p) => p.username.toLowerCase() === username.toLowerCase()
+    (p) => p?.username?.toLowerCase() === username.toLowerCase()
   );
 }
 
