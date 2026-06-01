@@ -989,7 +989,8 @@ function bindAnswerButtons() {
       myAnswerId = id;
       myAnsweredAt = Date.now();
 
-      // Disable all buttons and highlight selected — stay on question screen
+      // Disable all buttons and highlight selected — stay on question screen.
+      // NON fermiamo il timer: continua a girare così tutti vedono quanto tempo rimane.
       ids.forEach((bid) => {
         const b = document.getElementById(`btn-${bid}`) as HTMLButtonElement | null;
         if (b) {
@@ -997,7 +998,6 @@ function bindAnswerButtons() {
           b.classList.toggle("selected", bid === id);
         }
       });
-      stopTimer();
 
       try {
         await submitAnswer(currentUid, currentQuestionId, id);

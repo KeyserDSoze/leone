@@ -203,10 +203,9 @@ export async function closeQuestion(question: Question): Promise<void> {
     }
 
     if (answer) {
-      updates[`answers/${GAME_ID}/${question.id}/${uid}/isCorrect`] = isCorrect;
-      updates[`answers/${GAME_ID}/${question.id}/${uid}/points`] = points;
-
-      // Accumula stats
+      // NON scriviamo isCorrect/points su answers/${uid} perché la regola Firebase
+      // ".write: !data.exists()" blocca riscritture su risposte già inviate.
+      // Accumula solo le stats localmente per il batch.
       const aid = answer.answerId as "A" | "B" | "C" | "D";
       if (["A", "B", "C", "D"].includes(aid)) {
         stats[aid]++;
