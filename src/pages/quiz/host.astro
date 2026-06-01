@@ -1,0 +1,791 @@
+---
+// src/pages/quiz/host.astro — Pagina host / conduttore
+---
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Host — Quiz di Leone 🦁</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/global.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    /* ── Layout ── */
+    .host-layout {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .host-layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: rgba(255,255,255,0.96);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #9CA3AF;
+      margin-bottom: 12px;
+    }
+
+    /* ── Header ── */
+    .host-header {
+      background: rgba(255,255,255,0.96);
+      border-radius: 18px;
+      padding: 16px 22px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .host-title {
+      font-family: 'Playfull Rocket', cursive;
+      font-size: 22px;
+      color: #92400E;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .status-lobby      { background: #EFF6FF; color: #1D4ED8; }
+    .status-demo       { background: #F0FDF4; color: #15803D; }
+    .status-question   { background: #FEF3C7; color: #92400E; }
+    .status-locked     { background: #FEE2E2; color: #991B1B; }
+    .status-answer     { background: #F0FDF4; color: #15803D; }
+    .status-leaderboard{ background: #FDF4FF; color: #6B21A8; }
+    .status-finished   { background: #F9FAFB; color: #374151; }
+
+    /* ── QR code ── */
+    #qr-img {
+      width: 160px;
+      height: 160px;
+      border-radius: 12px;
+      margin: 8px auto;
+      display: block;
+      border: 2px solid #FDE68A;
+    }
+    .player-url {
+      font-size: 13px;
+      color: #6B7280;
+      word-break: break-all;
+      text-align: center;
+      margin-top: 6px;
+    }
+    .copy-btn {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px;
+      background: #FEF3C7;
+      border: 1px solid #FCD34D;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #92400E;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover { background: #FDE68A; }
+
+    /* ── Players ── */
+    .player-count {
+      font-size: 32px;
+      font-weight: 700;
+      color: #92400E;
+      text-align: center;
+    }
+    .player-list {
+      list-style: none;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-top: 8px;
+    }
+    .player-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 4px;
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+    }
+    .player-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .dot-online  { background: #22C55E; }
+    .dot-offline { background: #D1D5DB; }
+    .player-score { font-weight: 700; color: #D97706; font-size: 13px; }
+
+    /* ── Controls ── */
+    .controls-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-control {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      text-align: left;
+    }
+    .btn-control:hover  { opacity: 0.9; }
+    .btn-control:active { transform: scale(0.98); }
+    .btn-control:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+    .btn-green  { background: linear-gradient(135deg,#22C55E,#16A34A); color:#fff; }
+    .btn-amber  { background: linear-gradient(135deg,#F59E0B,#D97706); color:#fff; }
+    .btn-blue   { background: linear-gradient(135deg,#3B82F6,#2563EB); color:#fff; }
+    .btn-purple { background: linear-gradient(135deg,#8B5CF6,#7C3AED); color:#fff; }
+    .btn-red    { background: linear-gradient(135deg,#EF4444,#DC2626); color:#fff; }
+    .btn-gray   { background: #E5E7EB; color: #374151; }
+
+    /* ── Question panel ── */
+    .question-panel {
+      background: rgba(255,255,255,0.96);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+      margin-bottom: 14px;
+    }
+    .q-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .q-index   { font-size: 13px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; }
+    .q-text    { font-size: 20px; font-weight: 700; color: #1F2937; line-height: 1.4; margin-bottom: 16px; }
+    .q-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .answer-card {
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 2px solid transparent;
+      position: relative;
+    }
+    .answer-card .alabel {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+    .ac-A { background:#EFF6FF; border-color:#BFDBFE; color:#1E40AF; }
+    .ac-A .alabel { background:#BFDBFE; }
+    .ac-B { background:#F0FDF4; border-color:#BBF7D0; color:#166534; }
+    .ac-B .alabel { background:#BBF7D0; }
+    .ac-C { background:#FFF7ED; border-color:#FED7AA; color:#9A3412; }
+    .ac-C .alabel { background:#FED7AA; }
+    .ac-D { background:#FDF4FF; border-color:#E9D5FF; color:#6B21A8; }
+    .ac-D .alabel { background:#E9D5FF; }
+
+    .answer-card.correct-reveal {
+      border-color: #22C55E !important;
+      background: #F0FDF4 !important;
+      color: #166534 !important;
+    }
+    .correct-check {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+    }
+
+    /* ── Host timer ── */
+    .host-timer {
+      font-size: 52px;
+      font-weight: 700;
+      color: #92400E;
+      text-align: center;
+      font-family: monospace;
+    }
+    .host-timer.urgent { color: #DC2626; animation: blink 0.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .answer-count {
+      text-align: center;
+      font-size: 15px;
+      color: #6B7280;
+      margin-top: 4px;
+    }
+
+    /* ── Leaderboard ── */
+    .lb-host { list-style: none; }
+    .lb-host li {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+    }
+    .lb-host li.rank1 { background:#FEF9C3; border-color:#EAB308; }
+    .lb-host li.rank2 { background:#F8FAFC; border-color:#94A3B8; }
+    .lb-host li.rank3 { background:#FFF4ED; border-color:#FB923C; }
+    .lb-rank { font-size:18px; font-weight:700; width:32px; color:#92400E; }
+    .lb-name { flex:1; font-size:15px; color:#1F2937; font-weight:600; }
+    .lb-score-h { font-size:15px; font-weight:700; color:#D97706; }
+
+    /* ── Setup / not-admin ── */
+    .setup-card {
+      background: rgba(255,255,255,0.97);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 540px;
+      margin: 60px auto 0;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+    .setup-title { font-family: 'Playfull Rocket', cursive; font-size:26px; color:#92400E; margin-bottom:12px; }
+    .uid-box {
+      background: #1F2937;
+      color: #FCD34D;
+      font-family: monospace;
+      font-size: 15px;
+      padding: 14px;
+      border-radius: 10px;
+      word-break: break-all;
+      margin: 12px 0;
+      cursor: pointer;
+    }
+    .setup-steps { text-align:left; margin-top:16px; font-size:14px; color:#374151; line-height:1.8; }
+    .setup-steps li { margin-left:16px; }
+    .loading-setup { text-align:center; color:#6B7280; margin-top:40px; font-size:16px; }
+  </style>
+</head>
+<body>
+
+<!-- ── SETUP / NOT ADMIN screen ── -->
+<div id="panel-setup">
+  <p class="loading-setup">🦁 Connessione in corso…</p>
+</div>
+
+<!-- ── MAIN HOST panel (hidden until verified admin) ── -->
+<div id="panel-host" style="display:none">
+
+  <!-- Header -->
+  <div class="host-header">
+    <span class="host-title">🦁 Il Cervellone di Leone</span>
+    <span id="status-badge" class="status-badge status-lobby">● Lobby</span>
+  </div>
+
+  <div class="host-layout">
+
+    <!-- ── LEFT COLUMN ── -->
+    <div>
+
+      <!-- QR Code -->
+      <div class="card">
+        <p class="card-title">Link giocatori</p>
+        <img id="qr-img" src="" alt="QR Code" />
+        <p class="player-url" id="player-url-text"></p>
+        <button class="copy-btn" id="btn-copy-url">📋 Copia link</button>
+      </div>
+
+      <!-- Giocatori -->
+      <div class="card">
+        <p class="card-title">Giocatori connessi</p>
+        <p class="player-count"><span id="player-count">0</span></p>
+        <ul class="player-list" id="player-list"></ul>
+      </div>
+
+      <!-- Controlli -->
+      <div class="card">
+        <p class="card-title">Controlli</p>
+        <div class="controls-grid" id="controls-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT COLUMN ── -->
+    <div>
+
+      <!-- Stato / domanda corrente -->
+      <div class="question-panel" id="question-panel">
+        <div class="q-meta">
+          <span id="q-index-label" class="q-index">In attesa</span>
+          <div class="host-timer" id="host-timer" style="display:none">—</div>
+        </div>
+        <p id="q-text" class="q-text" style="color:#9CA3AF">
+          Premi "Avvia demo" o "Avvia quiz" per iniziare.
+        </p>
+        <div class="q-answers" id="q-answers"></div>
+        <p class="answer-count" id="answer-count" style="display:none"></p>
+      </div>
+
+      <!-- Classifica -->
+      <div class="card" id="leaderboard-panel" style="display:none">
+        <p class="card-title">Classifica</p>
+        <ul class="lb-host" id="lb-list"></ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+import { db, ensureAnonymousUser } from "../../lib/firebase";
+import {
+  checkIsAdmin,
+  resetGame,
+  initGameIfNeeded,
+  startQuestion,
+  closeQuestion,
+  showLeaderboard,
+  finishGame,
+} from "../../lib/quiz/hostApi";
+import { setupPresence } from "../../lib/quiz/presence";
+import { buildGameQuestions } from "../../lib/quiz/buildGameQuestions";
+import { GAME_ID } from "../../lib/quiz/config";
+import { ref, onValue, get } from "firebase/database";
+import type { GameState, LeaderboardEntry, Player } from "../../lib/quiz/types";
+import QRCode from "qrcode";
+
+// ── Questions ──────────────────────────────────────────────────────────────
+const questions = buildGameQuestions(); // [demo, q1..q20]
+let currentUid: string | null = null;
+let currentGame: GameState | null = null;
+let timerInterval: ReturnType<typeof setInterval> | null = null;
+let answerCountInterval: ReturnType<typeof setInterval> | null = null;
+
+// ── QR Code generation ────────────────────────────────────────────────────
+async function generateQR() {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const playerUrl = `${window.location.origin}${base}/quiz`;
+  const img = document.getElementById("qr-img") as HTMLImageElement | null;
+  const urlText = document.getElementById("player-url-text");
+  if (urlText) urlText.textContent = playerUrl;
+
+  try {
+    const dataUrl = await QRCode.toDataURL(playerUrl, {
+      width: 200,
+      margin: 2,
+      color: { dark: "#1F2937", light: "#FFFBEB" },
+    });
+    if (img) img.src = dataUrl;
+  } catch (err) {
+    console.error("QR error:", err);
+  }
+
+  const copyBtn = document.getElementById("btn-copy-url");
+  copyBtn?.addEventListener("click", () => {
+    navigator.clipboard.writeText(playerUrl).then(() => {
+      if (copyBtn) copyBtn.textContent = "✅ Copiato!";
+      setTimeout(() => { if (copyBtn) copyBtn.textContent = "📋 Copia link"; }, 2000);
+    });
+  });
+}
+
+// ── Status badge ───────────────────────────────────────────────────────────
+const STATUS_LABELS: Record<string, string> = {
+  lobby: "Lobby",
+  demo: "Demo in corso",
+  question: "Domanda aperta",
+  locked: "Risposte chiuse",
+  answer: "Risposta corretta",
+  leaderboard: "Classifica",
+  finished: "Fine gioco",
+};
+const STATUS_CLASSES: Record<string, string> = {
+  lobby: "status-lobby",
+  demo: "status-demo",
+  question: "status-question",
+  locked: "status-locked",
+  answer: "status-answer",
+  leaderboard: "status-leaderboard",
+  finished: "status-finished",
+};
+
+function updateStatusBadge(status: string) {
+  const badge = document.getElementById("status-badge");
+  if (!badge) return;
+  badge.textContent = `● ${STATUS_LABELS[status] ?? status}`;
+  badge.className = `status-badge ${STATUS_CLASSES[status] ?? ""}`;
+}
+
+// ── Timer ──────────────────────────────────────────────────────────────────
+function startHostTimer(endsAt: number) {
+  stopHostTimer();
+  const el = document.getElementById("host-timer");
+  if (!el) return;
+  el.style.display = "block";
+
+  function tick() {
+    const rem = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+    el!.textContent = String(rem);
+    el!.classList.toggle("urgent", rem <= 5);
+  }
+  tick();
+  timerInterval = setInterval(tick, 500);
+}
+
+function stopHostTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  const el = document.getElementById("host-timer");
+  if (el) el.style.display = "none";
+}
+
+// ── Answer count ───────────────────────────────────────────────────────────
+function startAnswerCount(questionId: string) {
+  if (answerCountInterval) clearInterval(answerCountInterval);
+  const el = document.getElementById("answer-count");
+  if (el) el.style.display = "block";
+
+  async function update() {
+    const snap = await get(ref(db, `answers/${GAME_ID}/${questionId}`));
+    const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+    if (el) el.textContent = `📩 ${count} rispost${count === 1 ? "a" : "e"} ricevut${count === 1 ? "a" : "e"}`;
+  }
+  update();
+  answerCountInterval = setInterval(update, 2000);
+}
+
+function stopAnswerCount() {
+  if (answerCountInterval) { clearInterval(answerCountInterval); answerCountInterval = null; }
+}
+
+// ── Render question panel ─────────────────────────────────────────────────
+function renderQuestionPanel(game: GameState) {
+  const pq = game.publicCurrentQuestion;
+  const pr = game.publicCurrentResult;
+
+  const indexLabel = document.getElementById("q-index-label");
+  const textEl = document.getElementById("q-text");
+  const answersEl = document.getElementById("q-answers");
+  const answerCountEl = document.getElementById("answer-count");
+
+  if (!pq) {
+    if (textEl) { textEl.textContent = "Premi \"Avvia demo\" o \"Avvia quiz\" per iniziare."; textEl.style.color = "#9CA3AF"; }
+    if (indexLabel) indexLabel.textContent = "In attesa";
+    if (answersEl) answersEl.innerHTML = "";
+    if (answerCountEl) answerCountEl.style.display = "none";
+    stopHostTimer();
+    return;
+  }
+
+  const isDemo = pq.category === "demo";
+  if (indexLabel) {
+    indexLabel.textContent = isDemo
+      ? "Domanda demo (non vale punti)"
+      : `Domanda ${pq.index} / ${pq.total}${pq.category === "leone" ? " 🦁 Leone" : ""}`;
+  }
+
+  if (textEl) { textEl.textContent = pq.text; textEl.style.color = "#1F2937"; }
+
+  // Risposte
+  if (answersEl) {
+    const ids = ["A", "B", "C", "D"] as const;
+    answersEl.innerHTML = ids.map((id) => {
+      const ans = pq.answers.find((a) => a.id === id);
+      const isCorrect = pr && pr.correctAnswerId === id;
+      return `<div class="answer-card ac-${id} ${isCorrect ? "correct-reveal" : ""}">
+        <span class="alabel">${id}</span>${ans?.text ?? ""}
+        ${isCorrect ? '<span class="correct-check">✅</span>' : ""}
+      </div>`;
+    }).join("");
+  }
+
+  // Timer
+  if ((game.status === "demo" || game.status === "question") && game.questionEndsAt) {
+    startHostTimer(game.questionEndsAt);
+    if (game.currentQuestionId) startAnswerCount(game.currentQuestionId);
+  } else {
+    stopHostTimer();
+    stopAnswerCount();
+  }
+}
+
+// ── Render players ─────────────────────────────────────────────────────────
+function renderPlayers(players: Record<string, Player> | null) {
+  const countEl = document.getElementById("player-count");
+  const listEl = document.getElementById("player-list");
+  if (!players) {
+    if (countEl) countEl.textContent = "0";
+    if (listEl) listEl.innerHTML = "";
+    return;
+  }
+
+  const entries = Object.entries(players);
+  const online = entries.filter(([, p]) => p.connected);
+  if (countEl) countEl.textContent = String(online.length);
+
+  if (listEl) {
+    const sorted = entries.sort(([, a], [, b]) => b.score - a.score);
+    listEl.innerHTML = sorted.map(([, p]) => `
+      <li class="player-item">
+        <span class="player-dot ${p.connected ? "dot-online" : "dot-offline"}"></span>
+        <span style="flex:1;font-size:14px">${p.username}</span>
+        <span class="player-score">${p.score.toLocaleString("it-IT")}</span>
+      </li>`).join("");
+  }
+}
+
+// ── Render leaderboard ─────────────────────────────────────────────────────
+async function renderLeaderboard() {
+  const panel = document.getElementById("leaderboard-panel");
+  const listEl = document.getElementById("lb-list");
+  if (!panel || !listEl) return;
+
+  const snap = await get(ref(db, `leaderboards/${GAME_ID}`));
+  const raw = snap.val() as Record<string, LeaderboardEntry> | null;
+
+  if (!raw) { panel.style.display = "none"; return; }
+
+  const sorted = Object.entries(raw).sort(([, a], [, b]) => b.score - a.score);
+  panel.style.display = "block";
+
+  const medals = ["🥇", "🥈", "🥉"];
+  listEl.innerHTML = sorted.slice(0, 10).map(([, e], i) => {
+    const rank = i + 1;
+    return `<li class="${rank <= 3 ? `rank${rank}` : ""}">
+      <span class="lb-rank">${medals[i] ?? `${rank}.`}</span>
+      <span class="lb-name">${e.username}</span>
+      <span class="lb-score-h">${e.score.toLocaleString("it-IT")}</span>
+    </li>`;
+  }).join("");
+}
+
+// ── Controls ───────────────────────────────────────────────────────────────
+function renderControls(game: GameState) {
+  const grid = document.getElementById("controls-grid");
+  if (!grid) return;
+
+  const idx = game.currentQuestionIndex; // -1 = nessuna domanda ancora
+  const status = game.status;
+  const isLastQuestion = idx === 20;
+  const isAfterDemo = idx === 0 && status === "answer";
+
+  const btns: { label: string; cls: string; id: string; disabled?: boolean }[] = [];
+
+  if (status === "lobby") {
+    btns.push({ label: "🎓 Avvia demo", cls: "btn-green", id: "btn-start-demo" });
+    btns.push({ label: "▶️ Avvia quiz (salta demo)", cls: "btn-blue", id: "btn-start-quiz" });
+  }
+
+  if (status === "demo" || status === "question") {
+    btns.push({ label: "⏱️ Chiudi risposte", cls: "btn-amber", id: "btn-close-q" });
+  }
+
+  if (status === "answer") {
+    if (isAfterDemo) {
+      btns.push({ label: "▶️ Inizia il quiz", cls: "btn-green", id: "btn-next" });
+    } else if (isLastQuestion) {
+      btns.push({ label: "🏆 Mostra classifica finale", cls: "btn-purple", id: "btn-show-lb" });
+    } else {
+      btns.push({ label: "🏆 Mostra classifica", cls: "btn-purple", id: "btn-show-lb" });
+    }
+  }
+
+  if (status === "leaderboard") {
+    if (isLastQuestion) {
+      btns.push({ label: "🎉 Fine gioco", cls: "btn-green", id: "btn-finish" });
+    } else {
+      btns.push({ label: "➡️ Prossima domanda", cls: "btn-amber", id: "btn-next" });
+    }
+  }
+
+  if (status === "finished") {
+    // solo reset
+  }
+
+  btns.push({ label: "🔄 Reset partita", cls: "btn-red", id: "btn-reset" });
+
+  grid.innerHTML = btns.map(b =>
+    `<button class="btn-control ${b.cls}" id="${b.id}" ${b.disabled ? "disabled" : ""}>${b.label}</button>`
+  ).join("");
+
+  // Bind
+  document.getElementById("btn-start-demo")?.addEventListener("click", async () => {
+    await startQuestion(questions[0], 0);
+  });
+
+  document.getElementById("btn-start-quiz")?.addEventListener("click", async () => {
+    await startQuestion(questions[1], 1);
+  });
+
+  document.getElementById("btn-close-q")?.addEventListener("click", async () => {
+    const btn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
+    if (btn) btn.disabled = true;
+    const qIdx = game.currentQuestionIndex;
+    if (qIdx < 0 || qIdx >= questions.length) return;
+    try {
+      await closeQuestion(questions[qIdx]);
+    } catch (err) {
+      console.error(err);
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  document.getElementById("btn-show-lb")?.addEventListener("click", async () => {
+    await showLeaderboard();
+    await renderLeaderboard();
+  });
+
+  document.getElementById("btn-next")?.addEventListener("click", async () => {
+    const nextIdx = game.currentQuestionIndex + 1;
+    if (nextIdx < 1 || nextIdx >= questions.length) return;
+    stopHostTimer();
+    stopAnswerCount();
+    await startQuestion(questions[nextIdx], nextIdx);
+  });
+
+  document.getElementById("btn-finish")?.addEventListener("click", async () => {
+    await finishGame();
+    await renderLeaderboard();
+  });
+
+  document.getElementById("btn-reset")?.addEventListener("click", async () => {
+    if (!confirm("Resettare la partita? I punteggi verranno azzerati.")) return;
+    stopHostTimer();
+    stopAnswerCount();
+    const lbPanel = document.getElementById("leaderboard-panel");
+    if (lbPanel) lbPanel.style.display = "none";
+    await resetGame();
+  });
+}
+
+// ── Firebase listeners ─────────────────────────────────────────────────────
+function startListeners() {
+  // Game state
+  onValue(ref(db, `games/${GAME_ID}`), (snap) => {
+    if (!snap.exists()) return;
+    currentGame = snap.val() as GameState;
+    updateStatusBadge(currentGame.status);
+    renderQuestionPanel(currentGame);
+    renderControls(currentGame);
+    if (currentGame.status === "leaderboard" || currentGame.status === "finished") {
+      renderLeaderboard();
+    }
+  });
+
+  // Players
+  onValue(ref(db, `players/${GAME_ID}`), (snap) => {
+    renderPlayers(snap.val() as Record<string, Player> | null);
+  });
+}
+
+// ── Not-admin screen ───────────────────────────────────────────────────────
+function showNotAdmin(uid: string) {
+  const setup = document.getElementById("panel-setup");
+  if (setup) {
+    setup.innerHTML = `
+      <div class="setup-card">
+        <span style="font-size:52px">🦁</span>
+        <h1 class="setup-title">Configura l'Host</h1>
+        <p style="font-size:14px;color:#6B7280;margin-bottom:8px">
+          Il tuo browser non è ancora autorizzato come host.<br>
+          Copia il tuo UID e aggiungilo in Firebase Console.
+        </p>
+        <div class="uid-box" id="uid-display" title="Clicca per copiare">${uid}</div>
+        <button onclick="navigator.clipboard.writeText('${uid}').then(()=>document.getElementById('uid-display').textContent='✅ Copiato!')" 
+          style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:600;color:#92400E;font-size:14px">
+          📋 Copia UID
+        </button>
+        <ol class="setup-steps">
+          <li>Vai su <strong>Firebase Console → Realtime Database</strong></li>
+          <li>Naviga in <code>admins/</code></li>
+          <li>Aggiungi la chiave <code>${uid}</code> con valore <code>true</code></li>
+          <li>Ricarica questa pagina</li>
+        </ol>
+        <button onclick="location.reload()" 
+          style="margin-top:16px;width:100%;padding:12px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer">
+          🔄 Ricarica dopo la configurazione
+        </button>
+      </div>`;
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const user = await ensureAnonymousUser();
+    currentUid = user.uid;
+
+    const isAdmin = await checkIsAdmin(currentUid);
+
+    if (!isAdmin) {
+      showNotAdmin(currentUid);
+      return;
+    }
+
+    // Mostra pannello host
+    const setupEl = document.getElementById("panel-setup");
+    const hostEl = document.getElementById("panel-host");
+    if (setupEl) setupEl.style.display = "none";
+    if (hostEl) hostEl.style.display = "block";
+
+    await initGameIfNeeded();
+    setupPresence(currentUid);
+    await generateQR();
+    startListeners();
+  } catch (err) {
+    console.error(err);
+    const setup = document.getElementById("panel-setup");
+    if (setup) {
+      setup.innerHTML = `<div class="setup-card">
+        <span style="font-size:52px">😕</span>
+        <h2 class="setup-title">Errore di connessione</h2>
+        <p style="color:#6B7280;margin:8px 0">Impossibile connettersi a Firebase.</p>
+        <button onclick="location.reload()" style="margin-top:12px;padding:12px 24px;background:#F59E0B;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">
+          Riprova 🔄
+        </button>
+      </div>`;
+    }
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

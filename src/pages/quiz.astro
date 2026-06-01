@@ -1,0 +1,790 @@
+---
+// src/pages/quiz.astro — Pagina giocatori
+---
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Quiz di Leone 🦁</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/global.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      padding: 16px;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 440px;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .screen.active { display: flex; }
+
+    .card {
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 24px;
+      padding: 32px 24px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      width: 100%;
+      text-align: center;
+    }
+
+    .lion-emoji { font-size: 60px; display: block; margin-bottom: 12px; }
+    .big-icon   { font-size: 72px; display: block; margin-bottom: 12px; }
+
+    .quiz-title {
+      font-family: 'Playfull Rocket', cursive;
+      font-size: 26px;
+      color: #92400E;
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+    .quiz-subtitle {
+      font-size: 15px;
+      color: #6B7280;
+      margin-bottom: 20px;
+    }
+
+    /* ── JOIN ── */
+    .input-username {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #FCD34D;
+      border-radius: 14px;
+      font-size: 18px;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 10px;
+      background: #FFFBEB;
+    }
+    .input-username:focus { border-color: #F59E0B; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      letter-spacing: 0.3px;
+    }
+    .btn-primary:hover  { opacity: 0.92; }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .error-msg {
+      color: #EF4444;
+      font-size: 13px;
+      min-height: 18px;
+      margin-bottom: 8px;
+    }
+
+    /* ── LOBBY ── */
+    .username-badge {
+      display: inline-block;
+      background: #FEF3C7;
+      border: 2px solid #FCD34D;
+      border-radius: 12px;
+      padding: 8px 22px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #92400E;
+      margin: 10px 0 16px;
+    }
+    .lobby-waiting {
+      font-size: 15px;
+      color: #6B7280;
+      animation: pulse-opacity 2s infinite;
+    }
+    @keyframes pulse-opacity {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    /* ── QUESTION ── */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .progress-label {
+      font-size: 13px;
+      color: #9CA3AF;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .category-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cat-leone   { background:#FEF3C7; color:#92400E; }
+    .cat-general { background:#EFF6FF; color:#1E40AF; }
+    .cat-demo    { background:#F0FDF4; color:#166534; }
+
+    .timer-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 6px 0 14px;
+    }
+    .timer-circle {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: #FEF3C7;
+      border: 3px solid #F59E0B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: #92400E;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .timer-circle.urgent {
+      background: #FEE2E2;
+      border-color: #EF4444;
+      color: #DC2626;
+      animation: timer-pulse 0.6s infinite;
+    }
+    @keyframes timer-pulse {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.08); }
+    }
+
+    .question-text {
+      font-size: 19px;
+      font-weight: 600;
+      color: #1F2937;
+      line-height: 1.45;
+      margin-bottom: 18px;
+    }
+
+    .answers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn-answer {
+      padding: 14px 10px;
+      border-radius: 14px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.35;
+      transition: transform 0.1s, box-shadow 0.15s;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .btn-answer:hover  { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .btn-answer:active { transform: scale(0.97); }
+    .btn-answer:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-answer-A { background:#EFF6FF; border-color:#BFDBFE; color:#1E40AF; }
+    .btn-answer-B { background:#F0FDF4; border-color:#BBF7D0; color:#166534; }
+    .btn-answer-C { background:#FFF7ED; border-color:#FED7AA; color:#9A3412; }
+    .btn-answer-D { background:#FDF4FF; border-color:#E9D5FF; color:#6B21A8; }
+
+    .answer-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .btn-answer-A .answer-label { background:#BFDBFE; color:#1E40AF; }
+    .btn-answer-B .answer-label { background:#BBF7D0; color:#166534; }
+    .btn-answer-C .answer-label { background:#FED7AA; color:#9A3412; }
+    .btn-answer-D .answer-label { background:#E9D5FF; color:#6B21A8; }
+
+    /* ── RESULT ── */
+    .result-box {
+      border-radius: 16px;
+      padding: 18px;
+      margin: 10px 0;
+    }
+    .result-correct { background:#F0FDF4; border: 2px solid #86EFAC; }
+    .result-wrong   { background:#FFF1F2; border: 2px solid #FECDD3; }
+    .result-skip    { background:#F9FAFB; border: 2px solid #E5E7EB; }
+
+    .points-badge   { font-size: 38px; font-weight: 700; color: #16A34A; }
+    .correct-label  { font-size: 15px; color: #374151; margin-top: 6px; }
+    .correct-answer { font-weight: 700; color: #15803D; }
+    .explanation    { font-size: 13px; color: #6B7280; font-style: italic; margin-top: 6px; }
+
+    /* ── LEADERBOARD ── */
+    .lb-list { list-style: none; width: 100%; margin-top: 12px; }
+    .lb-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+    }
+    .lb-item.me    { background:#FEF3C7; border-color:#F59E0B; font-weight:700; }
+    .lb-item.rank1 { background:#FEF9C3; border-color:#EAB308; }
+    .lb-item.rank2 { background:#F8FAFC; border-color:#94A3B8; }
+    .lb-item.rank3 { background:#FFF4ED; border-color:#FB923C; }
+    .lb-rank  { font-size:18px; font-weight:700; width:30px; color:#92400E; }
+    .lb-name  { flex:1; font-size:15px; color:#1F2937; }
+    .lb-score { font-size:15px; font-weight:700; color:#D97706; }
+
+    /* ── FINISHED ── */
+    .final-rank  { font-size:52px; font-weight:700; color:#92400E; margin:8px 0; }
+    .final-score { font-size:22px; color:#374151; }
+    .final-msg   { font-size:13px; color:#6B7280; margin-top:12px; }
+
+    /* ── ERROR ── */
+    #screen-error { max-width: 440px; padding: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="screen-loading" class="screen active">
+  <div class="card">
+    <span class="lion-emoji">🦁</span>
+    <h1 class="quiz-title">Quiz di Leone</h1>
+    <p class="lobby-waiting">Connessione in corso...</p>
+  </div>
+</div>
+
+<!-- JOIN -->
+<div id="screen-join" class="screen">
+  <div class="card">
+    <span class="lion-emoji">🦁</span>
+    <h1 class="quiz-title">Benvenuto al Quiz di Leone</h1>
+    <p class="quiz-subtitle">Scegli il tuo nome di battaglia</p>
+    <input
+      id="input-username"
+      class="input-username"
+      type="text"
+      placeholder="Es: Zia Turbo, Zio Speed…"
+      maxlength="24"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="words"
+      spellcheck="false"
+    />
+    <p id="join-error" class="error-msg"></p>
+    <button id="btn-join" class="btn-primary">Entra nel gioco 🎮</button>
+  </div>
+</div>
+
+<!-- LOBBY -->
+<div id="screen-lobby" class="screen">
+  <div class="card">
+    <span class="lion-emoji">🦁</span>
+    <h1 class="quiz-title">Sei dentro!</h1>
+    <p class="quiz-subtitle">Aspetta che inizi il gioco.</p>
+    <div class="username-badge" id="lobby-username">...</div>
+    <p class="lobby-waiting" style="margin-top:14px">⏳ In attesa dell'host…</p>
+  </div>
+</div>
+
+<!-- QUESTION -->
+<div id="screen-question" class="screen">
+  <div class="card">
+    <div class="progress-row">
+      <span id="question-progress" class="progress-label">Demo</span>
+      <span id="question-category" class="category-badge cat-general">Cultura</span>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-circle" id="question-timer">20</div>
+    </div>
+    <p id="question-text" class="question-text">...</p>
+    <div class="answers-grid">
+      <button class="btn-answer btn-answer-A" id="btn-A" data-answer="A">
+        <span class="answer-label">A</span>
+        <span id="answer-text-A">...</span>
+      </button>
+      <button class="btn-answer btn-answer-B" id="btn-B" data-answer="B">
+        <span class="answer-label">B</span>
+        <span id="answer-text-B">...</span>
+      </button>
+      <button class="btn-answer btn-answer-C" id="btn-C" data-answer="C">
+        <span class="answer-label">C</span>
+        <span id="answer-text-C">...</span>
+      </button>
+      <button class="btn-answer btn-answer-D" id="btn-D" data-answer="D">
+        <span class="answer-label">D</span>
+        <span id="answer-text-D">...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ANSWERED -->
+<div id="screen-answered" class="screen">
+  <div class="card">
+    <span class="big-icon">✅</span>
+    <h2 class="quiz-title">Risposta registrata!</h2>
+    <p class="lobby-waiting">Aspettiamo gli altri concorrenti…</p>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="screen-result" class="screen">
+  <div class="card">
+    <div id="result-content"><!-- filled by JS --></div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="screen-leaderboard" class="screen">
+  <div class="card">
+    <span style="font-size:48px">🏆</span>
+    <h2 class="quiz-title" style="margin-top:6px">Classifica</h2>
+    <ul class="lb-list" id="leaderboard-list"><!-- filled by JS --></ul>
+    <p class="lobby-waiting" style="margin-top:14px">⏳ Prossima domanda in arrivo…</p>
+  </div>
+</div>
+
+<!-- FINISHED -->
+<div id="screen-finished" class="screen">
+  <div class="card">
+    <span class="lion-emoji">🦁</span>
+    <h1 class="quiz-title">Quiz finito!</h1>
+    <p class="quiz-subtitle">Grazie per aver giocato</p>
+    <div class="final-rank" id="final-rank">—</div>
+    <p class="final-score" id="final-score">0 punti</p>
+    <p class="final-msg">Leone vi ringrazierà quando sarà grande 🦁</p>
+  </div>
+</div>
+
+<!-- ERROR -->
+<div id="screen-error" class="screen" style="width:100%">
+  <div class="card">
+    <span class="big-icon">😕</span>
+    <h2 class="quiz-title">Ops!</h2>
+    <p id="error-message" class="quiz-subtitle">Si è verificato un errore.</p>
+    <button onclick="location.reload()" class="btn-primary" style="margin-top:12px">
+      Riprova 🔄
+    </button>
+  </div>
+</div>
+
+<script>
+import { db, ensureAnonymousUser } from "../lib/firebase";
+import { joinGame, checkUsernameTaken, submitAnswer } from "../lib/quiz/playerApi";
+import { setupPresence } from "../lib/quiz/presence";
+import { GAME_ID } from "../lib/quiz/config";
+import { ref, onValue, get } from "firebase/database";
+import type { GameState, PublicQuestion, PublicResult, LeaderboardEntry } from "../lib/quiz/types";
+
+// ── State ──────────────────────────────────────────────────────────────────
+let currentUid: string | null = null;
+let currentUsername: string | null = null;
+let hasAnswered = false;
+let myAnswerId: string | null = null;
+let currentQuestionId: string | null = null;
+let timerInterval: ReturnType<typeof setInterval> | null = null;
+let gameUnsubscribe: (() => void) | null = null;
+
+// ── Session persistence ────────────────────────────────────────────────────
+const SESSION_KEY = "leone_quiz_session";
+
+function saveSession(uid: string, username: string) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ uid, username }));
+}
+
+function loadSession(): { uid: string; username: string } | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+// ── Screen management ──────────────────────────────────────────────────────
+function showScreen(id: string) {
+  document.querySelectorAll(".screen").forEach((el) => {
+    el.classList.remove("active");
+  });
+  const el = document.getElementById(`screen-${id}`);
+  if (el) el.classList.add("active");
+}
+
+function showError(msg: string) {
+  const el = document.getElementById("error-message");
+  if (el) el.textContent = msg;
+  showScreen("error");
+}
+
+// ── Timer ──────────────────────────────────────────────────────────────────
+function startTimer(endsAt: number) {
+  stopTimer();
+  const timerEl = document.getElementById("question-timer");
+  if (!timerEl) return;
+
+  function tick() {
+    const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+    timerEl!.textContent = String(remaining);
+    if (remaining <= 5) {
+      timerEl!.classList.add("urgent");
+    } else {
+      timerEl!.classList.remove("urgent");
+    }
+  }
+
+  tick();
+  timerInterval = setInterval(tick, 500);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+// ── Render question ────────────────────────────────────────────────────────
+function renderQuestion(q: PublicQuestion, endsAt: number) {
+  const isDemo = q.category === "demo";
+  const progressEl = document.getElementById("question-progress");
+  const categoryEl = document.getElementById("question-category");
+  const textEl = document.getElementById("question-text");
+
+  if (progressEl) {
+    progressEl.textContent = isDemo
+      ? "Domanda demo"
+      : `Domanda ${q.index} / ${q.total}`;
+  }
+
+  if (categoryEl) {
+    if (isDemo) {
+      categoryEl.textContent = "Demo";
+      categoryEl.className = "category-badge cat-demo";
+    } else if (q.category === "leone") {
+      categoryEl.textContent = "Leone 🦁";
+      categoryEl.className = "category-badge cat-leone";
+    } else {
+      categoryEl.textContent = "Cultura";
+      categoryEl.className = "category-badge cat-general";
+    }
+  }
+
+  if (textEl) textEl.textContent = q.text;
+
+  const ids: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"];
+  ids.forEach((id) => {
+    const answerEl = document.getElementById(`answer-text-${id}`);
+    const btn = document.getElementById(`btn-${id}`) as HTMLButtonElement | null;
+    const answer = q.answers.find((a) => a.id === id);
+    if (answerEl) answerEl.textContent = answer?.text ?? "";
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = "";
+    }
+  });
+
+  startTimer(endsAt);
+  showScreen("question");
+}
+
+// ── Render result ──────────────────────────────────────────────────────────
+function renderResult(result: PublicResult, myAnswerIdSnap: string | null) {
+  stopTimer();
+  const container = document.getElementById("result-content");
+  if (!container) return;
+
+  const correct = result.correctAnswerId;
+  const isCorrect = myAnswerIdSnap === correct;
+  const skipped = !myAnswerIdSnap;
+
+  if (skipped) {
+    container.innerHTML = `
+      <div class="result-box result-skip">
+        <span style="font-size:48px">⏱️</span>
+        <p style="font-size:17px;font-weight:600;color:#374151;margin-top:8px">Tempo scaduto!</p>
+        <p class="correct-label">La risposta corretta era: <span class="correct-answer">${correct}</span></p>
+        ${result.explanation ? `<p class="explanation">${result.explanation}</p>` : ""}
+      </div>`;
+  } else if (isCorrect) {
+    container.innerHTML = `
+      <div class="result-box result-correct">
+        <span style="font-size:48px">✅</span>
+        <p style="font-size:17px;font-weight:600;color:#166534;margin-top:8px">Giusto! Leone approva 🦁</p>
+        ${result.explanation ? `<p class="explanation">${result.explanation}</p>` : ""}
+      </div>
+      <p style="font-size:13px;color:#9CA3AF;margin-top:8px">I punti vengono calcolati dall'host</p>`;
+  } else {
+    container.innerHTML = `
+      <div class="result-box result-wrong">
+        <span style="font-size:48px">❌</span>
+        <p style="font-size:17px;font-weight:600;color:#991B1B;margin-top:8px">Peccato, ci sei andato vicino!</p>
+        <p class="correct-label">La risposta corretta era: <span class="correct-answer">${correct}</span></p>
+        ${result.explanation ? `<p class="explanation">${result.explanation}</p>` : ""}
+      </div>`;
+  }
+
+  showScreen("result");
+}
+
+// ── Render leaderboard ─────────────────────────────────────────────────────
+async function renderLeaderboard(isFinished = false) {
+  const listEl = document.getElementById("leaderboard-list");
+  if (!listEl) return;
+
+  const snap = await get(ref(db, `leaderboards/${GAME_ID}`));
+  const raw = snap.val() as Record<string, LeaderboardEntry> | null;
+
+  if (!raw) {
+    listEl.innerHTML = `<li style="text-align:center;color:#6B7280;padding:12px">Ancora nessun punteggio</li>`;
+    showScreen(isFinished ? "finished" : "leaderboard");
+    return;
+  }
+
+  const sorted = Object.entries(raw).sort(([, a], [, b]) => b.score - a.score);
+
+  listEl.innerHTML = sorted
+    .slice(0, 10)
+    .map(([uid, entry], i) => {
+      const rank = i + 1;
+      const isMe = uid === currentUid;
+      const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}.`;
+      const rankClass = `rank${rank <= 3 ? rank : ""}`;
+      return `<li class="lb-item ${rankClass} ${isMe ? "me" : ""}">
+        <span class="lb-rank">${medal}</span>
+        <span class="lb-name">${entry.username}${isMe ? " (tu)" : ""}</span>
+        <span class="lb-score">${entry.score.toLocaleString("it-IT")}</span>
+      </li>`;
+    })
+    .join("");
+
+  if (isFinished) {
+    // Mostra il rank finale personale
+    const myRank = sorted.findIndex(([uid]) => uid === currentUid) + 1;
+    const myEntry = sorted.find(([uid]) => uid === currentUid);
+    const rankEl = document.getElementById("final-rank");
+    const scoreEl = document.getElementById("final-score");
+    if (rankEl) rankEl.textContent = myRank > 0 ? `#${myRank}` : "—";
+    if (scoreEl && myEntry)
+      scoreEl.textContent = `${myEntry[1].score.toLocaleString("it-IT")} punti`;
+    showScreen("finished");
+  } else {
+    showScreen("leaderboard");
+  }
+}
+
+// ── Game state handler ─────────────────────────────────────────────────────
+let lastQuestionId: string | null = null;
+
+function handleGameState(game: GameState) {
+  switch (game.status) {
+    case "lobby":
+      stopTimer();
+      showScreen("lobby");
+      break;
+
+    case "demo":
+    case "question": {
+      const pq = game.publicCurrentQuestion;
+      if (!pq) return;
+
+      // Nuova domanda? reset stato risposta
+      if (pq.id !== lastQuestionId) {
+        lastQuestionId = pq.id;
+        currentQuestionId = pq.id;
+        hasAnswered = false;
+        myAnswerId = null;
+      }
+
+      if (hasAnswered) {
+        stopTimer();
+        showScreen("answered");
+      } else {
+        renderQuestion(pq, game.questionEndsAt!);
+      }
+      break;
+    }
+
+    case "locked":
+      stopTimer();
+      showScreen("answered");
+      break;
+
+    case "answer":
+      if (game.showResults && game.publicCurrentResult) {
+        renderResult(game.publicCurrentResult, myAnswerId);
+      }
+      break;
+
+    case "leaderboard":
+      if (game.showLeaderboard) {
+        renderLeaderboard(false);
+      }
+      break;
+
+    case "finished":
+      renderLeaderboard(true);
+      break;
+  }
+}
+
+// ── Setup Firebase listener ────────────────────────────────────────────────
+function startListening() {
+  const gameRef = ref(db, `games/${GAME_ID}`);
+  const unsub = onValue(gameRef, (snap) => {
+    if (!snap.exists()) return;
+    handleGameState(snap.val() as GameState);
+  });
+  gameUnsubscribe = unsub;
+}
+
+// ── Answer click ───────────────────────────────────────────────────────────
+function bindAnswerButtons() {
+  const ids = ["A", "B", "C", "D"] as const;
+  ids.forEach((id) => {
+    const btn = document.getElementById(`btn-${id}`);
+    btn?.addEventListener("click", async () => {
+      if (hasAnswered || !currentUid || !currentQuestionId) return;
+
+      // Disabilita tutti i bottoni immediatamente
+      ids.forEach((bid) => {
+        const b = document.getElementById(`btn-${bid}`) as HTMLButtonElement | null;
+        if (b) b.disabled = true;
+      });
+
+      hasAnswered = true;
+      myAnswerId = id;
+      stopTimer();
+      showScreen("answered");
+
+      try {
+        await submitAnswer(currentUid, currentQuestionId, id);
+      } catch (err) {
+        console.error("Errore nell'invio risposta:", err);
+      }
+    });
+  });
+}
+
+// ── Join button ────────────────────────────────────────────────────────────
+function bindJoinButton() {
+  const btn = document.getElementById("btn-join") as HTMLButtonElement | null;
+  const input = document.getElementById("input-username") as HTMLInputElement | null;
+  const errorEl = document.getElementById("join-error");
+
+  async function doJoin() {
+    if (!btn || !input || !currentUid) return;
+    const username = input.value.trim();
+
+    if (username.length < 2) {
+      if (errorEl) errorEl.textContent = "Il nome deve avere almeno 2 caratteri.";
+      return;
+    }
+    if (username.length > 24) {
+      if (errorEl) errorEl.textContent = "Il nome può avere al massimo 24 caratteri.";
+      return;
+    }
+
+    if (errorEl) errorEl.textContent = "";
+    btn.disabled = true;
+    btn.textContent = "Sto entrando…";
+
+    try {
+      const taken = await checkUsernameTaken(username);
+      if (taken) {
+        if (errorEl) errorEl.textContent = "Questo nome è già in uso, scegline un altro!";
+        btn.disabled = false;
+        btn.textContent = "Entra nel gioco 🎮";
+        return;
+      }
+
+      await joinGame(currentUid, username);
+      setupPresence(currentUid);
+      currentUsername = username;
+      saveSession(currentUid, username);
+
+      const lobbyEl = document.getElementById("lobby-username");
+      if (lobbyEl) lobbyEl.textContent = username;
+
+      startListening();
+      showScreen("lobby");
+    } catch (err) {
+      console.error(err);
+      if (errorEl) errorEl.textContent = "Errore di connessione. Riprova.";
+      btn.disabled = false;
+      btn.textContent = "Entra nel gioco 🎮";
+    }
+  }
+
+  btn?.addEventListener("click", doJoin);
+  input?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") doJoin();
+  });
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init() {
+  bindAnswerButtons();
+  bindJoinButton();
+
+  try {
+    const user = await ensureAnonymousUser();
+    currentUid = user.uid;
+
+    const session = loadSession();
+      if (session && session.uid === currentUid) {
+      // Riconnessione: verifica che il player sia ancora in Firebase
+      const snap = await get(ref(db, `players/${GAME_ID}/${currentUid}`));
+      if (snap.exists()) {
+        currentUsername = session.username;
+        const lobbyEl = document.getElementById("lobby-username");
+        if (lobbyEl) lobbyEl.textContent = currentUsername!;
+        setupPresence(currentUid);
+        startListening();
+        showScreen("lobby");
+        return;
+      } else {
+        clearSession();
+      }
+    }
+
+    showScreen("join");
+  } catch (err) {
+    showError("Impossibile connettersi. Controlla la connessione e riprova.");
+    console.error(err);
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
