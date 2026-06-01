@@ -82,13 +82,42 @@ export async function startQuestion(
 }
 
 /**
+ * Riapre una domanda già chiusa (es. clic accidentale su "Chiudi risposte").
+ * Ripristina lo stato question/demo e aggiunge 20s di finestra al timer.
+ * Le risposte già inviate restano valide (Firebase ".write: !data.exists()").
+ */
+export async function reopenQuestion(question: Question): Promise<void> {
+  const now = Date.now();
+  const status: GameStatus = question.category === "demo" ? "demo" : "question";
+  await update(ref(db, `games/${GAME_ID}`), {
+    status,
+    questionEndsAt: now + 20 * 1000,
+    publicCurrentResult: null,
+    publicAnswerStats: null,
+  });
+}
+
+/**
  * Chiude la domanda: calcola punti (con penalità per risposte sbagliate veloci),
  * pubblica distribuzione risposte e risposta corretta.
+ * Idempotente: se publicCurrentResult per questa domanda è già settato,
+ * ri-pubblica solo lo stato "answer" senza ricalcolare i punteggi.
  */
 export async function closeQuestion(question: Question): Promise<void> {
   await update(ref(db, `games/${GAME_ID}`), {
     status: "locked" as GameStatus,
   });
+
+  // Idempotency: already scored this question → just show results again
+  const existingResultSnap = await get(ref(db, `games/${GAME_ID}/publicCurrentResult`));
+  const existingResult = existingResultSnap.val() as { questionId?: string } | null;
+  if (existingResult?.questionId === question.id) {
+    await update(ref(db, `games/${GAME_ID}`), {
+      status: "answer" as GameStatus,
+      showResults: true,
+    });
+    return;
+  }
 
   const gameSnap = await get(ref(db, `games/${GAME_ID}`));
   const game = gameSnap.val() as {

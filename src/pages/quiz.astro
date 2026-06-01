@@ -590,8 +590,9 @@ function renderResult(
   const skipped = !myAnswerIdSnap;
 
   // Calculate points client-side (mirrors host calculation for display)
+  // For demo: computed but shown as "solo esempio" — does not affect real score
   let points = 0;
-  if (!isDemo && !skipped && questionStartedAt && questionEndsAt && myAnsweredAtSnap) {
+  if (!skipped && questionStartedAt && questionEndsAt && myAnsweredAtSnap) {
     points = calculatePoints({
       isCorrect,
       answeredAt: myAnsweredAtSnap,
@@ -623,8 +624,8 @@ function renderResult(
   }
 
   const ptsHTML =
-    !isDemo && !skipped
-      ? `<p class="result-pts ${points >= 0 ? "positive" : "negative"}">${points >= 0 ? "+" : ""}${points.toLocaleString("it-IT")} pt</p>`
+    !skipped
+      ? `<p class="result-pts ${points >= 0 ? "positive" : "negative"}">${points >= 0 ? "+" : ""}${points.toLocaleString("it-IT")} pt${isDemo ? `<span style="font-size:13px;font-weight:400;color:#9CA3AF"> (solo esempio)</span>` : ""}</p>`
       : "";
 
   const summaryHTML = `

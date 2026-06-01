@@ -388,6 +388,7 @@ import {
   initGameIfNeeded,
   startQuestion,
   closeQuestion,
+  reopenQuestion,
   showLeaderboard,
   revealNextLeaderboardStep,
   finishGame,
@@ -684,6 +685,11 @@ function renderControls(game: GameState) {
     btns.push({ label: "⏱️ Chiudi risposte", cls: "btn-amber", id: "btn-close-q" });
   }
 
+  if (status === "locked") {
+    btns.push({ label: "↩️ Riapri risposte (+20s)", cls: "btn-blue", id: "btn-reopen-q" });
+    btns.push({ label: "📊 Mostra risultati", cls: "btn-amber", id: "btn-close-q" });
+  }
+
   if (status === "answer") {
     if (isAfterDemo) {
       btns.push({ label: "▶️ Inizia il quiz", cls: "btn-green", id: "btn-next" });
@@ -745,6 +751,19 @@ function renderControls(game: GameState) {
     if (qIdx < 0 || qIdx >= questions.length) return;
     try {
       await closeQuestion(questions[qIdx]);
+    } catch (err) {
+      console.error(err);
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  document.getElementById("btn-reopen-q")?.addEventListener("click", async () => {
+    const btn = document.getElementById("btn-reopen-q") as HTMLButtonElement | null;
+    if (btn) btn.disabled = true;
+    const qIdx = game.currentQuestionIndex;
+    if (qIdx < 0 || qIdx >= questions.length) return;
+    try {
+      await reopenQuestion(questions[qIdx]);
     } catch (err) {
       console.error(err);
       if (btn) btn.disabled = false;
