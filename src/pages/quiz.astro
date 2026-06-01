@@ -498,6 +498,8 @@ let myAnswerId: string | null = null;
 let myAnsweredAt: number | null = null;
 let currentQuestionId: string | null = null;
 let lastQuestionId: string | null = null;
+let currentGameSession: string | null = null;
+let lastGameSession: string | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let gameUnsubscribe: (() => void) | null = null;
 
@@ -845,18 +847,20 @@ async function renderLeaderboard(revealStep: number, isFinished = false) {
 
 // ── Restore answer from Firebase after F5 / reconnect ─────────────────────
 async function restoreAnswerIfNeeded(questionId: string): Promise<void> {
-  if (lastQuestionId === questionId) return; // already set up for this question
+  // If both the question and the session are unchanged, nothing to do
+  if (lastQuestionId === questionId && lastGameSession === currentGameSession) return;
 
   lastQuestionId = questionId;
+  lastGameSession = currentGameSession;
   currentQuestionId = questionId;
   hasAnswered = false;
   myAnswerId = null;
   myAnsweredAt = null;
 
-  if (!currentUid) return;
+  if (!currentUid || !currentGameSession) return;
 
   try {
-    const ansSnap = await get(ref(db, `answers/${GAME_ID}/${questionId}/${currentUid}`));
+    const ansSnap = await get(ref(db, `answers/${GAME_ID}/${currentGameSession}/${questionId}/${currentUid}`));
     if (ansSnap.exists()) {
       const ans = ansSnap.val() as { answerId: string; answeredAt: number };
       hasAnswered = true;
@@ -870,6 +874,14 @@ async function restoreAnswerIfNeeded(questionId: string): Promise<void> {
 
 // ── Game state handler ─────────────────────────────────────────────────────
 async function handleGameState(game: GameState) {
+  // Sync game session; on session change reset per-question cache so
+  // restoreAnswerIfNeeded fetches fresh answers from the new path.
+  if (game.gameSession && game.gameSession !== currentGameSession) {
+    currentGameSession = game.gameSession;
+    lastQuestionId = null;
+    lastGameSession = null;
+  }
+
   switch (game.status) {
     case "lobby":
       stopTimer();
@@ -1000,7 +1012,7 @@ function bindAnswerButtons() {
       });
 
       try {
-        await submitAnswer(currentUid, currentQuestionId, id);
+        await submitAnswer(currentUid, currentGameSession!, currentQuestionId, id);
       } catch (err) {
         console.error("Errore nell'invio risposta:", err);
       }

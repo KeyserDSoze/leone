@@ -56,6 +56,8 @@ export type PublicAnswerStats = {
 };
 
 export type GameState = {
+  /** Identificatore univoco della sessione di gioco; rigenerato ad ogni reset */
+  gameSession: string;
   status: GameStatus;
   currentQuestionIndex: number;
   currentQuestionId: string | null;

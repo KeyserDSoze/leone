@@ -569,10 +569,10 @@ function stopAnswerTracking() {
   currentAnswers = {};
 }
 
-function startAnswerTracking(questionId: string) {
+function startAnswerTracking(questionId: string, gameSession: string) {
   stopAnswerTracking();
 
-  const ansRef = ref(db, `answers/${GAME_ID}/${questionId}`);
+  const ansRef = ref(db, `answers/${GAME_ID}/${gameSession}/${questionId}`);
   answersUnsub = onValue(ansRef, async (snap) => {
     currentAnswers = snap.val() ?? {};
     const answerCount = Object.keys(currentAnswers).length;
@@ -599,11 +599,12 @@ function startAnswerTracking(questionId: string) {
       autoCloseTimeout = setTimeout(async () => {
         autoCloseTimeout = null;
         const qIdx = currentGame?.currentQuestionIndex;
+        const sess = currentGame?.gameSession ?? "";
         if (qIdx !== undefined && qIdx >= 0 && qIdx < questions.length) {
           const closeBtn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
           if (closeBtn) closeBtn.disabled = true;
           try {
-            await closeQuestion(questions[qIdx]);
+            await closeQuestion(questions[qIdx], sess);
           } catch (err) {
             console.error("Auto-close error:", err);
           }
@@ -886,9 +887,10 @@ function renderControls(game: GameState) {
     // Cancel auto-close timeout if host closes manually
     if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
     const qIdx = game.currentQuestionIndex;
+    const sess = game.gameSession ?? "";
     if (qIdx < 0 || qIdx >= questions.length) return;
     try {
-      await closeQuestion(questions[qIdx]);
+      await closeQuestion(questions[qIdx], sess);
     } catch (err) {
       console.error(err);
       if (btn) btn.disabled = false;
@@ -968,7 +970,7 @@ function startListeners() {
     // Start answer tracking only when question is revealed (visible)
     if (isActive && isVisible && qId && qId !== prevTrackedQuestionId) {
       prevTrackedQuestionId = qId;
-      startAnswerTracking(qId);
+      startAnswerTracking(qId, currentGame.gameSession ?? "");
     } else if (!isActive && currentGame.status !== "locked") {
       stopAnswerTracking();
     }

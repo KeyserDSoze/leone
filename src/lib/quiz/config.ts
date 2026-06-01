@@ -17,6 +17,7 @@ export const LEONE_SLOTS = new Set([1, 4, 6, 9, 12, 14, 17, 19, 20]);
 export const GENERAL_POOL_OFFSET = 0;
 
 export const INITIAL_GAME_STATE = {
+  gameSession: "",
   status: "lobby",
   currentQuestionIndex: -1,
   currentQuestionId: null,

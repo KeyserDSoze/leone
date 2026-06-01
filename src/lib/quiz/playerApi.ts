@@ -24,13 +24,14 @@ export async function checkUsernameTaken(username: string): Promise<boolean> {
   );
 }
 
-/** Invia la risposta del giocatore (una sola per domanda, garantita dalle Firebase Rules) */
+/** Invia la risposta del giocatore (una sola per domanda/sessione, garantita dalle Firebase Rules) */
 export async function submitAnswer(
   uid: string,
+  gameSession: string,
   questionId: string,
   answerId: AnswerId
 ): Promise<void> {
-  await set(ref(db, `answers/${GAME_ID}/${questionId}/${uid}`), {
+  await set(ref(db, `answers/${GAME_ID}/${gameSession}/${questionId}/${uid}`), {
     answerId,
     answeredAt: Date.now(),
   });

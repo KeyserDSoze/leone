@@ -16,30 +16,34 @@ export async function checkIsAdmin(uid: string): Promise<boolean> {
 
 /** Reset completo della partita */
 export async function resetGame(): Promise<void> {
-  const updates: Record<string, unknown> = {};
+  const newSession = Date.now().toString();
 
-  updates[`games/${GAME_ID}`] = { ...INITIAL_GAME_STATE };
-  // NON cancelliamo answers/${GAME_ID}: la regola Firebase !data.exists()
-  // impedisce la cancellazione. Per la partita vera i giocatori avranno
-  // uid freschi; per i test usare la Firebase Console per pulire manualmente.
-  updates[`leaderboards/${GAME_ID}`] = null;
+  // Reset game state (new session ID)
+  await set(ref(db, `games/${GAME_ID}`), { ...INITIAL_GAME_STATE, gameSession: newSession });
 
+  // Clear leaderboard
+  await set(ref(db, `leaderboards/${GAME_ID}`), null);
+
+  // Reset player scores using a targeted update (no root-level multi-path)
   const playersSnap = await get(ref(db, `players/${GAME_ID}`));
   if (playersSnap.exists()) {
     const players = playersSnap.val() as Record<string, unknown>;
+    const scoreUpdates: Record<string, number> = {};
     for (const uid of Object.keys(players)) {
-      updates[`players/${GAME_ID}/${uid}/score`] = 0;
+      scoreUpdates[`${uid}/score`] = 0;
     }
+    await update(ref(db, `players/${GAME_ID}`), scoreUpdates);
   }
-
-  await update(ref(db), updates);
 }
 
 /** Inizializza la struttura di gioco se non esiste */
 export async function initGameIfNeeded(): Promise<void> {
   const snap = await get(ref(db, `games/${GAME_ID}`));
   if (!snap.exists()) {
-    await set(ref(db, `games/${GAME_ID}`), { ...INITIAL_GAME_STATE });
+    await set(ref(db, `games/${GAME_ID}`), {
+      ...INITIAL_GAME_STATE,
+      gameSession: Date.now().toString(),
+    });
   }
 }
 
@@ -132,7 +136,7 @@ export async function reopenQuestion(question: Question): Promise<void> {
  * ri-pubblica solo lo stato "answer" senza ricalcolare i punteggi.
  * Supporta correctAnswerIds[] (risposta multipla).
  */
-export async function closeQuestion(question: Question): Promise<void> {
+export async function closeQuestion(question: Question, gameSession: string): Promise<void> {
   await update(ref(db, `games/${GAME_ID}`), {
     status: "locked" as GameStatus,
   });
@@ -155,7 +159,7 @@ export async function closeQuestion(question: Question): Promise<void> {
   };
 
   const answersSnap = await get(
-    ref(db, `answers/${GAME_ID}/${question.id}`)
+    ref(db, `answers/${GAME_ID}/${gameSession}/${question.id}`)
   );
   const answers = (answersSnap.val() ?? {}) as Record<
     string,
@@ -169,10 +173,11 @@ export async function closeQuestion(question: Question): Promise<void> {
   >;
 
   const isDemo = question.category === "demo";
-  const updates: Record<string, unknown> = {};
 
   // Calcola distribuzione risposte (solo giocatori con username)
   const stats: PublicAnswerStats = { A: 0, B: 0, C: 0, D: 0, total: 0 };
+  const playerScoreUpdates: Record<string, number> = {};
+  const leaderboardUpdates: Record<string, { username: string; score: number }> = {};
 
   for (const [uid, player] of Object.entries(players)) {
     // Salta record senza username (es. host che ha chiamato setupPresence)
@@ -197,17 +202,11 @@ export async function closeQuestion(question: Question): Promise<void> {
     const newScore = Math.max(0, Number(player.score ?? 0) + points);
 
     if (!isDemo) {
-      updates[`players/${GAME_ID}/${uid}/score`] = newScore;
-      updates[`leaderboards/${GAME_ID}/${uid}`] = {
-        username: player.username,
-        score: newScore,
-      };
+      playerScoreUpdates[`${uid}/score`] = newScore;
+      leaderboardUpdates[uid] = { username: player.username, score: newScore };
     }
 
     if (answer) {
-      // NON scriviamo isCorrect/points su answers/${uid} perché la regola Firebase
-      // ".write: !data.exists()" blocca riscritture su risposte già inviate.
-      // Accumula solo le stats localmente per il batch.
       const aid = answer.answerId as "A" | "B" | "C" | "D";
       if (["A", "B", "C", "D"].includes(aid)) {
         stats[aid]++;
@@ -216,17 +215,28 @@ export async function closeQuestion(question: Question): Promise<void> {
     }
   }
 
-  updates[`games/${GAME_ID}/status`] = "answer" as GameStatus;
-  updates[`games/${GAME_ID}/showResults`] = true;
-  updates[`games/${GAME_ID}/showStats`] = false; // host clicca "Mostra statistiche" per rivelare le barre
-  updates[`games/${GAME_ID}/publicCurrentResult`] = {
-    questionId: question.id,
-    correctAnswerIds: question.correctAnswerIds,
-    explanation: question.explanation ?? null,
-  };
-  updates[`games/${GAME_ID}/publicAnswerStats`] = stats;
+  // Update game state (targeted — no root-level multi-path)
+  await update(ref(db, `games/${GAME_ID}`), {
+    status: "answer" as GameStatus,
+    showResults: true,
+    showStats: false, // host clicca "Mostra statistiche" per rivelare le barre
+    publicCurrentResult: {
+      questionId: question.id,
+      correctAnswerIds: question.correctAnswerIds,
+      explanation: question.explanation ?? null,
+    },
+    publicAnswerStats: stats,
+  });
 
-  await update(ref(db), updates);
+  // Update player scores and leaderboard (separate targeted updates)
+  if (!isDemo) {
+    if (Object.keys(playerScoreUpdates).length > 0) {
+      await update(ref(db, `players/${GAME_ID}`), playerScoreUpdates);
+    }
+    if (Object.keys(leaderboardUpdates).length > 0) {
+      await update(ref(db, `leaderboards/${GAME_ID}`), leaderboardUpdates);
+    }
+  }
 }
 
 /** Rivela le barre distribuzione risposte a tutti i player */
