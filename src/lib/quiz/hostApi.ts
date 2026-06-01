@@ -19,7 +19,9 @@ export async function resetGame(): Promise<void> {
   const updates: Record<string, unknown> = {};
 
   updates[`games/${GAME_ID}`] = { ...INITIAL_GAME_STATE };
-  updates[`answers/${GAME_ID}`] = null;
+  // NON cancelliamo answers/${GAME_ID}: la regola Firebase !data.exists()
+  // impedisce la cancellazione. Per la partita vera i giocatori avranno
+  // uid freschi; per i test usare la Firebase Console per pulire manualmente.
   updates[`leaderboards/${GAME_ID}`] = null;
 
   const playersSnap = await get(ref(db, `players/${GAME_ID}`));
