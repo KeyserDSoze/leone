@@ -126,14 +126,13 @@
     }
     .player-list {
       list-style: none;
-      max-height: 180px;
+      max-height: 220px;
       overflow-y: auto;
       margin-top: 8px;
     }
     .player-item {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 6px 10px;
       border-radius: 8px;
       font-size: 14px;
@@ -151,6 +150,7 @@
     .dot-online  { background: #22C55E; }
     .dot-offline { background: #D1D5DB; }
     .player-score { font-weight: 700; color: #D97706; font-size: 13px; }
+    .answer-status { font-size: 16px; margin: 0 4px; }
 
     /* ── Controls ── */
     .controls-grid {
@@ -273,6 +273,12 @@
     .lb-rank { font-size:18px; font-weight:700; width:32px; color:#92400E; }
     .lb-name { flex:1; font-size:15px; color:#1F2937; font-weight:600; }
     .lb-score-h { font-size:15px; font-weight:700; color:#D97706; }
+    .lb-reveal-step {
+      font-size: 13px;
+      color: #9CA3AF;
+      margin-top: 8px;
+      text-align: center;
+    }
 
     /* ── Setup / not-admin ── */
     .setup-card {
@@ -367,6 +373,7 @@
       <div class="card" id="leaderboard-panel" style="display:none">
         <p class="card-title">Classifica</p>
         <ul class="lb-host" id="lb-list"></ul>
+        <p class="lb-reveal-step" id="lb-reveal-step"></p>
       </div>
 
     </div>
@@ -382,6 +389,7 @@ import {
   startQuestion,
   closeQuestion,
   showLeaderboard,
+  revealNextLeaderboardStep,
   finishGame,
 } from "../../lib/quiz/hostApi";
 import { setupPresence } from "../../lib/quiz/presence";
@@ -396,7 +404,12 @@ const questions = buildGameQuestions(); // [demo, q1..q20]
 let currentUid: string | null = null;
 let currentGame: GameState | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
-let answerCountInterval: ReturnType<typeof setInterval> | null = null;
+
+// ── Shared player + answer state ───────────────────────────────────────────
+let currentPlayers: Record<string, Player> = {};
+let currentAnswers: Record<string, { answerId: string }> = {};
+let answersUnsub: (() => void) | null = null;
+let autoCloseTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // ── QR Code generation ────────────────────────────────────────────────────
 async function generateQR() {
@@ -475,23 +488,57 @@ function stopHostTimer() {
   if (el) el.style.display = "none";
 }
 
-// ── Answer count ───────────────────────────────────────────────────────────
-function startAnswerCount(questionId: string) {
-  if (answerCountInterval) clearInterval(answerCountInterval);
-  const el = document.getElementById("answer-count");
-  if (el) el.style.display = "block";
-
-  async function update() {
-    const snap = await get(ref(db, `answers/${GAME_ID}/${questionId}`));
-    const count = snap.exists() ? Object.keys(snap.val()).length : 0;
-    if (el) el.textContent = `📩 ${count} rispost${count === 1 ? "a" : "e"} ricevut${count === 1 ? "a" : "e"}`;
-  }
-  update();
-  answerCountInterval = setInterval(update, 2000);
+// ── Answer tracking with auto-close ────────────────────────────────────────
+function getActivePlayerCount(): number {
+  return Object.values(currentPlayers).filter((p) => p.username).length;
 }
 
-function stopAnswerCount() {
-  if (answerCountInterval) { clearInterval(answerCountInterval); answerCountInterval = null; }
+function stopAnswerTracking() {
+  if (answersUnsub) { answersUnsub(); answersUnsub = null; }
+  if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
+  currentAnswers = {};
+}
+
+function startAnswerTracking(questionId: string) {
+  stopAnswerTracking();
+
+  const ansRef = ref(db, `answers/${GAME_ID}/${questionId}`);
+  answersUnsub = onValue(ansRef, async (snap) => {
+    currentAnswers = snap.val() ?? {};
+    const answerCount = Object.keys(currentAnswers).length;
+
+    // Update count display
+    const el = document.getElementById("answer-count");
+    if (el) {
+      el.style.display = "block";
+      el.textContent = `📩 ${answerCount} risposta/e ricevuta/e`;
+    }
+
+    // Re-render player list with updated answer status
+    renderPlayers(currentPlayers);
+
+    // Auto-close: all active players have answered
+    if (!currentGame) return;
+    if (currentGame.status !== "demo" && currentGame.status !== "question") return;
+    if (currentGame.currentQuestionId !== questionId) return;
+
+    const playerCount = getActivePlayerCount();
+    if (playerCount > 0 && answerCount >= playerCount && !autoCloseTimeout) {
+      autoCloseTimeout = setTimeout(async () => {
+        autoCloseTimeout = null;
+        const qIdx = currentGame?.currentQuestionIndex;
+        if (qIdx !== undefined && qIdx >= 0 && qIdx < questions.length) {
+          const closeBtn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
+          if (closeBtn) closeBtn.disabled = true;
+          try {
+            await closeQuestion(questions[qIdx]);
+          } catch (err) {
+            console.error("Auto-close error:", err);
+          }
+        }
+      }, 1500);
+    }
+  });
 }
 
 // ── Render question panel ─────────────────────────────────────────────────
@@ -522,7 +569,6 @@ function renderQuestionPanel(game: GameState) {
 
   if (textEl) { textEl.textContent = pq.text; textEl.style.color = "#1F2937"; }
 
-  // Risposte
   if (answersEl) {
     const ids = ["A", "B", "C", "D"] as const;
     answersEl.innerHTML = ids.map((id) => {
@@ -535,45 +581,60 @@ function renderQuestionPanel(game: GameState) {
     }).join("");
   }
 
-  // Timer
   if ((game.status === "demo" || game.status === "question") && game.questionEndsAt) {
     startHostTimer(game.questionEndsAt);
-    if (game.currentQuestionId) startAnswerCount(game.currentQuestionId);
   } else {
     stopHostTimer();
-    stopAnswerCount();
   }
 }
 
-// ── Render players ─────────────────────────────────────────────────────────
+// ── Render players (filters out host, shows answer status) ─────────────────
 function renderPlayers(players: Record<string, Player> | null) {
   const countEl = document.getElementById("player-count");
   const listEl = document.getElementById("player-list");
+
   if (!players) {
     if (countEl) countEl.textContent = "0";
     if (listEl) listEl.innerHTML = "";
     return;
   }
 
-  const entries = Object.entries(players);
-  const online = entries.filter(([, p]) => p.connected);
-  if (countEl) countEl.textContent = String(online.length);
+  // Only real players (have username); host record has no username
+  const playerEntries = Object.entries(players).filter(([, p]) => p.username);
+  const onlineCount = playerEntries.filter(([, p]) => p.connected).length;
+  if (countEl) countEl.textContent = String(onlineCount);
 
-  if (listEl) {
-    const sorted = entries.sort(([, a], [, b]) => b.score - a.score);
-    listEl.innerHTML = sorted.map(([, p]) => `
-      <li class="player-item">
+  if (!listEl) return;
+
+  const isQuestionActive =
+    currentGame?.status === "demo" || currentGame?.status === "question";
+  const currentQId = currentGame?.currentQuestionId;
+
+  const sorted = [...playerEntries].sort(([, a], [, b]) => (b.score ?? 0) - (a.score ?? 0));
+
+  listEl.innerHTML = sorted
+    .map(([uid, p]) => {
+      const hasAnswered =
+        isQuestionActive && currentQId ? Boolean(currentAnswers[uid]) : false;
+      const statusIcon = isQuestionActive
+        ? `<span class="answer-status">${hasAnswered ? "✅" : "⏳"}</span>`
+        : "";
+
+      return `<li class="player-item">
         <span class="player-dot ${p.connected ? "dot-online" : "dot-offline"}"></span>
         <span style="flex:1;font-size:14px">${p.username}</span>
-        <span class="player-score">${p.score.toLocaleString("it-IT")}</span>
-      </li>`).join("");
-  }
+        ${statusIcon}
+        <span class="player-score">${(p.score ?? 0).toLocaleString("it-IT")}</span>
+      </li>`;
+    })
+    .join("");
 }
 
-// ── Render leaderboard ─────────────────────────────────────────────────────
-async function renderLeaderboard() {
+// ── Render leaderboard (host always sees all) ──────────────────────────────
+async function renderLeaderboard(revealStep = -1) {
   const panel = document.getElementById("leaderboard-panel");
   const listEl = document.getElementById("lb-list");
+  const stepEl = document.getElementById("lb-reveal-step");
   if (!panel || !listEl) return;
 
   const snap = await get(ref(db, `leaderboards/${GAME_ID}`));
@@ -593,6 +654,12 @@ async function renderLeaderboard() {
       <span class="lb-score-h">${e.score.toLocaleString("it-IT")}</span>
     </li>`;
   }).join("");
+
+  if (stepEl) {
+    stepEl.textContent = revealStep >= 0
+      ? `Rivelazione giocatori: ${Math.min(revealStep, 5)}/5`
+      : "";
+  }
 }
 
 // ── Controls ───────────────────────────────────────────────────────────────
@@ -600,10 +667,11 @@ function renderControls(game: GameState) {
   const grid = document.getElementById("controls-grid");
   if (!grid) return;
 
-  const idx = game.currentQuestionIndex; // -1 = nessuna domanda ancora
+  const idx = game.currentQuestionIndex;
   const status = game.status;
   const isLastQuestion = idx === 20;
   const isAfterDemo = idx === 0 && status === "answer";
+  const revealStep = game.leaderboardRevealStep ?? -1;
 
   const btns: { label: string; cls: string; id: string; disabled?: boolean }[] = [];
 
@@ -619,32 +687,47 @@ function renderControls(game: GameState) {
   if (status === "answer") {
     if (isAfterDemo) {
       btns.push({ label: "▶️ Inizia il quiz", cls: "btn-green", id: "btn-next" });
-    } else if (isLastQuestion) {
-      btns.push({ label: "🏆 Mostra classifica finale", cls: "btn-purple", id: "btn-show-lb" });
     } else {
       btns.push({ label: "🏆 Mostra classifica", cls: "btn-purple", id: "btn-show-lb" });
     }
   }
 
   if (status === "leaderboard") {
-    if (isLastQuestion) {
-      btns.push({ label: "🎉 Fine gioco", cls: "btn-green", id: "btn-finish" });
+    if (revealStep < 5) {
+      const rankToReveal = 5 - revealStep;
+      const rankLabel =
+        rankToReveal === 1
+          ? "🥇 Rivela 1° posto!"
+          : rankToReveal === 2
+          ? "🥈 Rivela 2° posto"
+          : rankToReveal === 3
+          ? "🥉 Rivela 3° posto"
+          : `🎭 Rivela ${rankToReveal}° posto`;
+      btns.push({ label: rankLabel, cls: "btn-purple", id: "btn-reveal-step" });
     } else {
-      btns.push({ label: "➡️ Prossima domanda", cls: "btn-amber", id: "btn-next" });
+      // All revealed
+      if (isLastQuestion) {
+        btns.push({ label: "🎉 Fine gioco", cls: "btn-green", id: "btn-finish" });
+      } else {
+        btns.push({ label: "➡️ Prossima domanda", cls: "btn-amber", id: "btn-next" });
+      }
     }
   }
 
   if (status === "finished") {
-    // solo reset
+    // Only reset available
   }
 
   btns.push({ label: "🔄 Reset partita", cls: "btn-red", id: "btn-reset" });
 
-  grid.innerHTML = btns.map(b =>
-    `<button class="btn-control ${b.cls}" id="${b.id}" ${b.disabled ? "disabled" : ""}>${b.label}</button>`
-  ).join("");
+  grid.innerHTML = btns
+    .map(
+      (b) =>
+        `<button class="btn-control ${b.cls}" id="${b.id}" ${b.disabled ? "disabled" : ""}>${b.label}</button>`
+    )
+    .join("");
 
-  // Bind
+  // Bind events
   document.getElementById("btn-start-demo")?.addEventListener("click", async () => {
     await startQuestion(questions[0], 0);
   });
@@ -656,6 +739,8 @@ function renderControls(game: GameState) {
   document.getElementById("btn-close-q")?.addEventListener("click", async () => {
     const btn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
     if (btn) btn.disabled = true;
+    // Cancel auto-close timeout if host closes manually
+    if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
     const qIdx = game.currentQuestionIndex;
     if (qIdx < 0 || qIdx >= questions.length) return;
     try {
@@ -668,26 +753,32 @@ function renderControls(game: GameState) {
 
   document.getElementById("btn-show-lb")?.addEventListener("click", async () => {
     await showLeaderboard();
-    await renderLeaderboard();
+    await renderLeaderboard(0);
+  });
+
+  document.getElementById("btn-reveal-step")?.addEventListener("click", async () => {
+    const step = currentGame?.leaderboardRevealStep ?? 0;
+    await revealNextLeaderboardStep(step);
+    await renderLeaderboard(step + 1);
   });
 
   document.getElementById("btn-next")?.addEventListener("click", async () => {
     const nextIdx = game.currentQuestionIndex + 1;
     if (nextIdx < 1 || nextIdx >= questions.length) return;
     stopHostTimer();
-    stopAnswerCount();
+    stopAnswerTracking();
     await startQuestion(questions[nextIdx], nextIdx);
   });
 
   document.getElementById("btn-finish")?.addEventListener("click", async () => {
     await finishGame();
-    await renderLeaderboard();
+    await renderLeaderboard(5);
   });
 
   document.getElementById("btn-reset")?.addEventListener("click", async () => {
     if (!confirm("Resettare la partita? I punteggi verranno azzerati.")) return;
     stopHostTimer();
-    stopAnswerCount();
+    stopAnswerTracking();
     const lbPanel = document.getElementById("leaderboard-panel");
     if (lbPanel) lbPanel.style.display = "none";
     await resetGame();
@@ -696,6 +787,8 @@ function renderControls(game: GameState) {
 
 // ── Firebase listeners ─────────────────────────────────────────────────────
 function startListeners() {
+  let prevQuestionId: string | null = null;
+
   // Game state
   onValue(ref(db, `games/${GAME_ID}`), (snap) => {
     if (!snap.exists()) return;
@@ -703,14 +796,34 @@ function startListeners() {
     updateStatusBadge(currentGame.status);
     renderQuestionPanel(currentGame);
     renderControls(currentGame);
-    if (currentGame.status === "leaderboard" || currentGame.status === "finished") {
-      renderLeaderboard();
+
+    // Start/stop answer tracking when question changes
+    const isActive =
+      currentGame.status === "demo" || currentGame.status === "question";
+    const qId = currentGame.currentQuestionId;
+
+    if (isActive && qId && qId !== prevQuestionId) {
+      prevQuestionId = qId;
+      startAnswerTracking(qId);
+    } else if (!isActive) {
+      // Don't cancel answers listener immediately on "locked" (might still update)
+      if (currentGame.status !== "locked") {
+        stopAnswerTracking();
+      }
+    }
+
+    if (
+      currentGame.status === "leaderboard" ||
+      currentGame.status === "finished"
+    ) {
+      renderLeaderboard(currentGame.leaderboardRevealStep ?? -1);
     }
   });
 
   // Players
   onValue(ref(db, `players/${GAME_ID}`), (snap) => {
-    renderPlayers(snap.val() as Record<string, Player> | null);
+    currentPlayers = snap.val() ?? {};
+    renderPlayers(currentPlayers);
   });
 }
 
@@ -727,7 +840,7 @@ function showNotAdmin(uid: string) {
           Copia il tuo UID e aggiungilo in Firebase Console.
         </p>
         <div class="uid-box" id="uid-display" title="Clicca per copiare">${uid}</div>
-        <button onclick="navigator.clipboard.writeText('${uid}').then(()=>document.getElementById('uid-display').textContent='✅ Copiato!')" 
+        <button onclick="navigator.clipboard.writeText('${uid}').then(()=>document.getElementById('uid-display').textContent='✅ Copiato!')"
           style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:600;color:#92400E;font-size:14px">
           📋 Copia UID
         </button>
@@ -737,7 +850,7 @@ function showNotAdmin(uid: string) {
           <li>Aggiungi la chiave <code>${uid}</code> con valore <code>true</code></li>
           <li>Ricarica questa pagina</li>
         </ol>
-        <button onclick="location.reload()" 
+        <button onclick="location.reload()"
           style="margin-top:16px;width:100%;padding:12px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer">
           🔄 Ricarica dopo la configurazione
         </button>
@@ -758,7 +871,6 @@ async function init() {
       return;
     }
 
-    // Mostra pannello host
     const setupEl = document.getElementById("panel-setup");
     const hostEl = document.getElementById("panel-host");
     if (setupEl) setupEl.style.display = "none";

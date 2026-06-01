@@ -194,19 +194,29 @@
       text-align: left;
       font-size: 14px;
       line-height: 1.35;
-      transition: transform 0.1s, box-shadow 0.15s;
+      transition: transform 0.1s, box-shadow 0.15s, border-color 0.1s;
       display: flex;
       align-items: flex-start;
       gap: 6px;
     }
     .btn-answer:hover  { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
     .btn-answer:active { transform: scale(0.97); }
-    .btn-answer:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Disabled non-selected: fade out */
+    .btn-answer:disabled { cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-answer:disabled:not(.selected) { opacity: 0.35; }
 
     .btn-answer-A { background:#EFF6FF; border-color:#BFDBFE; color:#1E40AF; }
     .btn-answer-B { background:#F0FDF4; border-color:#BBF7D0; color:#166534; }
     .btn-answer-C { background:#FFF7ED; border-color:#FED7AA; color:#9A3412; }
     .btn-answer-D { background:#FDF4FF; border-color:#E9D5FF; color:#6B21A8; }
+
+    /* Selected answer: bright ring + full opacity */
+    .btn-answer.selected { opacity: 1; font-weight: 700; }
+    .btn-answer-A.selected { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.35); }
+    .btn-answer-B.selected { border-color: #22C55E; box-shadow: 0 0 0 3px rgba(34,197,94,0.35); }
+    .btn-answer-C.selected { border-color: #F97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.35); }
+    .btn-answer-D.selected { border-color: #A855F7; box-shadow: 0 0 0 3px rgba(168,85,247,0.35); }
 
     .answer-label {
       display: inline-flex;
@@ -225,19 +235,63 @@
     .btn-answer-D .answer-label { background:#E9D5FF; color:#6B21A8; }
 
     /* ── RESULT ── */
-    .result-box {
+    .result-summary {
       border-radius: 16px;
-      padding: 18px;
-      margin: 10px 0;
+      padding: 14px 18px;
+      margin-bottom: 14px;
     }
-    .result-correct { background:#F0FDF4; border: 2px solid #86EFAC; }
-    .result-wrong   { background:#FFF1F2; border: 2px solid #FECDD3; }
-    .result-skip    { background:#F9FAFB; border: 2px solid #E5E7EB; }
+    .result-summary.correct { background:#F0FDF4; border: 2px solid #86EFAC; }
+    .result-summary.wrong   { background:#FFF1F2; border: 2px solid #FECDD3; }
+    .result-summary.skip    { background:#F9FAFB; border: 2px solid #E5E7EB; }
+    .result-icon    { font-size: 36px; display: block; }
+    .result-outcome { font-size: 16px; font-weight: 700; margin-top: 4px; }
+    .result-pts     { font-size: 30px; font-weight: 800; margin-top: 2px; }
+    .result-pts.positive { color: #16A34A; }
+    .result-pts.negative { color: #DC2626; }
 
-    .points-badge   { font-size: 38px; font-weight: 700; color: #16A34A; }
-    .correct-label  { font-size: 15px; color: #374151; margin-top: 6px; }
-    .correct-answer { font-weight: 700; color: #15803D; }
-    .explanation    { font-size: 13px; color: #6B7280; font-style: italic; margin-top: 6px; }
+    /* Answer distribution bars */
+    .bars-section { margin: 10px 0; }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .bar-id {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .bar-track {
+      flex: 1;
+      background: #F3F4F6;
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: #D1D5DB;
+      transition: width 0.6s ease;
+    }
+    .bar-fill.bar-correct    { background: #22C55E; }
+    .bar-fill.bar-wrong-pick { background: #EF4444; }
+    .bar-pct {
+      font-size: 12px;
+      color: #6B7280;
+      width: 34px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .bar-icon { font-size: 14px; width: 18px; flex-shrink: 0; }
+    .explanation { font-size: 13px; color: #6B7280; font-style: italic; margin-top: 8px; }
 
     /* ── LEADERBOARD ── */
     .lb-list { list-style: none; width: 100%; margin-top: 12px; }
@@ -250,10 +304,11 @@
       background: #FFFBEB;
       border: 1px solid #FDE68A;
     }
-    .lb-item.me    { background:#FEF3C7; border-color:#F59E0B; font-weight:700; }
-    .lb-item.rank1 { background:#FEF9C3; border-color:#EAB308; }
-    .lb-item.rank2 { background:#F8FAFC; border-color:#94A3B8; }
-    .lb-item.rank3 { background:#FFF4ED; border-color:#FB923C; }
+    .lb-item.me     { background:#FEF3C7; border-color:#F59E0B; font-weight:700; }
+    .lb-item.rank1  { background:#FEF9C3; border-color:#EAB308; }
+    .lb-item.rank2  { background:#F8FAFC; border-color:#94A3B8; }
+    .lb-item.rank3  { background:#FFF4ED; border-color:#FB923C; }
+    .lb-item.lb-hidden { background:#F9FAFB; border-color:#E5E7EB; }
     .lb-rank  { font-size:18px; font-weight:700; width:30px; color:#92400E; }
     .lb-name  { flex:1; font-size:15px; color:#1F2937; }
     .lb-score { font-size:15px; font-weight:700; color:#D97706; }
@@ -311,7 +366,7 @@
   </div>
 </div>
 
-<!-- QUESTION -->
+<!-- QUESTION (also used for "answered" state — buttons disabled + selected highlighted) -->
 <div id="screen-question" class="screen">
   <div class="card">
     <div class="progress-row">
@@ -343,15 +398,6 @@
   </div>
 </div>
 
-<!-- ANSWERED -->
-<div id="screen-answered" class="screen">
-  <div class="card">
-    <span class="big-icon">✅</span>
-    <h2 class="quiz-title">Risposta registrata!</h2>
-    <p class="lobby-waiting">Aspettiamo gli altri concorrenti…</p>
-  </div>
-</div>
-
 <!-- RESULT -->
 <div id="screen-result" class="screen">
   <div class="card">
@@ -365,7 +411,7 @@
     <span style="font-size:48px">🏆</span>
     <h2 class="quiz-title" style="margin-top:6px">Classifica</h2>
     <ul class="lb-list" id="leaderboard-list"><!-- filled by JS --></ul>
-    <p class="lobby-waiting" style="margin-top:14px">⏳ Prossima domanda in arrivo…</p>
+    <p class="lobby-waiting" id="lb-waiting-msg" style="margin-top:14px">🎭 L'host sta rivelando la classifica…</p>
   </div>
 </div>
 
@@ -398,15 +444,24 @@ import { db, ensureAnonymousUser } from "../lib/firebase";
 import { joinGame, checkUsernameTaken, submitAnswer } from "../lib/quiz/playerApi";
 import { setupPresence } from "../lib/quiz/presence";
 import { GAME_ID } from "../lib/quiz/config";
+import { calculatePoints } from "../lib/quiz/scoring";
 import { ref, onValue, get } from "firebase/database";
-import type { GameState, PublicQuestion, PublicResult, LeaderboardEntry } from "../lib/quiz/types";
+import type {
+  GameState,
+  PublicQuestion,
+  PublicResult,
+  PublicAnswerStats,
+  LeaderboardEntry,
+} from "../lib/quiz/types";
 
 // ── State ──────────────────────────────────────────────────────────────────
 let currentUid: string | null = null;
 let currentUsername: string | null = null;
 let hasAnswered = false;
 let myAnswerId: string | null = null;
+let myAnsweredAt: number | null = null;
 let currentQuestionId: string | null = null;
+let lastQuestionId: string | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let gameUnsubscribe: (() => void) | null = null;
 
@@ -454,11 +509,7 @@ function startTimer(endsAt: number) {
   function tick() {
     const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
     timerEl!.textContent = String(remaining);
-    if (remaining <= 5) {
-      timerEl!.classList.add("urgent");
-    } else {
-      timerEl!.classList.remove("urgent");
-    }
+    timerEl!.classList.toggle("urgent", remaining <= 5);
   }
 
   tick();
@@ -473,7 +524,11 @@ function stopTimer() {
 }
 
 // ── Render question ────────────────────────────────────────────────────────
-function renderQuestion(q: PublicQuestion, endsAt: number) {
+function renderQuestion(
+  q: PublicQuestion,
+  endsAt: number,
+  opts: { disabled?: boolean; selectedId?: string | null } = {}
+) {
   const isDemo = q.category === "demo";
   const progressEl = document.getElementById("question-progress");
   const categoryEl = document.getElementById("question-category");
@@ -507,8 +562,8 @@ function renderQuestion(q: PublicQuestion, endsAt: number) {
     const answer = q.answers.find((a) => a.id === id);
     if (answerEl) answerEl.textContent = answer?.text ?? "";
     if (btn) {
-      btn.disabled = false;
-      btn.style.opacity = "";
+      btn.disabled = opts.disabled ?? false;
+      btn.classList.toggle("selected", opts.selectedId === id);
     }
   });
 
@@ -516,8 +571,16 @@ function renderQuestion(q: PublicQuestion, endsAt: number) {
   showScreen("question");
 }
 
-// ── Render result ──────────────────────────────────────────────────────────
-function renderResult(result: PublicResult, myAnswerIdSnap: string | null) {
+// ── Render result with distribution bars ───────────────────────────────────
+function renderResult(
+  result: PublicResult,
+  stats: PublicAnswerStats | null,
+  myAnswerIdSnap: string | null,
+  myAnsweredAtSnap: number | null,
+  questionStartedAt: number | null,
+  questionEndsAt: number | null,
+  isDemo: boolean
+) {
   stopTimer();
   const container = document.getElementById("result-content");
   if (!container) return;
@@ -526,37 +589,98 @@ function renderResult(result: PublicResult, myAnswerIdSnap: string | null) {
   const isCorrect = myAnswerIdSnap === correct;
   const skipped = !myAnswerIdSnap;
 
-  if (skipped) {
-    container.innerHTML = `
-      <div class="result-box result-skip">
-        <span style="font-size:48px">⏱️</span>
-        <p style="font-size:17px;font-weight:600;color:#374151;margin-top:8px">Tempo scaduto!</p>
-        <p class="correct-label">La risposta corretta era: <span class="correct-answer">${correct}</span></p>
-        ${result.explanation ? `<p class="explanation">${result.explanation}</p>` : ""}
-      </div>`;
-  } else if (isCorrect) {
-    container.innerHTML = `
-      <div class="result-box result-correct">
-        <span style="font-size:48px">✅</span>
-        <p style="font-size:17px;font-weight:600;color:#166534;margin-top:8px">Giusto! Leone approva 🦁</p>
-        ${result.explanation ? `<p class="explanation">${result.explanation}</p>` : ""}
-      </div>
-      <p style="font-size:13px;color:#9CA3AF;margin-top:8px">I punti vengono calcolati dall'host</p>`;
-  } else {
-    container.innerHTML = `
-      <div class="result-box result-wrong">
-        <span style="font-size:48px">❌</span>
-        <p style="font-size:17px;font-weight:600;color:#991B1B;margin-top:8px">Peccato, ci sei andato vicino!</p>
-        <p class="correct-label">La risposta corretta era: <span class="correct-answer">${correct}</span></p>
-        ${result.explanation ? `<p class="explanation">${result.explanation}</p>` : ""}
-      </div>`;
+  // Calculate points client-side (mirrors host calculation for display)
+  let points = 0;
+  if (!isDemo && !skipped && questionStartedAt && questionEndsAt && myAnsweredAtSnap) {
+    points = calculatePoints({
+      isCorrect,
+      answeredAt: myAnsweredAtSnap,
+      questionStartedAt,
+      questionEndsAt,
+    });
   }
 
+  // Summary
+  let summaryClass: string;
+  let icon: string;
+  let outcomeText: string;
+  let outcomeColor: string;
+  if (skipped) {
+    summaryClass = "skip";
+    icon = "⏱️";
+    outcomeText = "Tempo scaduto!";
+    outcomeColor = "#374151";
+  } else if (isCorrect) {
+    summaryClass = "correct";
+    icon = "✅";
+    outcomeText = "Giusto! Leone approva 🦁";
+    outcomeColor = "#166534";
+  } else {
+    summaryClass = "wrong";
+    icon = "❌";
+    outcomeText = "Peccato, quasi!";
+    outcomeColor = "#991B1B";
+  }
+
+  const ptsHTML =
+    !isDemo && !skipped
+      ? `<p class="result-pts ${points >= 0 ? "positive" : "negative"}">${points >= 0 ? "+" : ""}${points.toLocaleString("it-IT")} pt</p>`
+      : "";
+
+  const summaryHTML = `
+    <div class="result-summary ${summaryClass}">
+      <span class="result-icon">${icon}</span>
+      <p class="result-outcome" style="color:${outcomeColor}">${outcomeText}</p>
+      ${ptsHTML}
+    </div>`;
+
+  // Distribution bars
+  const ids = ["A", "B", "C", "D"] as const;
+  const total = stats?.total ?? 0;
+  const colorMap: Record<string, string> = {
+    A: "#BFDBFE",
+    B: "#BBF7D0",
+    C: "#FED7AA",
+    D: "#E9D5FF",
+  };
+
+  const barsHTML = stats
+    ? `<div class="bars-section">
+        ${ids
+          .map((id) => {
+            const count = stats[id] ?? 0;
+            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            const isThisCorrect = id === correct;
+            const isMyWrongAnswer = id === myAnswerIdSnap && !isCorrect;
+            const fillClass = isThisCorrect
+              ? "bar-correct"
+              : isMyWrongAnswer
+              ? "bar-wrong-pick"
+              : "";
+            const barIcon = isThisCorrect ? "✅" : isMyWrongAnswer ? "❌" : "";
+            return `<div class="bar-row">
+              <span class="bar-id" style="background:${colorMap[id]}">${id}</span>
+              <div class="bar-track">
+                <div class="bar-fill ${fillClass}" style="width:${pct}%"></div>
+              </div>
+              <span class="bar-pct">${pct}%</span>
+              <span class="bar-icon">${barIcon}</span>
+            </div>`;
+          })
+          .join("")}
+      </div>`
+    : "";
+
+  const explanationHTML = result.explanation
+    ? `<p class="explanation">${result.explanation}</p>`
+    : "";
+
+  container.innerHTML = summaryHTML + barsHTML + explanationHTML;
   showScreen("result");
 }
 
-// ── Render leaderboard ─────────────────────────────────────────────────────
-async function renderLeaderboard(isFinished = false) {
+// ── Render leaderboard with progressive reveal ─────────────────────────────
+async function renderLeaderboard(revealStep: number, isFinished = false) {
   const listEl = document.getElementById("leaderboard-list");
   if (!listEl) return;
 
@@ -565,29 +689,33 @@ async function renderLeaderboard(isFinished = false) {
 
   if (!raw) {
     listEl.innerHTML = `<li style="text-align:center;color:#6B7280;padding:12px">Ancora nessun punteggio</li>`;
-    showScreen(isFinished ? "finished" : "leaderboard");
+    if (isFinished) {
+      showScreen("finished");
+    } else {
+      showScreen("leaderboard");
+    }
     return;
   }
 
   const sorted = Object.entries(raw).sort(([, a], [, b]) => b.score - a.score);
-
-  listEl.innerHTML = sorted
-    .slice(0, 10)
-    .map(([uid, entry], i) => {
-      const rank = i + 1;
-      const isMe = uid === currentUid;
-      const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}.`;
-      const rankClass = `rank${rank <= 3 ? rank : ""}`;
-      return `<li class="lb-item ${rankClass} ${isMe ? "me" : ""}">
-        <span class="lb-rank">${medal}</span>
-        <span class="lb-name">${entry.username}${isMe ? " (tu)" : ""}</span>
-        <span class="lb-score">${entry.score.toLocaleString("it-IT")}</span>
-      </li>`;
-    })
-    .join("");
+  const total = sorted.length;
 
   if (isFinished) {
-    // Mostra il rank finale personale
+    // All entries visible + show finished screen
+    listEl.innerHTML = sorted
+      .slice(0, 10)
+      .map(([uid, entry], i) => {
+        const rank = i + 1;
+        const isMe = uid === currentUid;
+        const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}.`;
+        return `<li class="lb-item ${rank <= 3 ? `rank${rank}` : ""} ${isMe ? "me" : ""}">
+          <span class="lb-rank">${medal}</span>
+          <span class="lb-name">${entry.username}${isMe ? " (tu)" : ""}</span>
+          <span class="lb-score">${entry.score.toLocaleString("it-IT")}</span>
+        </li>`;
+      })
+      .join("");
+
     const myRank = sorted.findIndex(([uid]) => uid === currentUid) + 1;
     const myEntry = sorted.find(([uid]) => uid === currentUid);
     const rankEl = document.getElementById("final-rank");
@@ -595,15 +723,54 @@ async function renderLeaderboard(isFinished = false) {
     if (rankEl) rankEl.textContent = myRank > 0 ? `#${myRank}` : "—";
     if (scoreEl && myEntry)
       scoreEl.textContent = `${myEntry[1].score.toLocaleString("it-IT")} punti`;
+
     showScreen("finished");
-  } else {
-    showScreen("leaderboard");
+    return;
   }
+
+  // Progressive reveal:
+  // revealStep 0 → show rank 6+ (startIndex = 5)
+  // revealStep 1 → show rank 5+ (startIndex = 4)
+  // revealStep 5 → show all     (startIndex = 0)
+  const startIndex = Math.max(0, Math.min(total, 5 - revealStep));
+  const visibleEntries = sorted.slice(startIndex);
+
+  let html = "";
+
+  if (startIndex > 0) {
+    html += `<li class="lb-item lb-hidden">
+      <span style="font-size:20px;margin-right:6px">🎭</span>
+      <span class="lb-name" style="color:#9CA3AF;font-style:italic">Top ${startIndex} ancora nascosta…</span>
+    </li>`;
+  }
+
+  html += visibleEntries
+    .map(([uid, entry], i) => {
+      const rank = startIndex + i + 1;
+      const isMe = uid === currentUid;
+      const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}.`;
+      return `<li class="lb-item ${rank <= 3 ? `rank${rank}` : ""} ${isMe ? "me" : ""}">
+        <span class="lb-rank">${medal}</span>
+        <span class="lb-name">${entry.username}${isMe ? " (tu)" : ""}</span>
+        <span class="lb-score">${entry.score.toLocaleString("it-IT")}</span>
+      </li>`;
+    })
+    .join("");
+
+  listEl.innerHTML = html;
+
+  const waitingEl = document.getElementById("lb-waiting-msg");
+  if (waitingEl) {
+    waitingEl.textContent =
+      revealStep >= 5
+        ? "⏳ Prossima domanda in arrivo…"
+        : "🎭 L'host sta rivelando la classifica…";
+  }
+
+  showScreen("leaderboard");
 }
 
 // ── Game state handler ─────────────────────────────────────────────────────
-let lastQuestionId: string | null = null;
-
 function handleGameState(game: GameState) {
   switch (game.status) {
     case "lobby":
@@ -616,42 +783,64 @@ function handleGameState(game: GameState) {
       const pq = game.publicCurrentQuestion;
       if (!pq) return;
 
-      // Nuova domanda? reset stato risposta
       if (pq.id !== lastQuestionId) {
+        // New question: reset state and render fresh
         lastQuestionId = pq.id;
         currentQuestionId = pq.id;
         hasAnswered = false;
         myAnswerId = null;
-      }
-
-      if (hasAnswered) {
-        stopTimer();
-        showScreen("answered");
-      } else {
+        myAnsweredAt = null;
         renderQuestion(pq, game.questionEndsAt!);
+      } else if (!hasAnswered) {
+        // Same question, not answered yet: ensure question screen is shown
+        renderQuestion(pq, game.questionEndsAt!);
+      }
+      // If hasAnswered: already on question screen with disabled + selected state; no re-render
+      break;
+    }
+
+    case "locked": {
+      // Host closed the question: stop timer, disable all buttons
+      stopTimer();
+      const timerEl = document.getElementById("question-timer");
+      if (timerEl) {
+        timerEl.textContent = "0";
+        timerEl.classList.add("urgent");
+      }
+      (["A", "B", "C", "D"] as const).forEach((id) => {
+        const b = document.getElementById(`btn-${id}`) as HTMLButtonElement | null;
+        if (b) b.disabled = true;
+      });
+      // Edge case: player joined mid-question and isn't on question screen yet
+      if (!document.getElementById("screen-question")?.classList.contains("active")) {
+        const pq = game.publicCurrentQuestion;
+        if (pq) renderQuestion(pq, 0, { disabled: true, selectedId: myAnswerId });
       }
       break;
     }
 
-    case "locked":
-      stopTimer();
-      showScreen("answered");
-      break;
-
     case "answer":
       if (game.showResults && game.publicCurrentResult) {
-        renderResult(game.publicCurrentResult, myAnswerId);
+        renderResult(
+          game.publicCurrentResult,
+          (game as any).publicAnswerStats ?? null,
+          myAnswerId,
+          myAnsweredAt,
+          game.questionStartedAt,
+          game.questionEndsAt,
+          game.publicCurrentQuestion?.category === "demo"
+        );
       }
       break;
 
     case "leaderboard":
-      if (game.showLeaderboard) {
-        renderLeaderboard(false);
+      if (game.showLeaderboard && game.leaderboardRevealStep >= 0) {
+        renderLeaderboard(game.leaderboardRevealStep, false);
       }
       break;
 
     case "finished":
-      renderLeaderboard(true);
+      renderLeaderboard(99, true);
       break;
   }
 }
@@ -674,16 +863,20 @@ function bindAnswerButtons() {
     btn?.addEventListener("click", async () => {
       if (hasAnswered || !currentUid || !currentQuestionId) return;
 
-      // Disabilita tutti i bottoni immediatamente
-      ids.forEach((bid) => {
-        const b = document.getElementById(`btn-${bid}`) as HTMLButtonElement | null;
-        if (b) b.disabled = true;
-      });
-
+      // Record answer locally before async submit
       hasAnswered = true;
       myAnswerId = id;
+      myAnsweredAt = Date.now();
+
+      // Disable all buttons and highlight selected — stay on question screen
+      ids.forEach((bid) => {
+        const b = document.getElementById(`btn-${bid}`) as HTMLButtonElement | null;
+        if (b) {
+          b.disabled = true;
+          b.classList.toggle("selected", bid === id);
+        }
+      });
       stopTimer();
-      showScreen("answered");
 
       try {
         await submitAnswer(currentUid, currentQuestionId, id);
@@ -760,8 +953,8 @@ async function init() {
     currentUid = user.uid;
 
     const session = loadSession();
-      if (session && session.uid === currentUid) {
-      // Riconnessione: verifica che il player sia ancora in Firebase
+    if (session && session.uid === currentUid) {
+      // Reconnect: check if player is still in Firebase
       const snap = await get(ref(db, `players/${GAME_ID}/${currentUid}`));
       if (snap.exists()) {
         currentUsername = session.username;

@@ -1,6 +1,6 @@
 export const GAME_ID = "battesimo-leone-2026";
 
-export const DEMO_ANSWER_SECONDS = 30;
+export const DEMO_ANSWER_SECONDS = 20;
 export const QUESTION_ANSWER_SECONDS = 20;
 
 export const TOTAL_QUESTIONS = 20;
@@ -21,6 +21,7 @@ export const INITIAL_GAME_STATE = {
   questionEndsAt: null,
   showResults: false,
   showLeaderboard: false,
+  leaderboardRevealStep: -1,
   settings: {
     answerSeconds: QUESTION_ANSWER_SECONDS,
     pointsCorrect: 1000,
@@ -28,4 +29,5 @@ export const INITIAL_GAME_STATE = {
   },
   publicCurrentQuestion: null,
   publicCurrentResult: null,
+  publicAnswerStats: null,
 } as const;

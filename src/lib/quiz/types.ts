@@ -41,6 +41,15 @@ export type PublicResult = {
   explanation: string | null;
 };
 
+/** Distribuzione delle risposte di tutti i giocatori (pubblicata dall'host dopo chiusura) */
+export type PublicAnswerStats = {
+  A: number;
+  B: number;
+  C: number;
+  D: number;
+  total: number;
+};
+
 export type GameState = {
   status: GameStatus;
   currentQuestionIndex: number;
@@ -49,9 +58,12 @@ export type GameState = {
   questionEndsAt: number | null;
   showResults: boolean;
   showLeaderboard: boolean;
+  /** -1 = classifica non mostrata, 0 = mostrata senza top5, 1-5 = rivelazione progressiva */
+  leaderboardRevealStep: number;
   settings: GameSettings;
   publicCurrentQuestion: PublicQuestion | null;
   publicCurrentResult: PublicResult | null;
+  publicAnswerStats: PublicAnswerStats | null;
 };
 
 export type Player = {
