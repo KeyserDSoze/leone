@@ -3,6 +3,7 @@ import { db } from "../firebase";
 import { GAME_ID, INITIAL_GAME_STATE, DEMO_ANSWER_SECONDS, QUESTION_ANSWER_SECONDS } from "./config";
 import type { Question, GameStatus, PublicQuestion, PublicAnswerStats, AnswerId } from "./types";
 import { calculatePoints } from "./scoring";
+import { encodeCorrectAnswerIds } from "./publicResult";
 
 /** Controlla se l'uid corrente è admin */
 export async function checkIsAdmin(uid: string): Promise<boolean> {
@@ -23,17 +24,6 @@ export async function resetGame(): Promise<void> {
 
   // Clear leaderboard
   await set(ref(db, `leaderboards/${GAME_ID}`), null);
-
-  // Reset player scores using a targeted update (no root-level multi-path)
-  const playersSnap = await get(ref(db, `players/${GAME_ID}`));
-  if (playersSnap.exists()) {
-    const players = playersSnap.val() as Record<string, unknown>;
-    const scoreUpdates: Record<string, number> = {};
-    for (const uid of Object.keys(players)) {
-      scoreUpdates[`${uid}/score`] = 0;
-    }
-    await update(ref(db, `players/${GAME_ID}`), scoreUpdates);
-  }
 }
 
 /** Inizializza la struttura di gioco se non esiste */
@@ -171,12 +161,16 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
     string,
     { username: string; score: number }
   >;
+  const leaderboardSnap = await get(ref(db, `leaderboards/${GAME_ID}`));
+  const leaderboard = (leaderboardSnap.val() ?? {}) as Record<
+    string,
+    { score: number }
+  >;
 
   const isDemo = question.category === "demo";
 
   // Calcola distribuzione risposte (solo giocatori con username)
   const stats: PublicAnswerStats = { A: 0, B: 0, C: 0, D: 0, total: 0 };
-  const playerScoreUpdates: Record<string, number> = {};
   const leaderboardUpdates: Record<string, { username: string; score: number }> = {};
 
   for (const [uid, player] of Object.entries(players)) {
@@ -199,10 +193,10 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
         });
 
     // Score non può scendere sotto 0
-    const newScore = Math.max(0, Number(player.score ?? 0) + points);
+    const previousScore = Number(leaderboard[uid]?.score ?? player.score ?? 0);
+    const newScore = Math.max(0, previousScore + points);
 
     if (!isDemo) {
-      playerScoreUpdates[`${uid}/score`] = newScore;
       leaderboardUpdates[uid] = { username: player.username, score: newScore };
     }
 
@@ -215,26 +209,32 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
     }
   }
 
-  // Update game state (targeted — no root-level multi-path)
+  // Write the minimal result payload first so the quiz can continue even if
+  // stricter rules reject optional stats or score mirrors.
   await update(ref(db, `games/${GAME_ID}`), {
     status: "answer" as GameStatus,
     showResults: true,
     showStats: false, // host clicca "Mostra statistiche" per rivelare le barre
     publicCurrentResult: {
       questionId: question.id,
-      correctAnswerIds: question.correctAnswerIds,
+      correctAnswerId: encodeCorrectAnswerIds(question.correctAnswerIds),
       explanation: question.explanation ?? null,
     },
-    publicAnswerStats: stats,
   });
 
-  // Update player scores and leaderboard (separate targeted updates)
-  if (!isDemo) {
-    if (Object.keys(playerScoreUpdates).length > 0) {
-      await update(ref(db, `players/${GAME_ID}`), playerScoreUpdates);
-    }
-    if (Object.keys(leaderboardUpdates).length > 0) {
+  try {
+    await update(ref(db, `games/${GAME_ID}`), {
+      publicAnswerStats: stats,
+    });
+  } catch (error) {
+    console.warn("Unable to persist answer stats", error);
+  }
+
+  if (!isDemo && Object.keys(leaderboardUpdates).length > 0) {
+    try {
       await update(ref(db, `leaderboards/${GAME_ID}`), leaderboardUpdates);
+    } catch (error) {
+      console.warn("Unable to persist leaderboard updates", error);
     }
   }
 }

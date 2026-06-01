@@ -459,6 +459,7 @@ import { db, ensureAnonymousUser } from "../lib/firebase";
 import { joinGame, checkUsernameTaken, submitAnswer } from "../lib/quiz/playerApi";
 import { setupPresence } from "../lib/quiz/presence";
 import { GAME_ID } from "../lib/quiz/config";
+import { getCorrectAnswerIds } from "../lib/quiz/publicResult";
 import { calculatePoints } from "../lib/quiz/scoring";
 import { ref, onValue, get } from "firebase/database";
 import type {
@@ -650,7 +651,7 @@ function renderResult(
   const container = document.getElementById("result-content");
   if (!container) return;
 
-  const correctIds = result.correctAnswerIds ?? [];
+  const correctIds = getCorrectAnswerIds(result);
   const isCorrect =
     myAnswerIdSnap !== null && correctIds.includes(myAnswerIdSnap as AnswerId);
   const skipped = !myAnswerIdSnap;

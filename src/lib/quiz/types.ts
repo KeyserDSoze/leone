@@ -41,8 +41,10 @@ export type PublicQuestion = {
 
 export type PublicResult = {
   questionId: string;
+  /** Legacy-compatible string encoding: "A", "AB", "ABCD", ... */
+  correctAnswerId?: string | null;
   /** Uno o più ID corretti */
-  correctAnswerIds: AnswerId[];
+  correctAnswerIds?: AnswerId[];
   explanation: string | null;
 };
 

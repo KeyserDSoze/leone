@@ -446,6 +446,7 @@ import {
 import { setupPresence } from "../../lib/quiz/presence";
 import { buildGameQuestions } from "../../lib/quiz/buildGameQuestions";
 import { GAME_ID } from "../../lib/quiz/config";
+import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
 import { ref, onValue, get } from "firebase/database";
 import type { GameState, LeaderboardEntry, Player } from "../../lib/quiz/types";
 import QRCode from "qrcode";
@@ -458,6 +459,7 @@ let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 // ── Shared player + answer state ───────────────────────────────────────────
 let currentPlayers: Record<string, Player> = {};
+let currentLeaderboard: Record<string, LeaderboardEntry> = {};
 let currentAnswers: Record<string, { answerId: string }> = {};
 let answersUnsub: (() => void) | null = null;
 let autoCloseTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -648,7 +650,7 @@ function renderQuestionPanel(game: GameState) {
 
   if (answersEl) {
     const ids = ["A", "B", "C", "D"] as const;
-    const correctIds = pr?.correctAnswerIds ?? [];
+    const correctIds = getCorrectAnswerIds(pr);
     answersEl.innerHTML = ids.map((id) => {
       const ans = pq.answers.find((a) => a.id === id);
       const isCorrect = correctIds.includes(id);
@@ -727,7 +729,10 @@ function renderPlayers(players: Record<string, Player> | null) {
     currentGame?.status === "demo" || currentGame?.status === "question";
   const currentQId = currentGame?.currentQuestionId;
 
-  const sorted = [...playerEntries].sort(([, a], [, b]) => (b.score ?? 0) - (a.score ?? 0));
+  const sorted = [...playerEntries].sort(
+    ([uidA], [uidB]) =>
+      (currentLeaderboard[uidB]?.score ?? 0) - (currentLeaderboard[uidA]?.score ?? 0)
+  );
 
   listEl.innerHTML = sorted
     .map(([uid, p]) => {
@@ -741,7 +746,7 @@ function renderPlayers(players: Record<string, Player> | null) {
         <span class="player-dot ${p.connected ? "dot-online" : "dot-offline"}"></span>
         <span style="flex:1;font-size:14px">${p.username}</span>
         ${statusIcon}
-        <span class="player-score">${(p.score ?? 0).toLocaleString("it-IT")}</span>
+        <span class="player-score">${(currentLeaderboard[uid]?.score ?? 0).toLocaleString("it-IT")}</span>
       </li>`;
     })
     .join("");
@@ -986,6 +991,12 @@ function startListeners() {
   // Players
   onValue(ref(db, `players/${GAME_ID}`), (snap) => {
     currentPlayers = snap.val() ?? {};
+    renderPlayers(currentPlayers);
+  });
+
+  // Leaderboard scores for host-side player list ordering/display
+  onValue(ref(db, `leaderboards/${GAME_ID}`), (snap) => {
+    currentLeaderboard = snap.val() ?? {};
     renderPlayers(currentPlayers);
   });
 }
