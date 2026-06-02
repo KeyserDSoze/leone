@@ -2,6 +2,7 @@ import { ref, get, set, update } from "firebase/database";
 import { db } from "../firebase";
 import { GAME_ID, INITIAL_GAME_STATE, DEMO_ANSWER_SECONDS, QUESTION_ANSWER_SECONDS } from "./config";
 import type { Question, GameStatus, PublicQuestion, PublicAnswerStats, AnswerId } from "./types";
+import { buildAnswerKey } from "./answerKey";
 import { calculatePoints } from "./scoring";
 import { encodeCorrectAnswerIds } from "./publicResult";
 
@@ -149,7 +150,7 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
   };
 
   const answersSnap = await get(
-    ref(db, `answers/${GAME_ID}/${gameSession}/${question.id}`)
+    ref(db, `answers/${GAME_ID}/${buildAnswerKey(gameSession, question.id)}`)
   );
   const answers = (answersSnap.val() ?? {}) as Record<
     string,

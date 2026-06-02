@@ -459,6 +459,7 @@ import { db, ensureAnonymousUser } from "../lib/firebase";
 import { joinGame, checkUsernameTaken, submitAnswer } from "../lib/quiz/playerApi";
 import { setupPresence } from "../lib/quiz/presence";
 import { GAME_ID } from "../lib/quiz/config";
+import { buildAnswerKey } from "../lib/quiz/answerKey";
 import { getCorrectAnswerIds } from "../lib/quiz/publicResult";
 import { calculatePoints } from "../lib/quiz/scoring";
 import { ref, onValue, get } from "firebase/database";
@@ -858,10 +859,12 @@ async function restoreAnswerIfNeeded(questionId: string): Promise<void> {
   myAnswerId = null;
   myAnsweredAt = null;
 
-  if (!currentUid || !currentGameSession) return;
+  if (!currentUid) return;
 
   try {
-    const ansSnap = await get(ref(db, `answers/${GAME_ID}/${currentGameSession}/${questionId}/${currentUid}`));
+    const ansSnap = await get(
+      ref(db, `answers/${GAME_ID}/${buildAnswerKey(currentGameSession, questionId)}/${currentUid}`)
+    );
     if (ansSnap.exists()) {
       const ans = ansSnap.val() as { answerId: string; answeredAt: number };
       hasAnswered = true;

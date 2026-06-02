@@ -1,6 +1,7 @@
 import { ref, set, get } from "firebase/database";
 import { db } from "../firebase";
 import { GAME_ID } from "./config";
+import { buildAnswerKey } from "./answerKey";
 import type { AnswerId } from "./types";
 
 /** Registra il giocatore nella lobby */
@@ -31,7 +32,7 @@ export async function submitAnswer(
   questionId: string,
   answerId: AnswerId
 ): Promise<void> {
-  await set(ref(db, `answers/${GAME_ID}/${gameSession}/${questionId}/${uid}`), {
+  await set(ref(db, `answers/${GAME_ID}/${buildAnswerKey(gameSession, questionId)}/${uid}`), {
     answerId,
     answeredAt: Date.now(),
   });
