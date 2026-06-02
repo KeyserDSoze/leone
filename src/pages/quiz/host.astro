@@ -511,7 +511,14 @@
         <p class="answer-count" id="answer-count" style="display:none"></p>
       </div>
 
-      <!-- Classifica -->
+      <!-- Anteprima classifica domanda (privata per host) -->
+      <div class="card" id="question-leaderboard-panel" style="display:none">
+        <p class="card-title" id="question-leaderboard-title">Anteprima classifica domanda</p>
+        <ul class="lb-host" id="question-lb-list"></ul>
+        <p class="lb-reveal-step" id="question-lb-reveal-step"></p>
+      </div>
+
+      <!-- Anteprima classifica generale (privata per host) -->
       <div class="card" id="leaderboard-panel" style="display:none">
         <p class="card-title" id="leaderboard-title">Classifica</p>
         <ul class="lb-host" id="lb-list"></ul>
@@ -543,7 +550,7 @@ import { setupPresence } from "../../lib/quiz/presence";
 import { buildGameQuestions } from "../../lib/quiz/buildGameQuestions";
 import { GAME_ID } from "../../lib/quiz/config";
 import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
-import { ref, onValue, get } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import type {
   GameState,
   LeaderboardEntry,
@@ -910,21 +917,23 @@ function renderPlayers(players: Record<string, Player> | null) {
 }
 
 // ── Render leaderboard (host always sees all) ──────────────────────────────
-async function renderLeaderboard(revealStep = -1) {
+function renderLeaderboard(revealStep = -1) {
   const panel = document.getElementById("leaderboard-panel");
   const listEl = document.getElementById("lb-list");
   const stepEl = document.getElementById("lb-reveal-step");
   const titleEl = document.getElementById("leaderboard-title");
   if (!panel || !listEl) return;
 
-  const snap = await get(ref(db, `leaderboards/${GAME_ID}`));
-  const raw = snap.val() as Record<string, LeaderboardEntry> | null;
+  const kicked = currentGame?.kickedUids ?? {};
+  const raw = Object.fromEntries(
+    Object.entries(currentLeaderboard).filter(([uid]) => !kicked[uid])
+  ) as Record<string, LeaderboardEntry>;
 
-  if (!raw) { panel.style.display = "none"; return; }
+  if (Object.keys(raw).length === 0) { panel.style.display = "none"; return; }
 
   const sorted = Object.entries(raw).sort(([, a], [, b]) => b.score - a.score);
   panel.style.display = "block";
-  if (titleEl) titleEl.textContent = "Classifica generale";
+  if (titleEl) titleEl.textContent = "Anteprima classifica generale";
 
   const medals = ["🥇", "🥈", "🥉"];
   listEl.innerHTML = sorted.slice(0, 10).map(([, e], i) => {
@@ -944,23 +953,32 @@ async function renderLeaderboard(revealStep = -1) {
 }
 
 function renderQuestionLeaderboard(entries: PublicQuestionLeaderboardEntry[]) {
-  const panel = document.getElementById("leaderboard-panel");
-  const listEl = document.getElementById("lb-list");
-  const stepEl = document.getElementById("lb-reveal-step");
-  const titleEl = document.getElementById("leaderboard-title");
+  const panel = document.getElementById("question-leaderboard-panel");
+  const listEl = document.getElementById("question-lb-list");
+  const stepEl = document.getElementById("question-lb-reveal-step");
+  const titleEl = document.getElementById("question-leaderboard-title");
   if (!panel || !listEl) return;
 
+  const kicked = currentGame?.kickedUids ?? {};
+  const kickedNames = new Set(
+    Object.entries(currentPlayers)
+      .filter(([uid]) => kicked[uid])
+      .map(([, player]) => player.username)
+      .filter(Boolean)
+  );
+  const visibleEntries = entries.filter((entry) => !kickedNames.has(entry.username));
+
   panel.style.display = "block";
-  if (titleEl) titleEl.textContent = "Velocità della domanda";
+  if (titleEl) titleEl.textContent = "Anteprima classifica domanda";
   if (stepEl) stepEl.textContent = "Ordine: risposte corrette più veloci in cima";
 
-  if (entries.length === 0) {
+  if (visibleEntries.length === 0) {
     listEl.innerHTML = `<li><span class="lb-copy-host"><span class="lb-name-host">Nessun dato disponibile</span></span></li>`;
     return;
   }
 
   const medals = ["🥇", "🥈", "🥉"];
-  listEl.innerHTML = entries.slice(0, 10).map((entry, i) => {
+  listEl.innerHTML = visibleEntries.slice(0, 10).map((entry, i) => {
     const rank = i + 1;
     const answerClass = entry.answerId ? `answer-${entry.answerId}` : "skip";
     const outcomeClass = entry.isCorrect ? "correct" : entry.answerId ? "wrong" : "skip";
@@ -983,7 +1001,9 @@ function renderQuestionLeaderboard(entries: PublicQuestionLeaderboardEntry[]) {
 }
 
 function hideLeaderboardPanel() {
+  const questionPanel = document.getElementById("question-leaderboard-panel");
   const panel = document.getElementById("leaderboard-panel");
+  if (questionPanel) questionPanel.style.display = "none";
   if (panel) panel.style.display = "none";
 }
 
@@ -1171,10 +1191,26 @@ function renderControls(game: GameState) {
     if (!confirm("Resettare la partita? I punteggi verranno azzerati.")) return;
     stopHostTimer();
     stopAnswerTracking();
-    const lbPanel = document.getElementById("leaderboard-panel");
-    if (lbPanel) lbPanel.style.display = "none";
+    hideLeaderboardPanel();
     await resetGame();
   });
+}
+
+function shouldShowHostLeaderboardPreviews(game: GameState): boolean {
+  return (
+    game.currentQuestionIndex > 0 &&
+    (
+      game.status === "answer" ||
+      game.status === "question-leaderboard" ||
+      game.status === "leaderboard" ||
+      game.status === "finished"
+    )
+  );
+}
+
+function renderHostLeaderboardPreviews(game: GameState) {
+  renderQuestionLeaderboard(game.publicQuestionLeaderboard ?? []);
+  renderLeaderboard(game.leaderboardRevealStep ?? -1);
 }
 
 // ── Firebase listeners ─────────────────────────────────────────────────────
@@ -1197,13 +1233,8 @@ function startListeners() {
       stopAnswerTracking();
     }
 
-    if (currentGame.status === "question-leaderboard") {
-      renderQuestionLeaderboard(currentGame.publicQuestionLeaderboard ?? []);
-    } else if (
-      currentGame.status === "leaderboard" ||
-      currentGame.status === "finished"
-    ) {
-      renderLeaderboard(currentGame.leaderboardRevealStep ?? -1);
+    if (shouldShowHostLeaderboardPreviews(currentGame)) {
+      renderHostLeaderboardPreviews(currentGame);
     } else {
       hideLeaderboardPanel();
     }
@@ -1213,12 +1244,18 @@ function startListeners() {
   onValue(ref(db, `players/${GAME_ID}`), (snap) => {
     currentPlayers = snap.val() ?? {};
     refreshAnswerTracking();
+    if (currentGame && shouldShowHostLeaderboardPreviews(currentGame)) {
+      renderQuestionLeaderboard(currentGame.publicQuestionLeaderboard ?? []);
+    }
   });
 
   // Leaderboard scores for host-side player list ordering/display
   onValue(ref(db, `leaderboards/${GAME_ID}`), (snap) => {
     currentLeaderboard = snap.val() ?? {};
     renderPlayers(currentPlayers);
+    if (currentGame && shouldShowHostLeaderboardPreviews(currentGame)) {
+      renderLeaderboard(currentGame.leaderboardRevealStep ?? -1);
+    }
   });
 }
 
