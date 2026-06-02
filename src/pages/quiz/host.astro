@@ -171,6 +171,25 @@
     .dot-offline { background: #C5CCBF; }
     .player-score { font-weight: 700; color: var(--green); font-size: 13px; }
     .answer-status { font-size: 16px; margin: 0 4px; }
+    .player-item.is-offline { opacity: 0.7; }
+    .player-kick {
+      margin-left: 8px;
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      border-radius: 7px;
+      border: 1px solid #E3C5C0;
+      background: #F5E6E3;
+      color: #A24438;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .player-kick:hover { background: #EFD6D1; }
+    .player-kick:active { transform: scale(0.9); }
+    .player-kick:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* ── Controls ── */
     .controls-grid {
@@ -518,6 +537,7 @@ import {
   showLeaderboard,
   revealNextLeaderboardStep,
   finishGame,
+  kickPlayer,
 } from "../../lib/quiz/hostApi";
 import { setupPresence } from "../../lib/quiz/presence";
 import { buildGameQuestions } from "../../lib/quiz/buildGameQuestions";
@@ -851,15 +871,35 @@ function renderPlayers(players: Record<string, Player> | null) {
       const statusIcon = isQuestionActive
         ? `<span class="answer-status">${hasAnswered ? "✅" : "⏳"}</span>`
         : "";
+      const kickBtn = !p.connected
+        ? `<button class="player-kick" data-kick="${uid}" data-name="${p.username}" title="Rimuovi giocatore offline">✕</button>`
+        : "";
 
-      return `<li class="player-item">
+      return `<li class="player-item${p.connected ? "" : " is-offline"}">
         <span class="player-dot ${p.connected ? "dot-online" : "dot-offline"}"></span>
         <span style="flex:1;font-size:14px">${p.username}</span>
         ${statusIcon}
         <span class="player-score">${(currentLeaderboard[uid]?.score ?? 0).toLocaleString("it-IT")}</span>
+        ${kickBtn}
       </li>`;
     })
     .join("");
+
+  listEl.querySelectorAll<HTMLButtonElement>(".player-kick").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const uid = btn.dataset.kick;
+      const name = btn.dataset.name ?? "questo giocatore";
+      if (!uid) return;
+      if (!confirm(`Rimuovere "${name}" dalla partita?`)) return;
+      btn.disabled = true;
+      try {
+        await kickPlayer(uid);
+      } catch (err) {
+        console.error("Kick error:", err);
+        btn.disabled = false;
+      }
+    });
+  });
 }
 
 // ── Render leaderboard (host always sees all) ──────────────────────────────

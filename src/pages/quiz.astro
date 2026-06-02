@@ -359,12 +359,6 @@
     }
     .ans-fill.f-correct { background: linear-gradient(135deg, #6FA063, #4B6F44); }
     .ans-fill.f-mine    { background: linear-gradient(135deg, #C97A6E, #B5564B); }
-    .ans-check {
-      position: absolute;
-      top: 10px;
-      right: 12px;
-      font-size: 15px;
-    }
 
     /* Correct-answer reveal panel */
     .correct-panel {
@@ -941,13 +935,7 @@ function renderResult(
             const fillClass = isThisCorrect ? "f-correct" : isMyWrongAnswer ? "f-mine" : "";
             const rowClass = `${isThisCorrect ? "is-correct" : ""} ${id === myAnswerIdSnap ? "is-mine" : ""}`.trim();
             const votes = `${count} ${count === 1 ? "risposta" : "risposte"}`;
-            const check = isThisCorrect
-              ? `<span class="ans-check">✅</span>`
-              : isMyWrongAnswer
-              ? `<span class="ans-check">❌</span>`
-              : "";
             return `<div class="ans-row ${rowClass}">
-              ${check}
               <div class="ans-head">
                 <span class="ans-badge b-${id}">${id}</span>
                 <span class="ans-name">Risposta ${id}</span>

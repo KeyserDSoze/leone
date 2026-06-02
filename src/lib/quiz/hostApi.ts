@@ -55,6 +55,12 @@ export async function resetGame(): Promise<void> {
   await set(ref(db, `leaderboards/${GAME_ID}`), null);
 }
 
+/** Rimuove un giocatore (offline) dalla partita e dalla classifica */
+export async function kickPlayer(uid: string): Promise<void> {
+  await set(ref(db, `players/${GAME_ID}/${uid}`), null);
+  await set(ref(db, `leaderboards/${GAME_ID}/${uid}`), null);
+}
+
 /** Inizializza la struttura di gioco se non esiste */
 export async function initGameIfNeeded(): Promise<void> {
   const snap = await get(ref(db, `games/${GAME_ID}`));
