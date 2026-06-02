@@ -163,15 +163,12 @@
     .cat-leone   { background:var(--gold-soft); color:#8A6A2B; }
     .cat-general { background:var(--green-soft); color:var(--green-deep); }
     .cat-demo    { background:#EAF1F2; color:#3E6470; }
-    .preview-subject {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin: 12px auto 18px;
-      padding: 10px 18px;
-      font-size: 18px;
-      letter-spacing: 0.8px;
-      box-shadow: 0 8px 18px rgba(58, 90, 53, 0.08);
+    .preview-icon {
+      display: block;
+      margin: 24px 0 22px;
+      font-size: 70px;
+      line-height: 1;
+      filter: drop-shadow(0 8px 14px rgba(58, 90, 53, 0.12));
     }
 
     .timer-wrap {
@@ -570,9 +567,9 @@
   <div class="card">
     <div class="progress-row">
       <span id="preview-progress" class="progress-label">Domanda</span>
+      <span id="preview-category" class="category-badge cat-general">Cultura</span>
     </div>
-    <span id="preview-category" class="category-badge preview-subject cat-general">Cultura</span>
-    <span style="font-size:64px;display:block;margin:20px 0">🤔</span>
+    <span id="preview-icon" class="preview-icon">🌍</span>
     <p style="font-size:17px;font-weight:600;color:#33402F;margin-bottom:8px">
       L'host sta per rivelare la domanda…
     </p>
@@ -699,8 +696,48 @@ const SUB_LABELS: Record<string, string> = {
   "demo":                "Demo",
 };
 
+const SUB_NAMES: Record<string, string> = {
+  "geografia":           "Geografia",
+  "storia-antica":       "Storia Antica",
+  "storia-moderna":      "Storia Moderna",
+  "tecnologia":          "Tecnologia",
+  "politica-italia":     "Politica",
+  "grammatica-italiana": "Italiano",
+  "matematica":          "Matematica",
+  "fisica-chimica":      "Fisica & Chimica",
+  "arte":                "Arte & Letteratura",
+  "musica":              "Musica",
+  "religione":           "Religione",
+  "leone":               "Leone",
+  "demo":                "Demo",
+};
+
+const SUB_ICONS: Record<string, string> = {
+  "geografia":           "🌍",
+  "storia-antica":       "🏛️",
+  "storia-moderna":      "📜",
+  "tecnologia":          "💻",
+  "politica-italia":     "🇮🇹",
+  "grammatica-italiana": "📝",
+  "matematica":          "🔢",
+  "fisica-chimica":      "🧪",
+  "arte":                "🎨",
+  "musica":              "🎵",
+  "religione":           "🕊️",
+  "leone":               "🦁",
+  "demo":                "🎓",
+};
+
 function humanizeSub(sub?: string): string {
   return sub ? (SUB_LABELS[sub] ?? "Cultura") : "Cultura";
+}
+
+function subjectName(sub?: string): string {
+  return sub ? (SUB_NAMES[sub] ?? "Cultura") : "Cultura";
+}
+
+function subjectIcon(sub?: string): string {
+  return sub ? (SUB_ICONS[sub] ?? "🌿") : "🌿";
 }
 
 function formatResponseTime(responseMs: number | null): string {
@@ -785,6 +822,7 @@ function showPreview(pq: PublicQuestion) {
   stopTimer();
   const progressEl = document.getElementById("preview-progress");
   const categoryEl = document.getElementById("preview-category");
+  const iconEl = document.getElementById("preview-icon");
 
   if (progressEl) {
     progressEl.textContent =
@@ -793,14 +831,17 @@ function showPreview(pq: PublicQuestion) {
 
   if (categoryEl) {
     if (pq.category === "leone") {
-      categoryEl.textContent = "Leone 🦁";
-      categoryEl.className = "category-badge preview-subject cat-leone";
+      categoryEl.textContent = "Leone";
+      categoryEl.className = "category-badge cat-leone";
+      if (iconEl) iconEl.textContent = "🦁";
     } else if (pq.category === "demo") {
       categoryEl.textContent = "Demo";
-      categoryEl.className = "category-badge preview-subject cat-demo";
+      categoryEl.className = "category-badge cat-demo";
+      if (iconEl) iconEl.textContent = "🎓";
     } else {
-      categoryEl.textContent = humanizeSub(pq.subcategory);
-      categoryEl.className = "category-badge preview-subject cat-general";
+      categoryEl.textContent = subjectName(pq.subcategory);
+      categoryEl.className = "category-badge cat-general";
+      if (iconEl) iconEl.textContent = subjectIcon(pq.subcategory);
     }
   }
 
