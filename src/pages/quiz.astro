@@ -459,7 +459,6 @@ import { db, ensureAnonymousUser } from "../lib/firebase";
 import { joinGame, checkUsernameTaken, submitAnswer } from "../lib/quiz/playerApi";
 import { setupPresence } from "../lib/quiz/presence";
 import { GAME_ID } from "../lib/quiz/config";
-import { buildAnswerKey } from "../lib/quiz/answerKey";
 import { getCorrectAnswerIds } from "../lib/quiz/publicResult";
 import { calculatePoints } from "../lib/quiz/scoring";
 import { ref, onValue, get } from "firebase/database";
@@ -862,14 +861,29 @@ async function restoreAnswerIfNeeded(questionId: string): Promise<void> {
   if (!currentUid) return;
 
   try {
-    const ansSnap = await get(
-      ref(db, `answers/${GAME_ID}/${buildAnswerKey(currentGameSession, questionId)}/${currentUid}`)
-    );
-    if (ansSnap.exists()) {
-      const ans = ansSnap.val() as { answerId: string; answeredAt: number };
-      hasAnswered = true;
-      myAnswerId = ans.answerId as typeof myAnswerId;
-      myAnsweredAt = ans.answeredAt;
+    const playerSnap = await get(ref(db, `players/${GAME_ID}/${currentUid}`));
+    if (playerSnap.exists()) {
+      const player = playerSnap.val() as {
+        currentAnswerGameSession?: string;
+        currentAnswerQuestionId?: string;
+        currentAnswerAnswerId?: string;
+        currentAnswerAnsweredAt?: number;
+      };
+
+      if (
+        player.currentAnswerGameSession === currentGameSession &&
+        player.currentAnswerQuestionId === questionId &&
+        player.currentAnswerAnswerId
+      ) {
+        const ans = {
+          answerId: player.currentAnswerAnswerId,
+          answeredAt: player.currentAnswerAnsweredAt ?? null,
+        };
+
+        hasAnswered = true;
+        myAnswerId = ans.answerId as typeof myAnswerId;
+        myAnsweredAt = ans.answeredAt;
+      }
     }
   } catch {
     // network error — keep defaults

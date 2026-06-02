@@ -1,7 +1,6 @@
-import { ref, set, get } from "firebase/database";
+import { ref, set, get, update } from "firebase/database";
 import { db } from "../firebase";
 import { GAME_ID } from "./config";
-import { buildAnswerKey } from "./answerKey";
 import type { AnswerId } from "./types";
 
 /** Registra il giocatore nella lobby */
@@ -25,15 +24,20 @@ export async function checkUsernameTaken(username: string): Promise<boolean> {
   );
 }
 
-/** Invia la risposta del giocatore (una sola per domanda/sessione, garantita dalle Firebase Rules) */
+/**
+ * Invia la risposta del giocatore salvandola sul suo record player.
+ * Evitiamo answers/... perché le rules permettono write ma non read lato host.
+ */
 export async function submitAnswer(
   uid: string,
   gameSession: string,
   questionId: string,
   answerId: AnswerId
 ): Promise<void> {
-  await set(ref(db, `answers/${GAME_ID}/${buildAnswerKey(gameSession, questionId)}/${uid}`), {
-    answerId,
-    answeredAt: Date.now(),
+  await update(ref(db, `players/${GAME_ID}/${uid}`), {
+    currentAnswerGameSession: gameSession,
+    currentAnswerQuestionId: questionId,
+    currentAnswerAnswerId: answerId,
+    currentAnswerAnsweredAt: Date.now(),
   });
 }

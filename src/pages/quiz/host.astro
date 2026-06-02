@@ -445,7 +445,6 @@ import {
 } from "../../lib/quiz/hostApi";
 import { setupPresence } from "../../lib/quiz/presence";
 import { buildGameQuestions } from "../../lib/quiz/buildGameQuestions";
-import { buildAnswerKey } from "../../lib/quiz/answerKey";
 import { GAME_ID } from "../../lib/quiz/config";
 import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
 import { ref, onValue, get } from "firebase/database";
@@ -462,7 +461,6 @@ let timerInterval: ReturnType<typeof setInterval> | null = null;
 let currentPlayers: Record<string, Player> = {};
 let currentLeaderboard: Record<string, LeaderboardEntry> = {};
 let currentAnswers: Record<string, { answerId: string }> = {};
-let answersUnsub: (() => void) | null = null;
 let autoCloseTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // Sottocategorie label (per il pannello "prossima domanda")
@@ -567,54 +565,75 @@ function getActivePlayerCount(): number {
 }
 
 function stopAnswerTracking() {
-  if (answersUnsub) { answersUnsub(); answersUnsub = null; }
   if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
   currentAnswers = {};
+
+  const el = document.getElementById("answer-count");
+  if (el) el.style.display = "none";
 }
 
-function startAnswerTracking(questionId: string, gameSession: string) {
-  stopAnswerTracking();
+function refreshAnswerTracking() {
+  if (!currentGame || !currentGame.currentQuestionId) {
+    currentAnswers = {};
+    renderPlayers(currentPlayers);
+    return;
+  }
 
-  const ansRef = ref(db, `answers/${GAME_ID}/${buildAnswerKey(gameSession, questionId)}`);
-  answersUnsub = onValue(ansRef, async (snap) => {
-    currentAnswers = snap.val() ?? {};
-    const answerCount = Object.keys(currentAnswers).length;
+  const questionId = currentGame.currentQuestionId;
+  const gameSession = currentGame.gameSession;
+  const trackCount =
+    currentGame.status === "demo" ||
+    currentGame.status === "question" ||
+    currentGame.status === "locked";
 
-    // Update count display
-    const el = document.getElementById("answer-count");
-    if (el) {
+  currentAnswers = Object.fromEntries(
+    Object.entries(currentPlayers)
+      .filter(([, p]) => p.username)
+      .filter(
+        ([, p]) =>
+          p.currentAnswerGameSession === gameSession &&
+          p.currentAnswerQuestionId === questionId &&
+          Boolean(p.currentAnswerAnswerId)
+      )
+      .map(([uid, p]) => [uid, { answerId: p.currentAnswerAnswerId! }])
+  );
+
+  const answerCount = Object.keys(currentAnswers).length;
+  const el = document.getElementById("answer-count");
+  if (el) {
+    if (trackCount) {
       el.style.display = "block";
       el.textContent = `📩 ${answerCount} risposta/e ricevuta/e`;
+    } else {
+      el.style.display = "none";
     }
+  }
 
-    // Re-render player list with updated answer status
-    renderPlayers(currentPlayers);
+  renderPlayers(currentPlayers);
 
-    // Auto-close: all active players have answered
-    if (!currentGame) return;
-    if (currentGame.status !== "demo" && currentGame.status !== "question") return;
-    // Solo se la domanda è visibile (timer avviato)
-    if (!currentGame.questionVisible) return;
-    if (currentGame.currentQuestionId !== questionId) return;
+  const autoCloseActive = currentGame.status === "demo" || currentGame.status === "question";
+  if (!autoCloseActive || !currentGame.questionVisible) {
+    if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
+    return;
+  }
 
-    const playerCount = getActivePlayerCount();
-    if (playerCount > 0 && answerCount >= playerCount && !autoCloseTimeout) {
-      autoCloseTimeout = setTimeout(async () => {
-        autoCloseTimeout = null;
-        const qIdx = currentGame?.currentQuestionIndex;
-        const sess = currentGame?.gameSession ?? "";
-        if (qIdx !== undefined && qIdx >= 0 && qIdx < questions.length) {
-          const closeBtn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
-          if (closeBtn) closeBtn.disabled = true;
-          try {
-            await closeQuestion(questions[qIdx], sess);
-          } catch (err) {
-            console.error("Auto-close error:", err);
-          }
+  const playerCount = getActivePlayerCount();
+  if (playerCount > 0 && answerCount >= playerCount && !autoCloseTimeout) {
+    autoCloseTimeout = setTimeout(async () => {
+      autoCloseTimeout = null;
+      const qIdx = currentGame?.currentQuestionIndex;
+      const sess = currentGame?.gameSession ?? "";
+      if (qIdx !== undefined && qIdx >= 0 && qIdx < questions.length) {
+        const closeBtn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
+        if (closeBtn) closeBtn.disabled = true;
+        try {
+          await closeQuestion(questions[qIdx], sess);
+        } catch (err) {
+          console.error("Auto-close error:", err);
         }
-      }, 1500);
-    }
-  });
+      }
+    }, 1500);
+  }
 }
 
 // ── Render question panel ─────────────────────────────────────────────────
@@ -958,8 +977,6 @@ function renderControls(game: GameState) {
 
 // ── Firebase listeners ─────────────────────────────────────────────────────
 function startListeners() {
-  let prevTrackedQuestionId: string | null = null;
-
   // Game state
   onValue(ref(db, `games/${GAME_ID}`), (snap) => {
     if (!snap.exists()) return;
@@ -968,16 +985,13 @@ function startListeners() {
     renderQuestionPanel(currentGame);
     renderControls(currentGame);
 
-    const isActive =
-      currentGame.status === "demo" || currentGame.status === "question";
-    const qId = currentGame.currentQuestionId;
-    const isVisible = currentGame.questionVisible === true;
-
-    // Start answer tracking only when question is revealed (visible)
-    if (isActive && isVisible && qId && qId !== prevTrackedQuestionId) {
-      prevTrackedQuestionId = qId;
-      startAnswerTracking(qId, currentGame.gameSession ?? "");
-    } else if (!isActive && currentGame.status !== "locked") {
+    if (
+      currentGame.status === "demo" ||
+      currentGame.status === "question" ||
+      currentGame.status === "locked"
+    ) {
+      refreshAnswerTracking();
+    } else {
       stopAnswerTracking();
     }
 
@@ -992,7 +1006,7 @@ function startListeners() {
   // Players
   onValue(ref(db, `players/${GAME_ID}`), (snap) => {
     currentPlayers = snap.val() ?? {};
-    renderPlayers(currentPlayers);
+    refreshAnswerTracking();
   });
 
   // Leaderboard scores for host-side player list ordering/display

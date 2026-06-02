@@ -85,6 +85,10 @@ export type Player = {
   joinedAt: number;
   lastSeen: number;
   connected: boolean;
+  currentAnswerGameSession?: string;
+  currentAnswerQuestionId?: string;
+  currentAnswerAnswerId?: AnswerId;
+  currentAnswerAnsweredAt?: number;
 };
 
 export type Answer = {

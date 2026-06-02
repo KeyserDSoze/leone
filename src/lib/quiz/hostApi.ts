@@ -1,8 +1,7 @@
 import { ref, get, set, update } from "firebase/database";
 import { db } from "../firebase";
 import { GAME_ID, INITIAL_GAME_STATE, DEMO_ANSWER_SECONDS, QUESTION_ANSWER_SECONDS } from "./config";
-import type { Question, GameStatus, PublicQuestion, PublicAnswerStats, AnswerId } from "./types";
-import { buildAnswerKey } from "./answerKey";
+import type { Question, GameStatus, PublicQuestion, PublicAnswerStats, AnswerId, Player } from "./types";
 import { calculatePoints } from "./scoring";
 import { encodeCorrectAnswerIds } from "./publicResult";
 
@@ -126,6 +125,8 @@ export async function reopenQuestion(question: Question): Promise<void> {
  * Idempotente: se publicCurrentResult per questa domanda è già settato,
  * ri-pubblica solo lo stato "answer" senza ricalcolare i punteggi.
  * Supporta correctAnswerIds[] (risposta multipla).
+ * Le risposte vengono lette da players/.../{uid}/currentAnswer* perché
+ * answers/... non è leggibile dalle rules correnti.
  */
 export async function closeQuestion(question: Question, gameSession: string): Promise<void> {
   await update(ref(db, `games/${GAME_ID}`), {
@@ -149,19 +150,8 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
     questionEndsAt: number;
   };
 
-  const answersSnap = await get(
-    ref(db, `answers/${GAME_ID}/${buildAnswerKey(gameSession, question.id)}`)
-  );
-  const answers = (answersSnap.val() ?? {}) as Record<
-    string,
-    { answerId: string; answeredAt: number }
-  >;
-
   const playersSnap = await get(ref(db, `players/${GAME_ID}`));
-  const players = (playersSnap.val() ?? {}) as Record<
-    string,
-    { username: string; score: number }
-  >;
+  const players = (playersSnap.val() ?? {}) as Record<string, Player>;
   const leaderboardSnap = await get(ref(db, `leaderboards/${GAME_ID}`));
   const leaderboard = (leaderboardSnap.val() ?? {}) as Record<
     string,
@@ -178,7 +168,16 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
     // Salta record senza username (es. host che ha chiamato setupPresence)
     if (!player.username) continue;
 
-    const answer = answers[uid];
+    const answer =
+      player.currentAnswerGameSession === gameSession &&
+      player.currentAnswerQuestionId === question.id &&
+      player.currentAnswerAnswerId
+        ? {
+            answerId: player.currentAnswerAnswerId,
+            answeredAt: player.currentAnswerAnsweredAt,
+          }
+        : null;
+
     const isCorrect =
       !isDemo &&
       Boolean(answer?.answerId) &&
