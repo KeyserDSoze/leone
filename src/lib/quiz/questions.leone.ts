@@ -7,158 +7,131 @@ import type { Question } from "./types";
  * Q9 è sempre l'ULTIMA (grande finale).
  */
 export const leoneQuestions: Question[] = [
-  // ── Q1 — posizione 1 (opener) ────────────────────────────────────────────
   {
     id: "leone_001",
     category: "leone",
     subcategory: "leone",
-    text: "Perché il piccolo Leone si chiama Leone?",
+    text: "Perché abbiamo scelto il nome Leone?",
     answers: [
-      { id: "A", text: "Perché è forte e coraggioso come un leone 🦁" },
-      { id: "B", text: "Perché è il re della famiglia" },
-      { id: "C", text: "Perché è nato con i capelli già da leonessa" },
-      { id: "D", text: "Perché papà e mamma lo hanno deciso così" },
+      { id: "A", text: "colpa della Ferragni" },
+      { id: "B", text: "il Papa" },
+      { id: "C", text: "il bisnonno" },
+      { id: "D", text: "segno zodiacale di entrambe le nonne" },
     ],
-    // Tutte le risposte sono corrette: domanda aperta e divertente!
     correctAnswerIds: ["A", "B", "C", "D"],
     explanation:
-      "Tutte le risposte sono corrette! Non esiste una risposta sbagliata per questa domanda. Leone si chiama Leone perché… è Leone! 🦁",
+      "Tutte e quattro vanno bene: era la domanda jolly per far divertire tutti fin dall'inizio.",
   },
-
-  // ── Q2 — posizione 4 ─────────────────────────────────────────────────────
   {
     id: "leone_002",
     category: "leone",
     subcategory: "leone",
-    text: "Quando viene battezzato Leone?",
+    text: "A che mese ha preso il suo primo attestato di nuoto?",
     answers: [
-      { id: "A", text: "7 giugno 2026" },
-      { id: "B", text: "14 giugno 2026" },
-      { id: "C", text: "1 giugno 2026" },
-      { id: "D", text: "21 giugno 2026" },
+      { id: "A", text: "6 mesi" },
+      { id: "B", text: "7 mesi" },
+      { id: "C", text: "8 mesi" },
+      { id: "D", text: "5 mesi" },
     ],
-    correctAnswerIds: ["A"],
-    explanation:
-      "Il battesimo di Leone è il 7 giugno 2026 — esattamente oggi! Siete tutti qui a festeggiarlo.",
+    correctAnswerIds: ["B"],
+    explanation: "La risposta corretta era 7 mesi.",
   },
-
-  // ── Q3 — posizione 6 ─────────────────────────────────────────────────────
   {
     id: "leone_003",
     category: "leone",
     subcategory: "leone",
-    text: "In quale quartiere di Roma cresce Leone?",
+    text: "Cos'è Pineta Sacchetti?",
     answers: [
-      { id: "A", text: "Pineta Sacchetti" },
-      { id: "B", text: "Aurelio" },
-      { id: "C", text: "Prati" },
-      { id: "D", text: "Parioli" },
+      { id: "A", text: "luogo di nascita di Leone" },
+      { id: "B", text: "miglior posizione per digerire fino ai primi due mesi" },
+      { id: "C", text: "un parco di Milano" },
+      { id: "D", text: "un parco a tema ispirato alle gesta di Riccardo cuor di Leone" },
     ],
-    // A e B entrambe accettabili: Pineta Sacchetti è nel Municipio XIV (Aurelio)
     correctAnswerIds: ["A", "B"],
-    explanation:
-      "Leone cresce a Pineta Sacchetti, un quartiere nel Municipio XIV di Roma, spesso chiamato anche Aurelio. Entrambe le risposte erano corrette!",
+    explanation: "Andavano bene sia A che B.",
   },
-
-  // ── Q4 — posizione 9 ─────────────────────────────────────────────────────
   {
     id: "leone_004",
     category: "leone",
     subcategory: "leone",
-    text: "Qual è il sito web dedicato a Leone?",
+    text: "Per Leone, qual è la cosa più divertente del mondo?",
     answers: [
-      { id: "A", text: "leone2026.it" },
-      { id: "B", text: "leonerapiti.com" },
-      { id: "C", text: "ilbattesimodileone.it" },
-      { id: "D", text: "babyleone.org" },
+      { id: "A", text: "il babbo che fa il pollo" },
+      { id: "B", text: "i baci sul pancino" },
+      { id: "C", text: "colpire delle foglie" },
+      { id: "D", text: "bubù-settete" },
     ],
-    correctAnswerIds: ["B"],
-    explanation:
-      "Il sito ufficiale di Leone è leonerapiti.com — potete visitarlo per scoprire la sua storia e lasciare un messaggio nella Scatola del Tempo!",
+    correctAnswerIds: ["C"],
+    explanation: "La risposta corretta era colpire delle foglie.",
   },
-
-  // ── Q5 — posizione 12 ────────────────────────────────────────────────────
   {
     id: "leone_005",
     category: "leone",
     subcategory: "leone",
-    text: "In quale città viene battezzato Leone?",
+    text: "Il nome storico dei suoi piedi è:",
     answers: [
-      { id: "A", text: "Roma" },
-      { id: "B", text: "Orvieto" },
-      { id: "C", text: "Viterbo" },
-      { id: "D", text: "Rieti" },
+      { id: "A", text: "piedozzo e piedazzo" },
+      { id: "B", text: "piedino e piedone" },
+      { id: "C", text: "left caciotta e right caciotta" },
+      { id: "D", text: "mignolo e prof" },
     ],
-    correctAnswerIds: ["C"],
-    explanation:
-      "Il battesimo di Leone si celebra a Viterbo, nella splendida chiesa di San Silvestro Papa.",
+    correctAnswerIds: ["A"],
+    explanation: "La coppia storica era piedozzo e piedazzo.",
   },
-
-  // ── Q6 — posizione 14 ────────────────────────────────────────────────────
   {
     id: "leone_006",
     category: "leone",
     subcategory: "leone",
-    text: "Come si chiama il casale dove si festeggia oggi dopo il battesimo?",
+    text: "Per i neonatologi del Gemelli quanto è cresciuto dopo un'ora dal parto:",
     answers: [
-      { id: "A", text: "Villa Rapiti" },
-      { id: "B", text: "Casale dei Leoni" },
-      { id: "C", text: "Agriturismo Leone" },
-      { id: "D", text: "Casale Aderio" },
+      { id: "A", text: "1cm" },
+      { id: "B", text: "0cm" },
+      { id: "C", text: "3cm" },
+      { id: "D", text: "5cm" },
     ],
     correctAnswerIds: ["D"],
-    explanation:
-      "Il ricevimento si svolge al Casale Aderio, lungo la Strada Teverina — un posto meraviglioso per festeggiare Leone!",
+    explanation: "Secondo i neonatologi del Gemelli: 5 cm.",
   },
-
-  // ── Q7 — posizione 17 ────────────────────────────────────────────────────
   {
     id: "leone_007",
     category: "leone",
     subcategory: "leone",
-    text: "Cosa hai potuto lasciare a Leone nella Scatola del Tempo sul suo sito?",
+    text: "Al test d'ingresso nel mondo, che valore di APGAR aveva dopo 5 minuti?",
     answers: [
-      { id: "A", text: "Un messaggio per il futuro" },
-      { id: "B", text: "Una chiave di casa" },
-      { id: "C", text: "Una schedina del Superenalotto" },
-      { id: "D", text: "Un buono benzina" },
+      { id: "A", text: "8/10" },
+      { id: "B", text: "9/10" },
+      { id: "C", text: "10/10" },
+      { id: "D", text: "11/10" },
     ],
-    correctAnswerIds: ["A"],
-    explanation:
-      "La Scatola del Tempo raccoglie messaggi e auguri che Leone leggerà quando sarà grande. Hai lasciato il tuo?",
+    correctAnswerIds: ["C"],
+    explanation: "Il valore corretto era 10/10.",
   },
-
-  // ── Q8 — posizione 19 ────────────────────────────────────────────────────
   {
     id: "leone_008",
     category: "leone",
     subcategory: "leone",
-    text: "Qual è il gioco interattivo presente sul sito di Leone?",
+    text: "A che mese è andato al lago la prima volta?",
     answers: [
-      { id: "A", text: "Tetris" },
-      { id: "B", text: "Forza 4" },
-      { id: "C", text: "Scacchi" },
-      { id: "D", text: "Pacman" },
+      { id: "A", text: "1 mese" },
+      { id: "B", text: "2 mesi" },
+      { id: "C", text: "3 mesi" },
+      { id: "D", text: "4 mesi" },
     ],
-    correctAnswerIds: ["B"],
-    explanation:
-      "Sul sito di Leone c'è una versione di Forza 4 dove puoi sfidare Leone stesso — anche se ora è ancora piccolo!",
+    correctAnswerIds: ["A"],
+    explanation: "La risposta corretta era 1 mese.",
   },
-
-  // ── Q9 — posizione 20 (grande finale) ────────────────────────────────────
   {
     id: "leone_009",
     category: "leone",
     subcategory: "leone",
-    text: "Quale animale simboleggia Leone nel suo sito e nella sua storia?",
+    text: "Quale è la sua canzone preferita?",
     answers: [
-      { id: "A", text: "Tigre 🐯" },
-      { id: "B", text: "Orso 🐻" },
-      { id: "C", text: "Leone 🦁" },
-      { id: "D", text: "Elefante 🐘" },
+      { id: "A", text: "Osanna" },
+      { id: "B", text: "Nella vecchia fattoria" },
+      { id: "C", text: "Alla fiera dell'est" },
+      { id: "D", text: "44 gatti" },
     ],
     correctAnswerIds: ["C"],
-    explanation:
-      "Ovviamente il leone! Come potrebbe essere altrimenti? Benvenuto nel mondo, Leone! 🦁👑",
+    explanation: "La sua preferita è Alla fiera dell'est.",
   },
 ];
