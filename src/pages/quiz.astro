@@ -9,7 +9,7 @@
   <title>Quiz di Leone 🦁</title>
   <link rel="icon" href="/favicon.ico" />
   <link rel="stylesheet" href="/global.css" />
-  <style>
+  <style is:global>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -272,7 +272,7 @@
 
     /* Answer distribution */
     .stats-section {
-      margin: 16px 0 8px;
+      margin: 18px 0 8px;
       text-align: left;
     }
     .stats-title {
@@ -285,98 +285,150 @@
     }
     .stats-list {
       display: grid;
-      gap: 10px;
+      gap: 9px;
     }
-    .stat-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
+    .ans-row {
+      position: relative;
+      padding: 11px 13px;
       border-radius: 16px;
       border: 1px solid #E4E8E0;
       background: #FFFFFF;
-      box-shadow: 0 8px 20px rgba(58, 90, 53, 0.06);
+      box-shadow: 0 6px 16px rgba(58, 90, 53, 0.05);
+      transition: transform 0.15s;
     }
-    .stat-card.is-correct {
-      border-color: var(--green-line);
+    .ans-row.is-correct {
+      border-color: var(--green-mid);
       background: var(--green-soft);
     }
-    .stat-card.is-picked {
-      box-shadow: 0 0 0 3px rgba(181, 86, 75, 0.14);
+    .ans-row.is-mine:not(.is-correct) {
+      border-color: #D9A39B;
+      background: #FBF1EF;
     }
-    .stat-letter {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
+    .ans-head {
       display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ans-badge {
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
+      border-radius: 10px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 18px;
-      flex-shrink: 0;
+      font-weight: 800;
+      font-size: 16px;
     }
-    .stat-content {
+    .ans-badge.b-A { background:#C3D7DD; color:#2E5A66; }
+    .ans-badge.b-B { background:#C5DCB8; color:#3A5A35; }
+    .ans-badge.b-C { background:#E5D2B2; color:#8A5A2B; }
+    .ans-badge.b-D { background:#D8C8DF; color:#6A4A78; }
+    .ans-name {
       flex: 1;
       min-width: 0;
-    }
-    .stat-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .stat-label {
       font-size: 14px;
       font-weight: 700;
       color: var(--ink);
     }
-    .stat-pct {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--green-deep);
-    }
-    .stat-track {
-      background: var(--track);
-      border-radius: 999px;
-      height: 12px;
-      overflow: hidden;
-    }
-    .stat-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: #D3DBCD;
-      transition: width 0.6s ease;
-    }
-    .stat-fill.is-correct { background: linear-gradient(135deg, #6FA063, #4B6F44); }
-    .stat-fill.is-picked { background: linear-gradient(135deg, #C97A6E, #B5564B); }
-    .stat-foot {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 8px;
+    .ans-votes {
       font-size: 12px;
       color: var(--muted);
+      white-space: nowrap;
     }
-    .stat-badge {
+    .ans-pct {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--green-deep);
+      min-width: 46px;
+      text-align: right;
+    }
+    .ans-row.is-mine:not(.is-correct) .ans-pct { color: #A24438; }
+    .ans-bar {
+      margin-top: 9px;
+      background: var(--track);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .ans-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: #CDD6C6;
+      transition: width 0.7s ease;
+    }
+    .ans-fill.f-correct { background: linear-gradient(135deg, #6FA063, #4B6F44); }
+    .ans-fill.f-mine    { background: linear-gradient(135deg, #C97A6E, #B5564B); }
+    .ans-check {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 15px;
+    }
+
+    /* Correct-answer reveal panel */
+    .correct-panel {
+      margin-top: 16px;
+      border-radius: 18px;
+      border: 1.5px solid var(--green-mid);
+      background: linear-gradient(180deg, #F3F8EF, #EAF2E4);
+      padding: 16px 16px 14px;
+      text-align: left;
+      box-shadow: 0 10px 26px rgba(58, 90, 53, 0.10);
+    }
+    .cp-head {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--green-deep);
+      margin-bottom: 10px;
+    }
+    .cp-answers { display: grid; gap: 7px; }
+    .cp-answer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.75);
+      border: 1px solid var(--green-line);
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+    .cp-letter {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 8px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 11px;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .cp-letter.b-A { background:#C3D7DD; color:#2E5A66; }
+    .cp-letter.b-B { background:#C5DCB8; color:#3A5A35; }
+    .cp-letter.b-C { background:#E5D2B2; color:#8A5A2B; }
+    .cp-letter.b-D { background:#D8C8DF; color:#6A4A78; }
+    .cp-text { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.35; }
+    .cp-all {
+      font-size: 14px;
       font-weight: 700;
-      background: #EDF0EA;
-      color: #5A6654;
-    }
-    .stat-badge.correct {
-      background: #DDEBD3;
       color: var(--green-deep);
+      background: rgba(255,255,255,0.75);
+      border: 1px solid var(--green-line);
+      border-radius: 12px;
+      padding: 10px 12px;
     }
-    .stat-badge.mine {
-      background: #F1DED9;
-      color: #8A3E34;
+    .cp-expl {
+      margin-top: 11px;
+      padding-top: 11px;
+      border-top: 1px dashed var(--green-line);
+      font-size: 13px;
+      color: #4A5544;
+      line-height: 1.5;
     }
     .explanation { font-size: 13px; color: var(--muted); font-style: italic; margin-top: 8px; }
 
@@ -806,7 +858,8 @@ function renderResult(
   myAnsweredAtSnap: number | null,
   questionStartedAt: number | null,
   questionEndsAt: number | null,
-  isDemo: boolean
+  isDemo: boolean,
+  answers: { id: AnswerId; text: string }[] | null
 ) {
   stopTimer();
   const container = document.getElementById("result-content");
@@ -841,22 +894,22 @@ function renderResult(
     summaryClass = "skip";
     icon = "⏱️";
     outcomeText = "Tempo scaduto!";
-    outcomeColor = "#374151";
+    outcomeColor = "#5A6654";
   } else if (allCorrect) {
     summaryClass = "correct";
     icon = "✅";
     outcomeText = "Tutti corretti! Era una domanda speciale 🦁";
-    outcomeColor = "#166534";
+    outcomeColor = "#3A5A35";
   } else if (isCorrect) {
     summaryClass = "correct";
     icon = "✅";
     outcomeText = "Giusto! Leone approva 🦁";
-    outcomeColor = "#166534";
+    outcomeColor = "#3A5A35";
   } else {
     summaryClass = "wrong";
     icon = "❌";
     outcomeText = "Peccato, quasi!";
-    outcomeColor = "#991B1B";
+    outcomeColor = "#A24438";
   }
 
   const ptsHTML =
@@ -871,21 +924,9 @@ function renderResult(
       ${ptsHTML}
     </div>`;
 
-  // Distribution cards
+  // Distribution rows: A | risposte | percentuale + barra
   const ids = ["A", "B", "C", "D"] as const;
   const total = stats?.total ?? 0;
-  const colorMap: Record<string, string> = {
-    A: "#C3D7DD",
-    B: "#C5DCB8",
-    C: "#E5D2B2",
-    D: "#D8C8DF",
-  };
-  const textColorMap: Record<string, string> = {
-    A: "#2E5A66",
-    B: "#3A5A35",
-    C: "#8A5A2B",
-    D: "#6A4A78",
-  };
 
   const barsHTML = stats
     ? `<div class="stats-section">
@@ -897,26 +938,24 @@ function renderResult(
             const pct = total > 0 ? Math.round((count / total) * 100) : 0;
             const isThisCorrect = correctIds.includes(id);
             const isMyWrongAnswer = id === myAnswerIdSnap && !isCorrect;
-            const fillClass = isThisCorrect ? "is-correct" : isMyWrongAnswer ? "is-picked" : "";
-            const badge = isThisCorrect
-              ? `<span class="stat-badge correct">Corretta</span>`
+            const fillClass = isThisCorrect ? "f-correct" : isMyWrongAnswer ? "f-mine" : "";
+            const rowClass = `${isThisCorrect ? "is-correct" : ""} ${id === myAnswerIdSnap ? "is-mine" : ""}`.trim();
+            const votes = `${count} ${count === 1 ? "risposta" : "risposte"}`;
+            const check = isThisCorrect
+              ? `<span class="ans-check">✅</span>`
               : isMyWrongAnswer
-              ? `<span class="stat-badge mine">La tua risposta</span>`
-              : `<span class="stat-badge">${count} voti</span>`;
-            return `<div class="stat-card ${isThisCorrect ? "is-correct" : ""} ${id === myAnswerIdSnap ? "is-picked" : ""}">
-              <span class="stat-letter" style="background:${colorMap[id]};color:${textColorMap[id]}">${id}</span>
-              <div class="stat-content">
-                <div class="stat-top">
-                  <span class="stat-label">Risposta ${id}</span>
-                  <span class="stat-pct">${pct}%</span>
-                </div>
-                <div class="stat-track">
-                  <div class="stat-fill ${fillClass}" style="width:${pct}%"></div>
-                </div>
-                <div class="stat-foot">
-                  <span>${count} risposta/e</span>
-                  ${badge}
-                </div>
+              ? `<span class="ans-check">❌</span>`
+              : "";
+            return `<div class="ans-row ${rowClass}">
+              ${check}
+              <div class="ans-head">
+                <span class="ans-badge b-${id}">${id}</span>
+                <span class="ans-name">Risposta ${id}</span>
+                <span class="ans-votes">${votes}</span>
+                <span class="ans-pct">${pct}%</span>
+              </div>
+              <div class="ans-bar">
+                <div class="ans-fill ${fillClass}" style="width:${pct}%"></div>
               </div>
             </div>`;
           })
@@ -925,11 +964,43 @@ function renderResult(
       </div>`
     : "";
 
-  const explanationHTML = result.explanation
-    ? `<p class="explanation">${result.explanation}</p>`
+  // Correct-answer reveal panel (lettera + testo) + spiegazione
+  const answerText = (id: AnswerId): string =>
+    answers?.find((a) => a.id === id)?.text ?? "";
+
+  let correctBodyHTML: string;
+  if (allCorrect) {
+    correctBodyHTML = `<div class="cp-all">Tutte le risposte erano valide 🦁 — era la domanda jolly!</div>`;
+  } else {
+    correctBodyHTML = `<div class="cp-answers">
+      ${correctIds
+        .map(
+          (id) =>
+            `<div class="cp-answer">
+              <span class="cp-letter b-${id}">${id}</span>
+              <span class="cp-text">${answerText(id as AnswerId)}</span>
+            </div>`
+        )
+        .join("")}
+    </div>`;
+  }
+
+  const explHTML = result.explanation
+    ? `<p class="cp-expl">${result.explanation}</p>`
     : "";
 
-  container.innerHTML = summaryHTML + barsHTML + explanationHTML;
+  const correctPanelHTML =
+    correctIds.length > 0
+      ? `<div class="correct-panel">
+          <div class="cp-head"><span>✅</span> ${allCorrect ? "Domanda speciale" : correctIds.length > 1 ? "Risposte corrette" : "Risposta corretta"}</div>
+          ${correctBodyHTML}
+          ${explHTML}
+        </div>`
+      : result.explanation
+      ? `<div class="correct-panel"><p class="cp-expl" style="border:0;margin:0;padding:0">${result.explanation}</p></div>`
+      : "";
+
+  container.innerHTML = summaryHTML + barsHTML + correctPanelHTML;
   showScreen("result");
 }
 
@@ -1192,7 +1263,8 @@ async function handleGameState(game: GameState) {
           myAnsweredAt,
           game.questionStartedAt,
           game.questionEndsAt,
-          pq?.category === "demo"
+          pq?.category === "demo",
+          pq?.answers ?? null
         );
       }
       break;
