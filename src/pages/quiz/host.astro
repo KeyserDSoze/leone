@@ -347,6 +347,18 @@
     }
 
     /* ── Leaderboard ── */
+    .leaderboards-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+    .leaderboards-preview-grid .card {
+      min-width: 0;
+    }
+    @media (max-width: 1024px) {
+      .leaderboards-preview-grid { grid-template-columns: 1fr; }
+    }
     .lb-host { list-style: none; }
     .lb-host li {
       display: flex;
@@ -511,18 +523,20 @@
         <p class="answer-count" id="answer-count" style="display:none"></p>
       </div>
 
-      <!-- Anteprima classifica domanda (privata per host) -->
-      <div class="card" id="question-leaderboard-panel" style="display:none">
-        <p class="card-title" id="question-leaderboard-title">Anteprima classifica domanda</p>
-        <ul class="lb-host" id="question-lb-list"></ul>
-        <p class="lb-reveal-step" id="question-lb-reveal-step"></p>
-      </div>
+      <div class="leaderboards-preview-grid">
+        <!-- Anteprima classifica domanda (privata per host) -->
+        <div class="card" id="question-leaderboard-panel" style="display:none">
+          <p class="card-title" id="question-leaderboard-title">Anteprima classifica domanda</p>
+          <ul class="lb-host" id="question-lb-list"></ul>
+          <p class="lb-reveal-step" id="question-lb-reveal-step"></p>
+        </div>
 
-      <!-- Anteprima classifica generale (privata per host) -->
-      <div class="card" id="leaderboard-panel" style="display:none">
-        <p class="card-title" id="leaderboard-title">Classifica</p>
-        <ul class="lb-host" id="lb-list"></ul>
-        <p class="lb-reveal-step" id="lb-reveal-step"></p>
+        <!-- Anteprima classifica generale (privata per host) -->
+        <div class="card" id="leaderboard-panel" style="display:none">
+          <p class="card-title" id="leaderboard-title">Classifica</p>
+          <ul class="lb-host" id="lb-list"></ul>
+          <p class="lb-reveal-step" id="lb-reveal-step"></p>
+        </div>
       </div>
 
     </div>
