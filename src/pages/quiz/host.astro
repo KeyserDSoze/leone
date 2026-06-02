@@ -564,7 +564,7 @@ import { setupPresence } from "../../lib/quiz/presence";
 import { buildGameQuestions } from "../../lib/quiz/buildGameQuestions";
 import { GAME_ID } from "../../lib/quiz/config";
 import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, update } from "firebase/database";
 import type {
   GameState,
   LeaderboardEntry,
@@ -921,7 +921,7 @@ function renderPlayers(players: Record<string, Player> | null) {
       if (!confirm(`Rimuovere "${name}" dalla partita?`)) return;
       btn.disabled = true;
       try {
-        await kickPlayer(uid);
+        await kickPlayer(uid, name);
       } catch (err) {
         console.error("Kick error:", err);
         btn.disabled = false;
@@ -939,8 +939,11 @@ function renderLeaderboard(revealStep = -1) {
   if (!panel || !listEl) return;
 
   const kicked = currentGame?.kickedUids ?? {};
+  const kickedNames = new Set(Object.values(currentGame?.kickedUsernames ?? {}));
   const raw = Object.fromEntries(
-    Object.entries(currentLeaderboard).filter(([uid]) => !kicked[uid])
+    Object.entries(currentLeaderboard).filter(
+      ([uid, entry]) => !kicked[uid] && !kickedNames.has(entry.username)
+    )
   ) as Record<string, LeaderboardEntry>;
 
   if (Object.keys(raw).length === 0) { panel.style.display = "none"; return; }
@@ -975,12 +978,16 @@ function renderQuestionLeaderboard(entries: PublicQuestionLeaderboardEntry[]) {
 
   const kicked = currentGame?.kickedUids ?? {};
   const kickedNames = new Set(
-    Object.entries(currentPlayers)
-      .filter(([uid]) => kicked[uid])
-      .map(([, player]) => player.username)
+    Object.values(currentGame?.kickedUsernames ?? {}).concat(
+      Object.entries(currentPlayers)
+        .filter(([uid]) => kicked[uid])
+        .map(([, player]) => player.username)
+    )
       .filter(Boolean)
   );
-  const visibleEntries = entries.filter((entry) => !kickedNames.has(entry.username));
+  const visibleEntries = entries.filter(
+    (entry) => !(entry.uid && kicked[entry.uid]) && !kickedNames.has(entry.username)
+  );
 
   panel.style.display = "block";
   if (titleEl) titleEl.textContent = "Anteprima classifica domanda";
@@ -1227,12 +1234,26 @@ function renderHostLeaderboardPreviews(game: GameState) {
   renderLeaderboard(game.leaderboardRevealStep ?? -1);
 }
 
+async function syncKickedUsernames() {
+  if (!currentGame?.kickedUids) return;
+
+  const existing = currentGame.kickedUsernames ?? {};
+  const missing = Object.entries(currentGame.kickedUids)
+    .filter(([uid, kicked]) => kicked && !existing[uid] && currentPlayers[uid]?.username)
+    .map(([uid]) => [uid, currentPlayers[uid].username] as const);
+
+  if (missing.length === 0) return;
+
+  await update(ref(db, `games/${GAME_ID}/kickedUsernames`), Object.fromEntries(missing));
+}
+
 // ── Firebase listeners ─────────────────────────────────────────────────────
 function startListeners() {
   // Game state
   onValue(ref(db, `games/${GAME_ID}`), (snap) => {
     if (!snap.exists()) return;
     currentGame = snap.val() as GameState;
+    syncKickedUsernames().catch(console.error);
     updateStatusBadge(currentGame.status);
     renderQuestionPanel(currentGame);
     renderControls(currentGame);
@@ -1257,6 +1278,7 @@ function startListeners() {
   // Players
   onValue(ref(db, `players/${GAME_ID}`), (snap) => {
     currentPlayers = snap.val() ?? {};
+    syncKickedUsernames().catch(console.error);
     refreshAnswerTracking();
     if (currentGame && shouldShowHostLeaderboardPreviews(currentGame)) {
       renderQuestionLeaderboard(currentGame.publicQuestionLeaderboard ?? []);

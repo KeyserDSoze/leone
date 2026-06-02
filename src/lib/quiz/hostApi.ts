@@ -59,8 +59,11 @@ export async function resetGame(): Promise<void> {
  * I record sotto players/ sono scrivibili solo dal giocatore stesso, quindi
  * marchiamo l'uid come "kicked" nello stato di gioco (scrivibile dall'host)
  * e rimuoviamo la sua voce di classifica. */
-export async function kickPlayer(uid: string): Promise<void> {
-  await update(ref(db, `games/${GAME_ID}/kickedUids`), { [uid]: true });
+export async function kickPlayer(uid: string, username?: string): Promise<void> {
+  await update(ref(db, `games/${GAME_ID}`), {
+    [`kickedUids/${uid}`]: true,
+    ...(username ? { [`kickedUsernames/${uid}`]: username } : {}),
+  });
   await update(ref(db, `leaderboards/${GAME_ID}`), { [uid]: null });
 }
 
@@ -242,6 +245,7 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
     }
 
     questionLeaderboard.push({
+      uid,
       username: player.username,
       answerId: (answer?.answerId ?? null) as AnswerId | null,
       isCorrect,

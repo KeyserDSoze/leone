@@ -38,4 +38,5 @@ export const INITIAL_GAME_STATE = {
   publicAnswerStats: null,
   publicQuestionLeaderboard: null,
   kickedUids: null,
+  kickedUsernames: null,
 } as const;

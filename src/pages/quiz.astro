@@ -992,17 +992,26 @@ function renderResult(
   showScreen("result");
 }
 
-function renderQuestionLeaderboard(entries: PublicQuestionLeaderboardEntry[]) {
+function renderQuestionLeaderboard(
+  entries: PublicQuestionLeaderboardEntry[],
+  kickedUids: Record<string, boolean> = {},
+  kickedUsernames: Record<string, string> = {}
+) {
   const listEl = document.getElementById("question-leaderboard-list");
   if (!listEl) return;
 
-  if (entries.length === 0) {
+  const kickedNames = new Set(Object.values(kickedUsernames));
+  const visibleEntries = entries.filter(
+    (entry) => !(entry.uid && kickedUids[entry.uid]) && !kickedNames.has(entry.username)
+  );
+
+  if (visibleEntries.length === 0) {
     listEl.innerHTML = `<li class="lb-item lb-hidden"><span class="lb-copy"><span class="lb-name">Ancora nessuna classifica disponibile</span></span></li>`;
     showScreen("question-leaderboard");
     return;
   }
 
-  listEl.innerHTML = entries.slice(0, 10).map((entry, i) => {
+  listEl.innerHTML = visibleEntries.slice(0, 10).map((entry, i) => {
     const rank = i + 1;
     const isMe = entry.username === currentUsername;
     const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}.`;
@@ -1029,14 +1038,28 @@ function renderQuestionLeaderboard(entries: PublicQuestionLeaderboardEntry[]) {
 }
 
 // ── Render leaderboard with progressive reveal ─────────────────────────────
-async function renderLeaderboard(revealStep: number, isFinished = false) {
+async function renderLeaderboard(
+  revealStep: number,
+  isFinished = false,
+  kickedUids: Record<string, boolean> = {},
+  kickedUsernames: Record<string, string> = {}
+) {
   const listEl = document.getElementById("leaderboard-list");
   if (!listEl) return;
 
   const snap = await get(ref(db, `leaderboards/${GAME_ID}`));
   const raw = snap.val() as Record<string, LeaderboardEntry> | null;
 
-  if (!raw) {
+  const kickedNames = new Set(Object.values(kickedUsernames));
+  const visibleRaw = raw
+    ? Object.fromEntries(
+        Object.entries(raw).filter(
+          ([uid, entry]) => !kickedUids[uid] && !kickedNames.has(entry.username)
+        )
+      ) as Record<string, LeaderboardEntry>
+    : null;
+
+  if (!visibleRaw || Object.keys(visibleRaw).length === 0) {
     listEl.innerHTML = `<li style="text-align:center;color:#7C8A76;padding:12px">Ancora nessun punteggio</li>`;
     if (isFinished) {
       showScreen("finished");
@@ -1046,7 +1069,7 @@ async function renderLeaderboard(revealStep: number, isFinished = false) {
     return;
   }
 
-  const sorted = Object.entries(raw).sort(([, a], [, b]) => b.score - a.score);
+  const sorted = Object.entries(visibleRaw).sort(([, a], [, b]) => b.score - a.score);
   const total = sorted.length;
 
   if (isFinished) {
@@ -1277,18 +1300,27 @@ async function handleGameState(game: GameState) {
       if (pq && pq.id !== lastQuestionId) {
         await restoreAnswerIfNeeded(pq.id);
       }
-      renderQuestionLeaderboard(game.publicQuestionLeaderboard ?? []);
+      renderQuestionLeaderboard(
+        game.publicQuestionLeaderboard ?? [],
+        game.kickedUids ?? {},
+        game.kickedUsernames ?? {}
+      );
       break;
     }
 
     case "leaderboard":
       if (game.showLeaderboard && game.leaderboardRevealStep >= 0) {
-        renderLeaderboard(game.leaderboardRevealStep, false);
+        renderLeaderboard(
+          game.leaderboardRevealStep,
+          false,
+          game.kickedUids ?? {},
+          game.kickedUsernames ?? {}
+        );
       }
       break;
 
     case "finished":
-      renderLeaderboard(99, true);
+      renderLeaderboard(99, true, game.kickedUids ?? {}, game.kickedUsernames ?? {});
       break;
   }
 }

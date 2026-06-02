@@ -59,6 +59,7 @@ export type PublicAnswerStats = {
 };
 
 export type PublicQuestionLeaderboardEntry = {
+  uid?: string;
   username: string;
   answerId: AnswerId | null;
   isCorrect: boolean;
@@ -90,6 +91,8 @@ export type GameState = {
   publicQuestionLeaderboard: PublicQuestionLeaderboardEntry[] | null;
   /** uid dei giocatori espulsi dall'host (offline) */
   kickedUids?: Record<string, boolean> | null;
+  /** username dei giocatori espulsi, per filtrare classifiche già calcolate */
+  kickedUsernames?: Record<string, string> | null;
 };
 
 export type Player = {
