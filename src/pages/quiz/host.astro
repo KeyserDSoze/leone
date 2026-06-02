@@ -473,7 +473,7 @@
 
       <!-- Giocatori -->
       <div class="card">
-        <p class="card-title">Giocatori connessi</p>
+        <p class="card-title">Giocatori in partita</p>
         <p class="player-count"><span id="player-count">0</span></p>
         <ul class="player-list" id="player-list"></ul>
       </div>
@@ -858,8 +858,7 @@ function renderPlayers(players: Record<string, Player> | null) {
   const playerEntries = Object.entries(players).filter(
     ([uid, p]) => p.username && !kicked[uid]
   );
-  const onlineCount = playerEntries.filter(([, p]) => p.connected).length;
-  if (countEl) countEl.textContent = String(onlineCount);
+  if (countEl) countEl.textContent = String(playerEntries.length);
 
   if (!listEl) return;
 
