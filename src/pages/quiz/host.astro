@@ -199,6 +199,9 @@
     .q-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
     .answer-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
       padding: 12px;
       border-radius: 12px;
       font-size: 14px;
@@ -210,11 +213,17 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
-      border-radius: 6px;
-      font-size: 12px;
-      margin-right: 6px;
+      width: 28px;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .answer-card .answer-copy {
+      flex: 1;
+      line-height: 1.45;
+      padding-right: 28px;
     }
     .ac-A { background:#EFF6FF; border-color:#BFDBFE; color:#1E40AF; }
     .ac-A .alabel { background:#BFDBFE; }
@@ -302,18 +311,62 @@
     .lb-host li {
       display: flex;
       align-items: center;
-      padding: 10px 14px;
-      border-radius: 10px;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
       margin-bottom: 6px;
-      background: #FFFBEB;
+      background: linear-gradient(180deg, #FFFFFF, #FFFDF8);
       border: 1px solid #FDE68A;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
     }
     .lb-host li.rank1 { background:#FEF9C3; border-color:#EAB308; }
     .lb-host li.rank2 { background:#F8FAFC; border-color:#94A3B8; }
     .lb-host li.rank3 { background:#FFF4ED; border-color:#FB923C; }
-    .lb-rank { font-size:18px; font-weight:700; width:32px; color:#92400E; }
-    .lb-name { flex:1; font-size:15px; color:#1F2937; font-weight:600; }
-    .lb-score-h { font-size:15px; font-weight:700; color:#D97706; }
+    .lb-rank {
+      width: 42px;
+      min-width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size:18px;
+      font-weight:700;
+      color:#92400E;
+      background: rgba(255,255,255,0.85);
+    }
+    .lb-copy-host { flex:1; min-width:0; }
+    .lb-name-host { display:block; font-size:15px; color:#1F2937; font-weight:700; }
+    .lb-meta-host { display:block; font-size:12px; color:#6B7280; margin-top:4px; }
+    .lb-tags-host { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .lb-pill-host {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:700;
+      background:#F3F4F6;
+      color:#4B5563;
+    }
+    .lb-pill-host.answer-A { background:#DBEAFE; color:#1D4ED8; }
+    .lb-pill-host.answer-B { background:#DCFCE7; color:#15803D; }
+    .lb-pill-host.answer-C { background:#FFEDD5; color:#C2410C; }
+    .lb-pill-host.answer-D { background:#F3E8FF; color:#7E22CE; }
+    .lb-pill-host.correct { background:#DCFCE7; color:#166534; }
+    .lb-pill-host.wrong { background:#FEE2E2; color:#991B1B; }
+    .lb-pill-host.skip { background:#E5E7EB; color:#374151; }
+    .lb-score-h {
+      font-size:14px;
+      font-weight:800;
+      color:#D97706;
+      background:#FFF7ED;
+      border:1px solid #FED7AA;
+      border-radius:999px;
+      padding:8px 10px;
+      white-space:nowrap;
+    }
     .lb-reveal-step {
       font-size: 13px;
       color: #9CA3AF;
@@ -419,7 +472,7 @@
 
       <!-- Classifica -->
       <div class="card" id="leaderboard-panel" style="display:none">
-        <p class="card-title">Classifica</p>
+        <p class="card-title" id="leaderboard-title">Classifica</p>
         <ul class="lb-host" id="lb-list"></ul>
         <p class="lb-reveal-step" id="lb-reveal-step"></p>
       </div>
@@ -439,6 +492,7 @@ import {
   closeQuestion,
   reopenQuestion,
   revealStats,
+  showQuestionLeaderboard,
   showLeaderboard,
   revealNextLeaderboardStep,
   finishGame,
@@ -448,7 +502,12 @@ import { buildGameQuestions } from "../../lib/quiz/buildGameQuestions";
 import { GAME_ID } from "../../lib/quiz/config";
 import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
 import { ref, onValue, get } from "firebase/database";
-import type { GameState, LeaderboardEntry, Player } from "../../lib/quiz/types";
+import type {
+  GameState,
+  LeaderboardEntry,
+  Player,
+  PublicQuestionLeaderboardEntry,
+} from "../../lib/quiz/types";
 import QRCode from "qrcode";
 
 // ── Questions ──────────────────────────────────────────────────────────────
@@ -517,6 +576,7 @@ const STATUS_LABELS: Record<string, string> = {
   question: "Domanda aperta",
   locked: "Risposte chiuse",
   answer: "Risposta corretta",
+  "question-leaderboard": "Velocità domanda",
   leaderboard: "Classifica",
   finished: "Fine gioco",
 };
@@ -526,9 +586,16 @@ const STATUS_CLASSES: Record<string, string> = {
   question: "status-question",
   locked: "status-locked",
   answer: "status-answer",
+  "question-leaderboard": "status-leaderboard",
   leaderboard: "status-leaderboard",
   finished: "status-finished",
 };
+
+function formatResponseTime(responseMs: number | null): string {
+  if (responseMs == null) return "Tempo scaduto";
+  const seconds = responseMs / 1000;
+  return `${seconds < 10 ? seconds.toFixed(1) : Math.round(seconds)}s`;
+}
 
 function updateStatusBadge(status: string) {
   const badge = document.getElementById("status-badge");
@@ -675,7 +742,8 @@ function renderQuestionPanel(game: GameState) {
       const ans = pq.answers.find((a) => a.id === id);
       const isCorrect = correctIds.includes(id);
       return `<div class="answer-card ac-${id} ${isCorrect ? "correct-reveal" : ""}">
-        <span class="alabel">${id}</span>${ans?.text ?? ""}
+        <span class="alabel">${id})</span>
+        <span class="answer-copy">${ans?.text ?? ""}</span>
         ${isCorrect ? '<span class="correct-check">✅</span>' : ""}
       </div>`;
     }).join("");
@@ -699,7 +767,7 @@ function renderNextQuestionPanel(game: GameState) {
   if (!panel) return;
 
   const showNext =
-    (game.status === "answer" || game.status === "leaderboard") &&
+    (game.status === "answer" || game.status === "question-leaderboard" || game.status === "leaderboard") &&
     game.currentQuestionIndex >= 0;
 
   if (!showNext) {
@@ -777,6 +845,7 @@ async function renderLeaderboard(revealStep = -1) {
   const panel = document.getElementById("leaderboard-panel");
   const listEl = document.getElementById("lb-list");
   const stepEl = document.getElementById("lb-reveal-step");
+  const titleEl = document.getElementById("leaderboard-title");
   if (!panel || !listEl) return;
 
   const snap = await get(ref(db, `leaderboards/${GAME_ID}`));
@@ -786,13 +855,14 @@ async function renderLeaderboard(revealStep = -1) {
 
   const sorted = Object.entries(raw).sort(([, a], [, b]) => b.score - a.score);
   panel.style.display = "block";
+  if (titleEl) titleEl.textContent = "Classifica generale";
 
   const medals = ["🥇", "🥈", "🥉"];
   listEl.innerHTML = sorted.slice(0, 10).map(([, e], i) => {
     const rank = i + 1;
     return `<li class="${rank <= 3 ? `rank${rank}` : ""}">
       <span class="lb-rank">${medals[i] ?? `${rank}.`}</span>
-      <span class="lb-name">${e.username}</span>
+      <span class="lb-copy-host"><span class="lb-name-host">${e.username}</span></span>
       <span class="lb-score-h">${e.score.toLocaleString("it-IT")}</span>
     </li>`;
   }).join("");
@@ -802,6 +872,50 @@ async function renderLeaderboard(revealStep = -1) {
       ? `Rivelazione giocatori: ${Math.min(revealStep, 5)}/5`
       : "";
   }
+}
+
+function renderQuestionLeaderboard(entries: PublicQuestionLeaderboardEntry[]) {
+  const panel = document.getElementById("leaderboard-panel");
+  const listEl = document.getElementById("lb-list");
+  const stepEl = document.getElementById("lb-reveal-step");
+  const titleEl = document.getElementById("leaderboard-title");
+  if (!panel || !listEl) return;
+
+  panel.style.display = "block";
+  if (titleEl) titleEl.textContent = "Velocità della domanda";
+  if (stepEl) stepEl.textContent = "Ordine: risposte corrette più veloci in cima";
+
+  if (entries.length === 0) {
+    listEl.innerHTML = `<li><span class="lb-copy-host"><span class="lb-name-host">Nessun dato disponibile</span></span></li>`;
+    return;
+  }
+
+  const medals = ["🥇", "🥈", "🥉"];
+  listEl.innerHTML = entries.slice(0, 10).map((entry, i) => {
+    const rank = i + 1;
+    const answerClass = entry.answerId ? `answer-${entry.answerId}` : "skip";
+    const outcomeClass = entry.isCorrect ? "correct" : entry.answerId ? "wrong" : "skip";
+    const outcomeLabel = entry.isCorrect ? "Corretta" : entry.answerId ? "Sbagliata" : "Saltata";
+    const pointsLabel = `${entry.points >= 0 ? "+" : ""}${entry.points.toLocaleString("it-IT")} pt`;
+
+    return `<li class="${rank <= 3 ? `rank${rank}` : ""}">
+      <span class="lb-rank">${medals[i] ?? `${rank}.`}</span>
+      <div class="lb-copy-host">
+        <span class="lb-name-host">${entry.username}</span>
+        <span class="lb-meta-host">${formatResponseTime(entry.responseMs)}</span>
+        <div class="lb-tags-host">
+          <span class="lb-pill-host ${answerClass}">${entry.answerId ?? "-"}</span>
+          <span class="lb-pill-host ${outcomeClass}">${outcomeLabel}</span>
+        </div>
+      </div>
+      <span class="lb-score-h">${pointsLabel}</span>
+    </li>`;
+  }).join("");
+}
+
+function hideLeaderboardPanel() {
+  const panel = document.getElementById("leaderboard-panel");
+  if (panel) panel.style.display = "none";
 }
 
 // ── Controls ───────────────────────────────────────────────────────────────
@@ -844,9 +958,24 @@ function renderControls(game: GameState) {
       // Scores computed but bars not yet revealed
       btns.push({ label: "📊 Mostra statistiche", cls: "btn-amber", id: "btn-reveal-stats" });
     } else {
-      // Stats visible → proceed to leaderboard
+      // Stats visible → question leaderboard / overall / skip
+      btns.push({ label: "⚡ Classifica domanda", cls: "btn-blue", id: "btn-show-question-lb" });
       btns.push({ label: "🏆 Mostra classifica", cls: "btn-purple", id: "btn-show-lb" });
+      btns.push({
+        label: isLastQuestion ? "🎉 Fine gioco" : "➡️ Prossima domanda",
+        cls: isLastQuestion ? "btn-green" : "btn-amber",
+        id: isLastQuestion ? "btn-finish" : "btn-next",
+      });
     }
+  }
+
+  if (status === "question-leaderboard") {
+    btns.push({ label: "🏆 Classifica generale", cls: "btn-purple", id: "btn-show-lb" });
+    btns.push({
+      label: isLastQuestion ? "🎉 Fine gioco" : "➡️ Prossima domanda",
+      cls: isLastQuestion ? "btn-green" : "btn-amber",
+      id: isLastQuestion ? "btn-finish" : "btn-next",
+    });
   }
 
   if (status === "leaderboard") {
@@ -861,14 +990,13 @@ function renderControls(game: GameState) {
           ? "🥉 Rivela 3° posto"
           : `🎭 Rivela ${rankToReveal}° posto`;
       btns.push({ label: rankLabel, cls: "btn-purple", id: "btn-reveal-step" });
-    } else {
-      // All revealed
-      if (isLastQuestion) {
-        btns.push({ label: "🎉 Fine gioco", cls: "btn-green", id: "btn-finish" });
-      } else {
-        btns.push({ label: "➡️ Prossima domanda", cls: "btn-amber", id: "btn-next" });
-      }
     }
+
+    btns.push({
+      label: isLastQuestion ? "🎉 Fine gioco" : "➡️ Prossima domanda",
+      cls: isLastQuestion ? "btn-green" : "btn-amber",
+      id: isLastQuestion ? "btn-finish" : "btn-next",
+    });
   }
 
   if (status === "finished") {
@@ -941,6 +1069,11 @@ function renderControls(game: GameState) {
     await revealStats();
   });
 
+  document.getElementById("btn-show-question-lb")?.addEventListener("click", async () => {
+    await showQuestionLeaderboard();
+    renderQuestionLeaderboard(game.publicQuestionLeaderboard ?? []);
+  });
+
   document.getElementById("btn-show-lb")?.addEventListener("click", async () => {
     await showLeaderboard();
     await renderLeaderboard(0);
@@ -995,11 +1128,15 @@ function startListeners() {
       stopAnswerTracking();
     }
 
-    if (
+    if (currentGame.status === "question-leaderboard") {
+      renderQuestionLeaderboard(currentGame.publicQuestionLeaderboard ?? []);
+    } else if (
       currentGame.status === "leaderboard" ||
       currentGame.status === "finished"
     ) {
       renderLeaderboard(currentGame.leaderboardRevealStep ?? -1);
+    } else {
+      hideLeaderboardPanel();
     }
   });
 

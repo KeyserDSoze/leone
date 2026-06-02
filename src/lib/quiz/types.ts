@@ -20,6 +20,7 @@ export type GameStatus =
   | "question"
   | "locked"
   | "answer"
+  | "question-leaderboard"
   | "leaderboard"
   | "finished";
 
@@ -57,6 +58,15 @@ export type PublicAnswerStats = {
   total: number;
 };
 
+export type PublicQuestionLeaderboardEntry = {
+  username: string;
+  answerId: AnswerId | null;
+  isCorrect: boolean;
+  points: number;
+  answeredAt: number | null;
+  responseMs: number | null;
+};
+
 export type GameState = {
   /** Identificatore univoco della sessione di gioco; rigenerato ad ogni reset */
   gameSession: string;
@@ -77,6 +87,7 @@ export type GameState = {
   publicCurrentQuestion: PublicQuestion | null;
   publicCurrentResult: PublicResult | null;
   publicAnswerStats: PublicAnswerStats | null;
+  publicQuestionLeaderboard: PublicQuestionLeaderboardEntry[] | null;
 };
 
 export type Player = {

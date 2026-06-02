@@ -1,9 +1,38 @@
 import { ref, get, set, update } from "firebase/database";
 import { db } from "../firebase";
 import { GAME_ID, INITIAL_GAME_STATE, DEMO_ANSWER_SECONDS, QUESTION_ANSWER_SECONDS } from "./config";
-import type { Question, GameStatus, PublicQuestion, PublicAnswerStats, AnswerId, Player } from "./types";
+import type {
+  Question,
+  GameStatus,
+  PublicQuestion,
+  PublicAnswerStats,
+  PublicQuestionLeaderboardEntry,
+  AnswerId,
+  Player,
+} from "./types";
 import { calculatePoints } from "./scoring";
 import { encodeCorrectAnswerIds } from "./publicResult";
+
+function sortQuestionLeaderboard(
+  a: PublicQuestionLeaderboardEntry,
+  b: PublicQuestionLeaderboardEntry
+): number {
+  if (a.isCorrect !== b.isCorrect) {
+    return Number(b.isCorrect) - Number(a.isCorrect);
+  }
+
+  const aAnswered = a.answeredAt ?? Number.POSITIVE_INFINITY;
+  const bAnswered = b.answeredAt ?? Number.POSITIVE_INFINITY;
+  if (aAnswered !== bAnswered) {
+    return aAnswered - bAnswered;
+  }
+
+  if (a.points !== b.points) {
+    return b.points - a.points;
+  }
+
+  return a.username.localeCompare(b.username, "it");
+}
 
 /** Controlla se l'uid corrente è admin */
 export async function checkIsAdmin(uid: string): Promise<boolean> {
@@ -77,6 +106,7 @@ export async function startQuestion(
     publicCurrentQuestion: toPublicQuestion(question, index, 20),
     publicCurrentResult: null,
     publicAnswerStats: null,
+    publicQuestionLeaderboard: null,
     showStats: false,
   });
 }
@@ -116,6 +146,7 @@ export async function reopenQuestion(question: Question): Promise<void> {
     questionEndsAt: now + 20 * 1000,
     publicCurrentResult: null,
     publicAnswerStats: null,
+    publicQuestionLeaderboard: null,
   });
 }
 
@@ -163,6 +194,7 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
   // Calcola distribuzione risposte (solo giocatori con username)
   const stats: PublicAnswerStats = { A: 0, B: 0, C: 0, D: 0, total: 0 };
   const leaderboardUpdates: Record<string, { username: string; score: number }> = {};
+  const questionLeaderboard: PublicQuestionLeaderboardEntry[] = [];
 
   for (const [uid, player] of Object.entries(players)) {
     // Salta record senza username (es. host che ha chiamato setupPresence)
@@ -200,6 +232,17 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
       leaderboardUpdates[uid] = { username: player.username, score: newScore };
     }
 
+    questionLeaderboard.push({
+      username: player.username,
+      answerId: (answer?.answerId ?? null) as AnswerId | null,
+      isCorrect,
+      points,
+      answeredAt: answer?.answeredAt ?? null,
+      responseMs: answer?.answeredAt
+        ? Math.max(0, answer.answeredAt - game.questionStartedAt)
+        : null,
+    });
+
     if (answer) {
       const aid = answer.answerId as "A" | "B" | "C" | "D";
       if (["A", "B", "C", "D"].includes(aid)) {
@@ -220,6 +263,7 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
       correctAnswerId: encodeCorrectAnswerIds(question.correctAnswerIds),
       explanation: question.explanation ?? null,
     },
+    publicQuestionLeaderboard: questionLeaderboard.sort(sortQuestionLeaderboard),
   });
 
   try {
@@ -243,6 +287,13 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
 export async function revealStats(): Promise<void> {
   await update(ref(db, `games/${GAME_ID}`), {
     showStats: true,
+  });
+}
+
+/** Mostra la classifica della singola domanda appena conclusa */
+export async function showQuestionLeaderboard(): Promise<void> {
+  await update(ref(db, `games/${GAME_ID}`), {
+    status: "question-leaderboard" as GameStatus,
   });
 }
 
