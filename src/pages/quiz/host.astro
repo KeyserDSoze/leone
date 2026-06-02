@@ -12,8 +12,26 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --green-deep:  #3A5A35;
+      --green:       #4B6F44;
+      --green-mid:   #5C8454;
+      --green-soft:  #EDF3E8;
+      --green-line:  #CBDCC2;
+      --gold:        #B8923D;
+      --gold-soft:   #F5EEDC;
+      --gold-line:   #E4D3A6;
+      --ink:         #33402F;
+      --muted:       #7C8A76;
+      --card:        rgba(255,255,255,0.97);
+      --track:       #E9EFE4;
+      --danger:      #B5564B;
+      --danger-soft: #F5E6E3;
+    }
+
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      color: var(--ink);
       min-height: 100vh;
       padding: 16px;
     }
@@ -33,10 +51,11 @@
 
     /* ── Cards ── */
     .card {
-      background: rgba(255,255,255,0.96);
-      border-radius: 18px;
+      background: var(--card);
+      border-radius: 20px;
       padding: 20px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+      box-shadow: 0 12px 34px rgba(58, 90, 53, 0.14);
+      border: 1px solid rgba(203, 220, 194, 0.7);
       margin-bottom: 14px;
     }
     .card-title {
@@ -44,16 +63,17 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #9CA3AF;
+      color: var(--muted);
       margin-bottom: 12px;
     }
 
     /* ── Header ── */
     .host-header {
-      background: rgba(255,255,255,0.96);
-      border-radius: 18px;
+      background: var(--card);
+      border-radius: 20px;
       padding: 16px 22px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+      box-shadow: 0 12px 34px rgba(58, 90, 53, 0.14);
+      border: 1px solid rgba(203, 220, 194, 0.7);
       margin-bottom: 16px;
       display: flex;
       align-items: center;
@@ -62,9 +82,9 @@
       gap: 10px;
     }
     .host-title {
-      font-family: 'Playfull Rocket', cursive;
-      font-size: 22px;
-      color: #92400E;
+      font-family: 'Playfull Rocket', system-ui, cursive;
+      font-size: 24px;
+      color: var(--green);
     }
     .status-badge {
       display: inline-flex;
@@ -77,13 +97,13 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .status-lobby      { background: #EFF6FF; color: #1D4ED8; }
-    .status-demo       { background: #F0FDF4; color: #15803D; }
-    .status-question   { background: #FEF3C7; color: #92400E; }
-    .status-locked     { background: #FEE2E2; color: #991B1B; }
-    .status-answer     { background: #F0FDF4; color: #15803D; }
-    .status-leaderboard{ background: #FDF4FF; color: #6B21A8; }
-    .status-finished   { background: #F9FAFB; color: #374151; }
+    .status-lobby      { background: #EAF1F2; color: #3E6470; }
+    .status-demo       { background: var(--green-soft); color: var(--green-deep); }
+    .status-question   { background: var(--gold-soft); color: #8A6A2B; }
+    .status-locked     { background: var(--danger-soft); color: #8A3E34; }
+    .status-answer     { background: var(--green-soft); color: var(--green-deep); }
+    .status-leaderboard{ background: #F1ECF3; color: #6A4A78; }
+    .status-finished   { background: #F6F7F4; color: #5A6654; }
 
     /* ── QR code ── */
     #qr-img {
@@ -92,11 +112,11 @@
       border-radius: 12px;
       margin: 8px auto;
       display: block;
-      border: 2px solid #FDE68A;
+      border: 2px solid var(--green-line);
     }
     .player-url {
       font-size: 13px;
-      color: #6B7280;
+      color: var(--muted);
       word-break: break-all;
       text-align: center;
       margin-top: 6px;
@@ -106,22 +126,22 @@
       width: 100%;
       margin-top: 8px;
       padding: 8px;
-      background: #FEF3C7;
-      border: 1px solid #FCD34D;
+      background: var(--green-soft);
+      border: 1px solid var(--green-line);
       border-radius: 10px;
       font-size: 13px;
       font-weight: 600;
-      color: #92400E;
+      color: var(--green-deep);
       cursor: pointer;
       transition: background 0.15s;
     }
-    .copy-btn:hover { background: #FDE68A; }
+    .copy-btn:hover { background: #DFEBD7; }
 
     /* ── Players ── */
     .player-count {
       font-size: 32px;
       font-weight: 700;
-      color: #92400E;
+      color: var(--green);
       text-align: center;
     }
     .player-list {
@@ -137,8 +157,8 @@
       border-radius: 8px;
       font-size: 14px;
       margin-bottom: 4px;
-      background: #FFFBEB;
-      border: 1px solid #FDE68A;
+      background: #F7FAF4;
+      border: 1px solid var(--green-line);
     }
     .player-dot {
       width: 8px;
@@ -147,9 +167,9 @@
       margin-right: 8px;
       flex-shrink: 0;
     }
-    .dot-online  { background: #22C55E; }
-    .dot-offline { background: #D1D5DB; }
-    .player-score { font-weight: 700; color: #D97706; font-size: 13px; }
+    .dot-online  { background: #5C8454; }
+    .dot-offline { background: #C5CCBF; }
+    .player-score { font-weight: 700; color: var(--green); font-size: 13px; }
     .answer-status { font-size: 16px; margin: 0 4px; }
 
     /* ── Controls ── */
@@ -166,26 +186,27 @@
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.1s, opacity 0.2s;
+      transition: transform 0.1s, box-shadow 0.2s, opacity 0.2s;
       text-align: left;
     }
-    .btn-control:hover  { opacity: 0.9; }
+    .btn-control:hover  { box-shadow: 0 6px 16px rgba(58,90,53,0.18); }
     .btn-control:active { transform: scale(0.98); }
-    .btn-control:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .btn-control:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    .btn-green  { background: linear-gradient(135deg,#22C55E,#16A34A); color:#fff; }
-    .btn-amber  { background: linear-gradient(135deg,#F59E0B,#D97706); color:#fff; }
-    .btn-blue   { background: linear-gradient(135deg,#3B82F6,#2563EB); color:#fff; }
-    .btn-purple { background: linear-gradient(135deg,#8B5CF6,#7C3AED); color:#fff; }
-    .btn-red    { background: linear-gradient(135deg,#EF4444,#DC2626); color:#fff; }
-    .btn-gray   { background: #E5E7EB; color: #374151; }
+    .btn-green  { background: linear-gradient(135deg,#5C8454,#3F6539); color:#fff; }
+    .btn-amber  { background: linear-gradient(135deg,#C99A4E,#A8772F); color:#fff; }
+    .btn-blue   { background: linear-gradient(135deg,#5E94A6,#3E6F80); color:#fff; }
+    .btn-purple { background: linear-gradient(135deg,#9079A6,#6E5683); color:#fff; }
+    .btn-red    { background: linear-gradient(135deg,#C36A5F,#A04A40); color:#fff; }
+    .btn-gray   { background: #E4E8E0; color: #4A5544; }
 
     /* ── Question panel ── */
     .question-panel {
-      background: rgba(255,255,255,0.96);
-      border-radius: 18px;
+      background: var(--card);
+      border-radius: 20px;
       padding: 24px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+      box-shadow: 0 12px 34px rgba(58, 90, 53, 0.14);
+      border: 1px solid rgba(203, 220, 194, 0.7);
       margin-bottom: 14px;
     }
     .q-meta {
@@ -194,8 +215,8 @@
       justify-content: space-between;
       margin-bottom: 10px;
     }
-    .q-index   { font-size: 13px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; }
-    .q-text    { font-size: 20px; font-weight: 700; color: #1F2937; line-height: 1.4; margin-bottom: 16px; }
+    .q-index   { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+    .q-text    { font-size: 20px; font-weight: 700; color: var(--ink); line-height: 1.4; margin-bottom: 16px; }
     .q-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
     .answer-card {
@@ -225,19 +246,19 @@
       line-height: 1.45;
       padding-right: 28px;
     }
-    .ac-A { background:#EFF6FF; border-color:#BFDBFE; color:#1E40AF; }
-    .ac-A .alabel { background:#BFDBFE; }
-    .ac-B { background:#F0FDF4; border-color:#BBF7D0; color:#166534; }
-    .ac-B .alabel { background:#BBF7D0; }
-    .ac-C { background:#FFF7ED; border-color:#FED7AA; color:#9A3412; }
-    .ac-C .alabel { background:#FED7AA; }
-    .ac-D { background:#FDF4FF; border-color:#E9D5FF; color:#6B21A8; }
-    .ac-D .alabel { background:#E9D5FF; }
+    .ac-A { background:#EAF1F2; border-color:#C3D7DD; color:#2E5A66; }
+    .ac-A .alabel { background:#C3D7DD; }
+    .ac-B { background:#ECF4E6; border-color:#C5DCB8; color:#3A5A35; }
+    .ac-B .alabel { background:#C5DCB8; }
+    .ac-C { background:#F7EFE1; border-color:#E5D2B2; color:#8A5A2B; }
+    .ac-C .alabel { background:#E5D2B2; }
+    .ac-D { background:#F1ECF3; border-color:#D8C8DF; color:#6A4A78; }
+    .ac-D .alabel { background:#D8C8DF; }
 
     .answer-card.correct-reveal {
-      border-color: #22C55E !important;
-      background: #F0FDF4 !important;
-      color: #166534 !important;
+      border-color: #5C8454 !important;
+      background: var(--green-soft) !important;
+      color: var(--green-deep) !important;
     }
     .correct-check {
       position: absolute;
@@ -249,12 +270,12 @@
 
     /* Anteprima host (questionVisible=false) */
     .preview-banner {
-      background: #FEF3C7;
-      border: 2px dashed #F59E0B;
+      background: var(--gold-soft);
+      border: 2px dashed var(--gold);
       border-radius: 12px;
       padding: 10px 14px;
       font-size: 13px;
-      color: #92400E;
+      color: #8A6A2B;
       font-weight: 600;
       margin-bottom: 12px;
       text-align: center;
@@ -264,24 +285,24 @@
     .host-timer {
       font-size: 52px;
       font-weight: 700;
-      color: #92400E;
+      color: var(--green);
       text-align: center;
       font-family: monospace;
     }
-    .host-timer.urgent { color: #DC2626; animation: blink 0.5s infinite; }
+    .host-timer.urgent { color: var(--danger); animation: blink 0.5s infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
     .answer-count {
       text-align: center;
       font-size: 15px;
-      color: #6B7280;
+      color: var(--muted);
       margin-top: 4px;
     }
 
     /* ── Next question panel ── */
     .next-q-panel {
-      background: #F0FDF4;
-      border: 2px solid #86EFAC;
+      background: var(--green-soft);
+      border: 2px solid var(--green-line);
       border-radius: 14px;
       padding: 14px 18px;
       margin-bottom: 14px;
@@ -291,18 +312,18 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #15803D;
+      color: var(--green-deep);
       margin-bottom: 6px;
     }
     .next-q-panel .nq-meta {
       font-size: 12px;
-      color: #6B7280;
+      color: var(--muted);
       margin-bottom: 4px;
     }
     .next-q-panel .nq-text {
       font-size: 14px;
       font-weight: 600;
-      color: #166534;
+      color: var(--green-deep);
       line-height: 1.4;
     }
 
@@ -315,13 +336,13 @@
       padding: 12px 14px;
       border-radius: 16px;
       margin-bottom: 6px;
-      background: linear-gradient(180deg, #FFFFFF, #FFFDF8);
-      border: 1px solid #FDE68A;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      background: linear-gradient(180deg, #FFFFFF, #FAFCF7);
+      border: 1px solid var(--green-line);
+      box-shadow: 0 10px 24px rgba(58, 90, 53, 0.06);
     }
-    .lb-host li.rank1 { background:#FEF9C3; border-color:#EAB308; }
-    .lb-host li.rank2 { background:#F8FAFC; border-color:#94A3B8; }
-    .lb-host li.rank3 { background:#FFF4ED; border-color:#FB923C; }
+    .lb-host li.rank1 { background:#FBF4DE; border-color:var(--gold); }
+    .lb-host li.rank2 { background:#F4F6F1; border-color:#AEBBA6; }
+    .lb-host li.rank3 { background:#F6EEE2; border-color:#D8B98A; }
     .lb-rank {
       width: 42px;
       min-width: 42px;
@@ -332,12 +353,12 @@
       justify-content: center;
       font-size:18px;
       font-weight:700;
-      color:#92400E;
+      color:var(--green-deep);
       background: rgba(255,255,255,0.85);
     }
     .lb-copy-host { flex:1; min-width:0; }
-    .lb-name-host { display:block; font-size:15px; color:#1F2937; font-weight:700; }
-    .lb-meta-host { display:block; font-size:12px; color:#6B7280; margin-top:4px; }
+    .lb-name-host { display:block; font-size:15px; color:var(--ink); font-weight:700; }
+    .lb-meta-host { display:block; font-size:12px; color:var(--muted); margin-top:4px; }
     .lb-tags-host { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
     .lb-pill-host {
       display:inline-flex;
@@ -347,47 +368,48 @@
       border-radius:999px;
       font-size:11px;
       font-weight:700;
-      background:#F3F4F6;
-      color:#4B5563;
+      background:#EDF0EA;
+      color:#5A6654;
     }
-    .lb-pill-host.answer-A { background:#DBEAFE; color:#1D4ED8; }
-    .lb-pill-host.answer-B { background:#DCFCE7; color:#15803D; }
-    .lb-pill-host.answer-C { background:#FFEDD5; color:#C2410C; }
-    .lb-pill-host.answer-D { background:#F3E8FF; color:#7E22CE; }
-    .lb-pill-host.correct { background:#DCFCE7; color:#166534; }
-    .lb-pill-host.wrong { background:#FEE2E2; color:#991B1B; }
-    .lb-pill-host.skip { background:#E5E7EB; color:#374151; }
+    .lb-pill-host.answer-A { background:#D9E7EC; color:#2E5A66; }
+    .lb-pill-host.answer-B { background:#DDEBD3; color:#3A5A35; }
+    .lb-pill-host.answer-C { background:#F0E2CA; color:#8A5A2B; }
+    .lb-pill-host.answer-D { background:#E7DCEC; color:#6A4A78; }
+    .lb-pill-host.correct { background:#DDEBD3; color:var(--green-deep); }
+    .lb-pill-host.wrong { background:#F1DED9; color:#8A3E34; }
+    .lb-pill-host.skip { background:#E4E8E0; color:#5A6654; }
     .lb-score-h {
       font-size:14px;
       font-weight:800;
-      color:#D97706;
-      background:#FFF7ED;
-      border:1px solid #FED7AA;
+      color:var(--green);
+      background:#F1F6EC;
+      border:1px solid var(--green-line);
       border-radius:999px;
       padding:8px 10px;
       white-space:nowrap;
     }
     .lb-reveal-step {
       font-size: 13px;
-      color: #9CA3AF;
+      color: var(--muted);
       margin-top: 8px;
       text-align: center;
     }
 
     /* ── Setup / not-admin ── */
     .setup-card {
-      background: rgba(255,255,255,0.97);
-      border-radius: 20px;
+      background: var(--card);
+      border-radius: 22px;
       padding: 32px;
       max-width: 540px;
       margin: 60px auto 0;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+      box-shadow: 0 18px 50px rgba(58, 90, 53, 0.16);
+      border: 1px solid rgba(203, 220, 194, 0.7);
       text-align: center;
     }
-    .setup-title { font-family: 'Playfull Rocket', cursive; font-size:26px; color:#92400E; margin-bottom:12px; }
+    .setup-title { font-family: 'Playfull Rocket', system-ui, cursive; font-size:26px; color:var(--green); margin-bottom:12px; }
     .uid-box {
-      background: #1F2937;
-      color: #FCD34D;
+      background: #2C3A28;
+      color: #DCC78A;
       font-family: monospace;
       font-size: 15px;
       padding: 14px;
@@ -396,9 +418,9 @@
       margin: 12px 0;
       cursor: pointer;
     }
-    .setup-steps { text-align:left; margin-top:16px; font-size:14px; color:#374151; line-height:1.8; }
+    .setup-steps { text-align:left; margin-top:16px; font-size:14px; color:var(--ink); line-height:1.8; }
     .setup-steps li { margin-left:16px; }
-    .loading-setup { text-align:center; color:#6B7280; margin-top:40px; font-size:16px; }
+    .loading-setup { text-align:center; color:var(--muted); margin-top:40px; font-size:16px; }
   </style>
 </head>
 <body>
@@ -463,7 +485,7 @@
           <span id="q-index-label" class="q-index">In attesa</span>
           <div class="host-timer" id="host-timer" style="display:none">—</div>
         </div>
-        <p id="q-text" class="q-text" style="color:#9CA3AF">
+        <p id="q-text" class="q-text" style="color:#7C8A76">
           Premi "Avvia demo" o "Avvia quiz" per iniziare.
         </p>
         <div class="q-answers" id="q-answers"></div>
@@ -553,7 +575,7 @@ async function generateQR() {
     const dataUrl = await QRCode.toDataURL(playerUrl, {
       width: 200,
       margin: 2,
-      color: { dark: "#1F2937", light: "#FFFBEB" },
+      color: { dark: "#33402F", light: "#F7FAF4" },
     });
     if (img) img.src = dataUrl;
   } catch (err) {
@@ -714,7 +736,7 @@ function renderQuestionPanel(game: GameState) {
   const answerCountEl = document.getElementById("answer-count");
 
   if (!pq) {
-    if (textEl) { textEl.textContent = "Premi \"Avvia demo\" o \"Avvia quiz\" per iniziare."; textEl.style.color = "#9CA3AF"; }
+    if (textEl) { textEl.textContent = "Premi \"Avvia demo\" o \"Avvia quiz\" per iniziare."; textEl.style.color = "#7C8A76"; }
     if (indexLabel) indexLabel.textContent = "In attesa";
     if (answersEl) answersEl.innerHTML = "";
     if (answerCountEl) answerCountEl.style.display = "none";
@@ -733,7 +755,7 @@ function renderQuestionPanel(game: GameState) {
       : `Domanda ${pq.index} / ${pq.total}${pq.category === "leone" ? " 🦁 Leone" : subcatLabel}${isPreview ? " — ANTEPRIMA HOST" : ""}`;
   }
 
-  if (textEl) { textEl.textContent = pq.text; textEl.style.color = "#1F2937"; }
+  if (textEl) { textEl.textContent = pq.text; textEl.style.color = "#33402F"; }
 
   if (answersEl) {
     const ids = ["A", "B", "C", "D"] as const;
@@ -1161,13 +1183,13 @@ function showNotAdmin(uid: string) {
       <div class="setup-card">
         <span style="font-size:52px">🦁</span>
         <h1 class="setup-title">Configura l'Host</h1>
-        <p style="font-size:14px;color:#6B7280;margin-bottom:8px">
+        <p style="font-size:14px;color:#7C8A76;margin-bottom:8px">
           Il tuo browser non è ancora autorizzato come host.<br>
           Copia il tuo UID e aggiungilo in Firebase Console.
         </p>
         <div class="uid-box" id="uid-display" title="Clicca per copiare">${uid}</div>
         <button onclick="navigator.clipboard.writeText('${uid}').then(()=>document.getElementById('uid-display').textContent='✅ Copiato!')"
-          style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:600;color:#92400E;font-size:14px">
+          style="background:#EDF3E8;border:1px solid #CBDCC2;border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:600;color:#3A5A35;font-size:14px">
           📋 Copia UID
         </button>
         <ol class="setup-steps">
@@ -1177,7 +1199,7 @@ function showNotAdmin(uid: string) {
           <li>Ricarica questa pagina</li>
         </ol>
         <button onclick="location.reload()"
-          style="margin-top:16px;width:100%;padding:12px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer">
+          style="margin-top:16px;width:100%;padding:12px;background:linear-gradient(135deg,#5C8454,#3F6539);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer">
           🔄 Ricarica dopo la configurazione
         </button>
       </div>`;
@@ -1213,8 +1235,8 @@ async function init() {
       setup.innerHTML = `<div class="setup-card">
         <span style="font-size:52px">😕</span>
         <h2 class="setup-title">Errore di connessione</h2>
-        <p style="color:#6B7280;margin:8px 0">Impossibile connettersi a Firebase.</p>
-        <button onclick="location.reload()" style="margin-top:12px;padding:12px 24px;background:#F59E0B;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">
+        <p style="color:#7C8A76;margin:8px 0">Impossibile connettersi a Firebase.</p>
+        <button onclick="location.reload()" style="margin-top:12px;padding:12px 24px;background:#5C8454;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">
           Riprova 🔄
         </button>
       </div>`;
