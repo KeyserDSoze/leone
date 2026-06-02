@@ -6,7 +6,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Host — Quiz di Leone 🦁</title>
+  <title>Host — CervelLeone 🦁</title>
   <link rel="icon" href="/favicon.ico" />
   <link rel="stylesheet" href="/global.css" />
   <style is:global>
@@ -454,7 +454,7 @@
 
   <!-- Header -->
   <div class="host-header">
-    <span class="host-title">🦁 Il Cervellone di Leone</span>
+    <span class="host-title">🦁 CervelLeone</span>
     <span id="status-badge" class="status-badge status-lobby">● Lobby</span>
   </div>
 
@@ -505,7 +505,7 @@
           <div class="host-timer" id="host-timer" style="display:none">—</div>
         </div>
         <p id="q-text" class="q-text" style="color:#7C8A76">
-          Premi "Avvia demo" o "Avvia quiz" per iniziare.
+          Premi "Avvia demo" o "Avvia CervelLeone" per iniziare.
         </p>
         <div class="q-answers" id="q-answers"></div>
         <p class="answer-count" id="answer-count" style="display:none"></p>
@@ -760,7 +760,7 @@ function renderQuestionPanel(game: GameState) {
   const answerCountEl = document.getElementById("answer-count");
 
   if (!pq) {
-    if (textEl) { textEl.textContent = "Premi \"Avvia demo\" o \"Avvia quiz\" per iniziare."; textEl.style.color = "#7C8A76"; }
+    if (textEl) { textEl.textContent = "Premi \"Avvia demo\" o \"Avvia CervelLeone\" per iniziare."; textEl.style.color = "#7C8A76"; }
     if (indexLabel) indexLabel.textContent = "In attesa";
     if (answersEl) answersEl.innerHTML = "";
     if (answerCountEl) answerCountEl.style.display = "none";
@@ -1004,7 +1004,7 @@ function renderControls(game: GameState) {
 
   if (status === "lobby") {
     btns.push({ label: "🎓 Avvia demo", cls: "btn-green", id: "btn-start-demo" });
-    btns.push({ label: "▶️ Avvia quiz (salta demo)", cls: "btn-blue", id: "btn-start-quiz" });
+    btns.push({ label: "▶️ Avvia CervelLeone (salta demo)", cls: "btn-blue", id: "btn-start-quiz" });
   }
 
   if ((status === "demo" || status === "question") && !qVisible) {
@@ -1023,7 +1023,7 @@ function renderControls(game: GameState) {
 
   if (status === "answer") {
     if (isAfterDemo) {
-      btns.push({ label: "▶️ Inizia il quiz", cls: "btn-green", id: "btn-next" });
+      btns.push({ label: "▶️ Inizia CervelLeone", cls: "btn-green", id: "btn-next" });
     } else if (!game.showStats) {
       // Scores computed but bars not yet revealed
       btns.push({ label: "📊 Mostra statistiche", cls: "btn-amber", id: "btn-reveal-stats" });

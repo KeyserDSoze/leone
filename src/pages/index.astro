@@ -1,6 +1,7 @@
 ---
 // Homepage con background e navigazione
 import { createUrl } from '../utils/urls';
+const quizUrl = createUrl('/quiz');
 ---
 
 <!DOCTYPE html>
@@ -219,12 +220,21 @@ h1, .subtitle {
 				Leggi una storia
 			</a>
 
-			<a href={createUrl("/quiz")} class="btn btn-quiz">
-				<i class="fa-solid fa-trophy"></i>
-				Quiz di Leone 🦁
-			</a>
+			<span id="cervelleone-slot" data-url={quizUrl}></span>
 			
 		</div>
 	</div>
+	<script>
+		const releaseAt = new Date('2026-06-07T00:00:00+02:00').getTime();
+		const slot = document.getElementById('cervelleone-slot');
+
+		if (slot && Date.now() >= releaseAt) {
+			const link = document.createElement('a');
+			link.href = slot.dataset.url || '/quiz';
+			link.className = 'btn btn-quiz';
+			link.innerHTML = '<i class="fa-solid fa-trophy"></i>CervelLeone';
+			slot.replaceWith(link);
+		}
+	</script>
 </body>
 </html>
