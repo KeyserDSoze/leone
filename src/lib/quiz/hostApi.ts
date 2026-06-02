@@ -44,12 +44,24 @@ export async function checkIsAdmin(uid: string): Promise<boolean> {
   }
 }
 
+type ResetGameOptions = {
+  questionIds?: string[];
+  questionCount?: number;
+  questionSeed?: number;
+};
+
 /** Reset completo della partita */
-export async function resetGame(): Promise<void> {
+export async function resetGame(options: ResetGameOptions = {}): Promise<void> {
   const newSession = Date.now().toString();
 
   // Reset game state (new session ID)
-  await set(ref(db, `games/${GAME_ID}`), { ...INITIAL_GAME_STATE, gameSession: newSession });
+  await set(ref(db, `games/${GAME_ID}`), {
+    ...INITIAL_GAME_STATE,
+    gameSession: newSession,
+    questionIds: options.questionIds ?? INITIAL_GAME_STATE.questionIds,
+    questionCount: options.questionCount ?? INITIAL_GAME_STATE.questionCount,
+    questionSeed: options.questionSeed ?? INITIAL_GAME_STATE.questionSeed,
+  });
 
   // Clear leaderboard
   await set(ref(db, `leaderboards/${GAME_ID}`), null);
@@ -100,7 +112,8 @@ function toPublicQuestion(
  */
 export async function startQuestion(
   question: Question,
-  index: number
+  index: number,
+  total: number
 ): Promise<void> {
   const status: GameStatus =
     question.category === "demo" ? "demo" : "question";
@@ -115,7 +128,7 @@ export async function startQuestion(
     showResults: false,
     showLeaderboard: false,
     leaderboardRevealStep: -1,
-    publicCurrentQuestion: toPublicQuestion(question, index, 20),
+    publicCurrentQuestion: toPublicQuestion(question, index, total),
     publicCurrentResult: null,
     publicAnswerStats: null,
     publicQuestionLeaderboard: null,

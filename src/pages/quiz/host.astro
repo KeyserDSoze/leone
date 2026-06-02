@@ -137,6 +137,55 @@
     }
     .copy-btn:hover { background: #DFEBD7; }
 
+    .settings-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 6px;
+    }
+    .question-count-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--green-line);
+      border-radius: 10px;
+      background: #F7FAF4;
+      color: var(--green-deep);
+      font-size: 18px;
+      font-weight: 800;
+      text-align: center;
+      outline: none;
+    }
+    .question-count-input:focus {
+      border-color: var(--green-mid);
+      box-shadow: 0 0 0 3px rgba(92,132,84,0.16);
+    }
+    .settings-actions { display: grid; gap: 8px; margin-top: 8px; }
+    .question-preview-list {
+      margin-top: 12px;
+      padding-left: 20px;
+      max-height: 320px;
+      overflow: auto;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .question-preview-list li { margin-bottom: 9px; }
+    .question-preview-list .qp-sub {
+      display: inline-flex;
+      margin-bottom: 3px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green-deep);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
     /* ── Players ── */
     .player-count {
       font-size: 32px;
@@ -498,6 +547,18 @@
         </div>
       </div>
 
+      <!-- Scaletta / reset -->
+      <div class="card">
+        <p class="card-title">Scaletta domande</p>
+        <label class="settings-label" for="question-count-input">Domande vere</label>
+        <input id="question-count-input" class="question-count-input" type="number" min="10" max="26" value="26" />
+        <div class="settings-actions">
+          <button class="copy-btn" id="btn-preview-questions" type="button">👀 Vedi scaletta</button>
+          <button class="copy-btn" id="btn-randomize-questions" type="button">🎲 Rigenera anteprima</button>
+        </div>
+        <ol class="question-preview-list" id="question-preview-list" style="display:none"></ol>
+      </div>
+
     </div>
 
     <!-- ── RIGHT COLUMN ── -->
@@ -561,8 +622,12 @@ import {
   kickPlayer,
 } from "../../lib/quiz/hostApi";
 import { setupPresence } from "../../lib/quiz/presence";
-import { buildGameQuestions } from "../../lib/quiz/buildGameQuestions";
-import { GAME_ID } from "../../lib/quiz/config";
+import {
+  buildGameQuestions,
+  questionIdsFromQuestions,
+  questionsFromIds,
+} from "../../lib/quiz/buildGameQuestions";
+import { GAME_ID, MAX_TOTAL_QUESTIONS, MIN_TOTAL_QUESTIONS, TOTAL_QUESTIONS } from "../../lib/quiz/config";
 import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
 import { ref, onValue, update } from "firebase/database";
 import type {
@@ -574,7 +639,10 @@ import type {
 import QRCode from "qrcode";
 
 // ── Questions ──────────────────────────────────────────────────────────────
-const questions = buildGameQuestions(); // [demo, q1..q20]
+let questions = buildGameQuestions({ totalQuestions: TOTAL_QUESTIONS }); // [demo, q1..]
+let plannedQuestions = questions;
+let plannedQuestionSeed = 1;
+let hasPendingQuestionPlan = false;
 let currentUid: string | null = null;
 let currentGame: GameState | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -594,14 +662,84 @@ const SUB_LABELS: Record<string, string> = {
   "politica-italia":     "Politica 🇮🇹",
   "grammatica-italiana": "Italiano 📝",
   "matematica":          "Matematica 🔢",
-  "fisica-chimica":      "Scienze 🔬",
+  "fisica-chimica":      "Fisica & Chimica 🧪",
   "arte":                "Arte & Letteratura 🎨",
   "musica":              "Musica 🎵",
+  "religione":           "Religione 🕊️",
   "leone":               "Leone 🦁",
   "demo":                "Demo",
 };
 function humanizeSub(sub?: string): string {
   return sub ? (SUB_LABELS[sub] ?? "Cultura") : "Cultura";
+}
+
+function getSelectedQuestionCount(): number {
+  const input = document.getElementById("question-count-input") as HTMLInputElement | null;
+  const raw = Number(input?.value ?? TOTAL_QUESTIONS);
+  const count = Number.isFinite(raw) ? Math.round(raw) : TOTAL_QUESTIONS;
+  return Math.max(MIN_TOTAL_QUESTIONS, Math.min(MAX_TOTAL_QUESTIONS, count));
+}
+
+function setSelectedQuestionCount(count: number) {
+  const input = document.getElementById("question-count-input") as HTMLInputElement | null;
+  if (input) input.value = String(Math.max(MIN_TOTAL_QUESTIONS, Math.min(MAX_TOTAL_QUESTIONS, count)));
+}
+
+function renderQuestionPreviewList(source: typeof questions = questions) {
+  const list = document.getElementById("question-preview-list");
+  if (!list) return;
+
+  list.style.display = "block";
+  list.innerHTML = source
+    .slice(1)
+    .map((question, i) => {
+      const sub = humanizeSub(question.subcategory ?? question.category);
+      return `<li><span class="qp-sub">${i + 1}. ${sub}</span><br>${question.text}</li>`;
+    })
+    .join("");
+}
+
+function generatePlannedQuestions() {
+  plannedQuestionSeed = Date.now();
+  plannedQuestions = buildGameQuestions({
+    totalQuestions: getSelectedQuestionCount(),
+    seed: plannedQuestionSeed,
+  });
+  hasPendingQuestionPlan = true;
+  renderQuestionPreviewList(plannedQuestions);
+}
+
+function syncQuestionsFromGame(game: GameState) {
+  if (!game.questionIds || game.questionIds.length <= 1) return;
+  const restored = questionsFromIds(game.questionIds);
+  if (restored.length <= 1) return;
+  questions = restored;
+  plannedQuestions = restored;
+  plannedQuestionSeed = game.questionSeed ?? plannedQuestionSeed;
+  hasPendingQuestionPlan = false;
+  setSelectedQuestionCount(game.questionCount ?? restored.length - 1);
+}
+
+function bindQuestionSettings() {
+  const input = document.getElementById("question-count-input") as HTMLInputElement | null;
+  if (input) {
+    input.min = String(MIN_TOTAL_QUESTIONS);
+    input.max = String(MAX_TOTAL_QUESTIONS);
+    input.value = String(TOTAL_QUESTIONS);
+    input.addEventListener("input", () => { hasPendingQuestionPlan = false; });
+  }
+
+  document.getElementById("btn-preview-questions")?.addEventListener("click", () => {
+    if (plannedQuestions.length - 1 !== getSelectedQuestionCount()) {
+      generatePlannedQuestions();
+    } else {
+      renderQuestionPreviewList(plannedQuestions.length > 1 ? plannedQuestions : questions);
+    }
+  });
+
+  document.getElementById("btn-randomize-questions")?.addEventListener("click", () => {
+    generatePlannedQuestions();
+  });
 }
 
 // ── QR Code generation ────────────────────────────────────────────────────
@@ -856,7 +994,7 @@ function renderNextQuestionPanel(game: GameState) {
     metaEl.textContent =
       nextIdx === 0
         ? "Demo"
-        : `Domanda ${nextIdx} / 20 · ${subLabel}`;
+        : `Domanda ${nextIdx} / ${questions.length - 1} · ${subLabel}`;
   }
 
   if (textEl) textEl.textContent = nextQ.text;
@@ -1036,7 +1174,7 @@ function renderControls(game: GameState) {
   const idx = game.currentQuestionIndex;
   const status = game.status;
   const qVisible = game.questionVisible === true;
-  const isLastQuestion = idx === 20;
+  const isLastQuestion = idx === questions.length - 1;
   const isAfterDemo = idx === 0 && status === "answer";
   const revealStep = game.leaderboardRevealStep ?? -1;
 
@@ -1124,11 +1262,11 @@ function renderControls(game: GameState) {
 
   // Bind events
   document.getElementById("btn-start-demo")?.addEventListener("click", async () => {
-    await startQuestion(questions[0], 0);
+    await startQuestion(questions[0], 0, questions.length - 1);
   });
 
   document.getElementById("btn-start-quiz")?.addEventListener("click", async () => {
-    await startQuestion(questions[1], 1);
+    await startQuestion(questions[1], 1, questions.length - 1);
   });
 
   document.getElementById("btn-reveal-q")?.addEventListener("click", async () => {
@@ -1200,7 +1338,7 @@ function renderControls(game: GameState) {
     if (nextIdx < 1 || nextIdx >= questions.length) return;
     stopHostTimer();
     stopAnswerTracking();
-    await startQuestion(questions[nextIdx], nextIdx);
+    await startQuestion(questions[nextIdx], nextIdx, questions.length - 1);
   });
 
   document.getElementById("btn-finish")?.addEventListener("click", async () => {
@@ -1209,11 +1347,28 @@ function renderControls(game: GameState) {
   });
 
   document.getElementById("btn-reset")?.addEventListener("click", async () => {
-    if (!confirm("Resettare la partita? I punteggi verranno azzerati.")) return;
+    if (!confirm(`Resettare la partita con ${getSelectedQuestionCount()} domande? I punteggi verranno azzerati e la scaletta sarà randomica.`)) return;
     stopHostTimer();
     stopAnswerTracking();
     hideLeaderboardPanel();
-    await resetGame();
+    const selectedCount = getSelectedQuestionCount();
+    if (!hasPendingQuestionPlan || plannedQuestions.length - 1 !== selectedCount) {
+      plannedQuestionSeed = Date.now();
+      plannedQuestions = buildGameQuestions({
+        totalQuestions: selectedCount,
+        seed: plannedQuestionSeed,
+      });
+    }
+    const nextQuestions = plannedQuestions;
+    questions = nextQuestions;
+    plannedQuestions = nextQuestions;
+    hasPendingQuestionPlan = false;
+    renderQuestionPreviewList(questions);
+    await resetGame({
+      questionIds: questionIdsFromQuestions(questions),
+      questionCount: questions.length - 1,
+      questionSeed: plannedQuestionSeed,
+    });
   });
 }
 
@@ -1253,6 +1408,7 @@ function startListeners() {
   onValue(ref(db, `games/${GAME_ID}`), (snap) => {
     if (!snap.exists()) return;
     currentGame = snap.val() as GameState;
+    syncQuestionsFromGame(currentGame);
     syncKickedUsernames().catch(console.error);
     updateStatusBadge(currentGame.status);
     renderQuestionPanel(currentGame);
@@ -1346,6 +1502,7 @@ async function init() {
 
     await initGameIfNeeded();
     setupPresence(currentUid);
+    bindQuestionSettings();
     await generateQR();
     startListeners();
   } catch (err) {

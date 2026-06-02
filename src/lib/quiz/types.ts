@@ -93,6 +93,10 @@ export type GameState = {
   kickedUids?: Record<string, boolean> | null;
   /** username dei giocatori espulsi, per filtrare classifiche già calcolate */
   kickedUsernames?: Record<string, string> | null;
+  /** scaletta corrente: include demo all'indice 0, poi le domande vere */
+  questionIds?: string[] | null;
+  questionCount?: number | null;
+  questionSeed?: number | null;
 };
 
 export type Player = {

@@ -1,10 +1,10 @@
 import type { Question } from "./types";
 
 /**
- * Pool di domande di cultura generale — 51 domande su 10 sottocategorie.
+ * Pool di domande di cultura generale — 65 domande su 11 sottocategorie.
  * Sottocategorie: geografia, storia-antica, storia-moderna, tecnologia,
  *                 politica-italia, grammatica-italiana, matematica,
- *                 fisica-chimica, arte, musica
+ *                 fisica-chimica, arte, musica, religione
  */
 export const generalQuestions: Question[] = [
 
@@ -793,5 +793,209 @@ export const generalQuestions: Question[] = [
     correctAnswerIds: ["B"],
     explanation:
       "Adriano Celentano cantò Azzurro nel 1968, una delle canzoni italiane più iconiche di sempre.",
+  },
+
+  // ════════════════════════════════════════════════════════════════════════
+  // EXTRA PER ARRIVARE AD ALMENO 5 DOMANDE PER MATERIA
+  // ════════════════════════════════════════════════════════════════════════
+  {
+    id: "gen_052",
+    category: "general",
+    subcategory: "storia-antica",
+    text: "Quale popolo fondò la città di Cartagine?",
+    answers: [
+      { id: "A", text: "Fenici" },
+      { id: "B", text: "Romani" },
+      { id: "C", text: "Etruschi" },
+      { id: "D", text: "Macedoni" },
+    ],
+    correctAnswerIds: ["A"],
+    explanation: "Cartagine fu fondata dai Fenici, probabilmente da coloni provenienti da Tiro.",
+  },
+  {
+    id: "gen_053",
+    category: "general",
+    subcategory: "storia-antica",
+    text: "Chi guidò i Macedoni alla conquista dell'Impero persiano?",
+    answers: [
+      { id: "A", text: "Leonida" },
+      { id: "B", text: "Alessandro Magno" },
+      { id: "C", text: "Pericle" },
+      { id: "D", text: "Annibale" },
+    ],
+    correctAnswerIds: ["B"],
+    explanation: "Alessandro Magno conquistò gran parte dell'Impero persiano nel IV secolo a.C.",
+  },
+  {
+    id: "gen_054",
+    category: "general",
+    subcategory: "tecnologia",
+    text: "Che cosa indica la sigla URL?",
+    answers: [
+      { id: "A", text: "Universal Resource Locator" },
+      { id: "B", text: "Uniform Resource Locator" },
+      { id: "C", text: "Unique Router Link" },
+      { id: "D", text: "User Remote Login" },
+    ],
+    correctAnswerIds: ["B"],
+    explanation: "URL significa Uniform Resource Locator: è l'indirizzo di una risorsa sul web.",
+  },
+  {
+    id: "gen_055",
+    category: "general",
+    subcategory: "tecnologia",
+    text: "Quale componente è considerato il 'cervello' del computer?",
+    answers: [
+      { id: "A", text: "Hard disk" },
+      { id: "B", text: "RAM" },
+      { id: "C", text: "CPU" },
+      { id: "D", text: "Scheda audio" },
+    ],
+    correctAnswerIds: ["C"],
+    explanation: "La CPU esegue le istruzioni principali del computer.",
+  },
+  {
+    id: "gen_056",
+    category: "general",
+    subcategory: "politica-italia",
+    text: "Quanti rami ha il Parlamento italiano?",
+    answers: [
+      { id: "A", text: "Uno" },
+      { id: "B", text: "Due" },
+      { id: "C", text: "Tre" },
+      { id: "D", text: "Quattro" },
+    ],
+    correctAnswerIds: ["B"],
+    explanation: "Il Parlamento italiano è formato da Camera dei deputati e Senato della Repubblica.",
+  },
+  {
+    id: "gen_057",
+    category: "general",
+    subcategory: "grammatica-italiana",
+    text: "Quale tra queste parole è un avverbio?",
+    answers: [
+      { id: "A", text: "Veloce" },
+      { id: "B", text: "Velocemente" },
+      { id: "C", text: "Velocità" },
+      { id: "D", text: "Velocista" },
+    ],
+    correctAnswerIds: ["B"],
+    explanation: "Velocemente è un avverbio di modo: spiega come si svolge un'azione.",
+  },
+  {
+    id: "gen_058",
+    category: "general",
+    subcategory: "grammatica-italiana",
+    text: "In analisi grammaticale, che cos'è 'noi'?",
+    answers: [
+      { id: "A", text: "Articolo" },
+      { id: "B", text: "Pronome personale" },
+      { id: "C", text: "Aggettivo" },
+      { id: "D", text: "Congiunzione" },
+    ],
+    correctAnswerIds: ["B"],
+    explanation: "Noi è un pronome personale di prima persona plurale.",
+  },
+  {
+    id: "gen_059",
+    category: "general",
+    subcategory: "matematica",
+    text: "Quanto fa 12 x 12?",
+    answers: [
+      { id: "A", text: "124" },
+      { id: "B", text: "132" },
+      { id: "C", text: "144" },
+      { id: "D", text: "156" },
+    ],
+    correctAnswerIds: ["C"],
+    explanation: "12 moltiplicato per 12 fa 144.",
+  },
+  {
+    id: "gen_060",
+    category: "general",
+    subcategory: "musica",
+    text: "Quante corde ha normalmente una chitarra classica?",
+    answers: [
+      { id: "A", text: "4" },
+      { id: "B", text: "5" },
+      { id: "C", text: "6" },
+      { id: "D", text: "7" },
+    ],
+    correctAnswerIds: ["C"],
+    explanation: "La chitarra classica normalmente ha 6 corde.",
+  },
+
+  // ════════════════════════════════════════════════════════════════════════
+  // RELIGIONE (5)
+  // ════════════════════════════════════════════════════════════════════════
+  {
+    id: "gen_061",
+    category: "general",
+    subcategory: "religione",
+    text: "Secondo la ricerca storica, in quale area visse Gesù di Nazaret?",
+    answers: [
+      { id: "A", text: "Galilea e Giudea" },
+      { id: "B", text: "Grecia e Macedonia" },
+      { id: "C", text: "Egitto e Nubia" },
+      { id: "D", text: "Persia e Media" },
+    ],
+    correctAnswerIds: ["A"],
+    explanation: "Gesù di Nazaret è collocato storicamente nella Palestina del I secolo, soprattutto tra Galilea e Giudea.",
+  },
+  {
+    id: "gen_062",
+    category: "general",
+    subcategory: "religione",
+    text: "Qual è il testo sacro principale dell'Islam?",
+    answers: [
+      { id: "A", text: "Corano" },
+      { id: "B", text: "Bibbia" },
+      { id: "C", text: "Veda" },
+      { id: "D", text: "Tripitaka" },
+    ],
+    correctAnswerIds: ["A"],
+    explanation: "Il Corano è il testo sacro principale dell'Islam.",
+  },
+  {
+    id: "gen_063",
+    category: "general",
+    subcategory: "religione",
+    text: "In quale religione è centrale la figura del Buddha?",
+    answers: [
+      { id: "A", text: "Ebraismo" },
+      { id: "B", text: "Buddismo" },
+      { id: "C", text: "Cristianesimo" },
+      { id: "D", text: "Sikhismo" },
+    ],
+    correctAnswerIds: ["B"],
+    explanation: "Il Buddha è la figura centrale del Buddismo.",
+  },
+  {
+    id: "gen_064",
+    category: "general",
+    subcategory: "religione",
+    text: "Come si chiama il giorno di riposo settimanale nella tradizione ebraica?",
+    answers: [
+      { id: "A", text: "Ramadan" },
+      { id: "B", text: "Shabbat" },
+      { id: "C", text: "Diwali" },
+      { id: "D", text: "Vesak" },
+    ],
+    correctAnswerIds: ["B"],
+    explanation: "Lo Shabbat è il giorno di riposo della tradizione ebraica, dal tramonto del venerdì al sabato sera.",
+  },
+  {
+    id: "gen_065",
+    category: "general",
+    subcategory: "religione",
+    text: "Quale festa induista è nota anche come festa delle luci?",
+    answers: [
+      { id: "A", text: "Diwali" },
+      { id: "B", text: "Hanukkah" },
+      { id: "C", text: "Pasqua" },
+      { id: "D", text: "Eid al-Fitr" },
+    ],
+    correctAnswerIds: ["A"],
+    explanation: "Diwali è una delle principali feste induiste ed è spesso chiamata festa delle luci.",
   },
 ];

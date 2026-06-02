@@ -1,8 +1,7 @@
 import type { Question } from "./types";
 
 /**
- * 9 domande su Leone — distribuite in posizioni fisse nel set da 20
- * (posizioni: 1, 4, 6, 9, 12, 14, 17, 19, 20).
+ * 9 domande su Leone — distribuite in posizioni fisse/equilibrate.
  * Q1 è sempre la PRIMA (opener facile/divertente),
  * Q9 è sempre l'ULTIMA (grande finale).
  */
@@ -26,7 +25,7 @@ export const leoneQuestions: Question[] = [
     id: "leone_002",
     category: "leone",
     subcategory: "leone",
-    text: "A che mese ha preso il suo primo attestato di nuoto?",
+    text: "A che mese Leone ha preso il suo primo attestato di nuoto?",
     answers: [
       { id: "A", text: "6 mesi" },
       { id: "B", text: "7 mesi" },
@@ -40,7 +39,7 @@ export const leoneQuestions: Question[] = [
     id: "leone_003",
     category: "leone",
     subcategory: "leone",
-    text: "Cos'è Pineta Sacchetti?",
+    text: "Cos'è Pineta Sacchetti nella storia di Leone?",
     answers: [
       { id: "A", text: "luogo di nascita di Leone" },
       { id: "B", text: "miglior posizione per digerire fino ai primi due mesi" },
@@ -68,7 +67,7 @@ export const leoneQuestions: Question[] = [
     id: "leone_005",
     category: "leone",
     subcategory: "leone",
-    text: "Il nome storico dei suoi piedi è:",
+    text: "Qual è il nome storico dei piedi di Leone?",
     answers: [
       { id: "A", text: "piedozzo e piedazzo" },
       { id: "B", text: "piedino e piedone" },
@@ -82,7 +81,7 @@ export const leoneQuestions: Question[] = [
     id: "leone_006",
     category: "leone",
     subcategory: "leone",
-    text: "Per i neonatologi del Gemelli quanto è cresciuto dopo un'ora dal parto:",
+    text: "Secondo i neonatologi del Gemelli, quanto era cresciuto Leone dopo un'ora dal parto?",
     answers: [
       { id: "A", text: "1cm" },
       { id: "B", text: "0cm" },
@@ -96,7 +95,7 @@ export const leoneQuestions: Question[] = [
     id: "leone_007",
     category: "leone",
     subcategory: "leone",
-    text: "Al test d'ingresso nel mondo, che valore di APGAR aveva dopo 5 minuti?",
+    text: "Al test d'ingresso nel mondo, che valore di APGAR aveva Leone dopo 5 minuti?",
     answers: [
       { id: "A", text: "8/10" },
       { id: "B", text: "9/10" },
@@ -110,7 +109,7 @@ export const leoneQuestions: Question[] = [
     id: "leone_008",
     category: "leone",
     subcategory: "leone",
-    text: "A che mese è andato al lago la prima volta?",
+    text: "A che mese Leone è andato al lago per la prima volta?",
     answers: [
       { id: "A", text: "1 mese" },
       { id: "B", text: "2 mesi" },
@@ -124,7 +123,7 @@ export const leoneQuestions: Question[] = [
     id: "leone_009",
     category: "leone",
     subcategory: "leone",
-    text: "Quale è la sua canzone preferita?",
+    text: "Qual è la canzone preferita di Leone?",
     answers: [
       { id: "A", text: "Osanna" },
       { id: "B", text: "Nella vecchia fattoria" },

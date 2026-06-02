@@ -2,14 +2,9 @@ import type { Question } from "./types";
 import { demoQuestion } from "./questions.demo";
 import { generalQuestions } from "./questions.general";
 import { leoneQuestions } from "./questions.leone";
-import { LEONE_SLOTS, GENERAL_QUESTION_COUNT, GENERAL_POOL_OFFSET } from "./config";
+import { LEONE_QUESTION_COUNT, TOTAL_QUESTIONS } from "./config";
 
-/**
- * Ordine delle sottocategorie generali per il round-robin.
- * 10 sottocategorie × 1 domanda ciascuna = 10 domande.
- * 11ª domanda: una seconda da "geografia".
- */
-const SUBCATEGORY_ORDER = [
+export const SUBCATEGORY_ORDER = [
   "geografia",
   "storia-moderna",
   "arte",
@@ -20,15 +15,50 @@ const SUBCATEGORY_ORDER = [
   "politica-italia",
   "storia-antica",
   "grammatica-italiana",
+  "religione",
 ] as const;
 
-/**
- * Seleziona le domande generali con round-robin per sottocategoria.
- * Usa GENERAL_POOL_OFFSET per variare le domande tra manche successive.
- * Garantisce max 2 per sottocategoria (1 × 10 subcategorie + 1 extra geografia).
- */
-function buildGeneralSelection(): Question[] {
-  // Raggruppa per sottocategoria
+export type BuildGameQuestionsOptions = {
+  totalQuestions?: number;
+  seed?: number;
+};
+
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
+}
+
+function shuffle<T>(items: T[], random: () => number): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function buildLeoneSlots(totalQuestions: number): Set<number> {
+  const slots = new Set<number>([1, totalQuestions]);
+  const middleCount = Math.max(0, LEONE_QUESTION_COUNT - 2);
+
+  for (let i = 1; i <= middleCount; i++) {
+    const pos = Math.round(1 + (i * (totalQuestions - 1)) / (middleCount + 1));
+    slots.add(Math.min(totalQuestions - 1, Math.max(2, pos)));
+  }
+
+  let candidate = 2;
+  while (slots.size < LEONE_QUESTION_COUNT && candidate < totalQuestions) {
+    slots.add(candidate++);
+  }
+
+  return slots;
+}
+
+function buildGeneralSelection(count: number, seed: number): Question[] {
+  const random = seededRandom(seed);
   const groups = new Map<string, Question[]>();
   for (const sub of SUBCATEGORY_ORDER) groups.set(sub, []);
 
@@ -37,53 +67,71 @@ function buildGeneralSelection(): Question[] {
     if (groups.has(sub)) groups.get(sub)!.push(q);
   }
 
+  const shuffledGroups = new Map<string, Question[]>();
+  for (const sub of SUBCATEGORY_ORDER) {
+    shuffledGroups.set(sub, shuffle(groups.get(sub) ?? [], random));
+  }
+
   const result: Question[] = [];
 
-  // 1 domanda da ognuna delle 10 sottocategorie
-  for (const sub of SUBCATEGORY_ORDER) {
-    const pool = groups.get(sub)!;
-    if (pool.length > 0) {
-      result.push(pool[GENERAL_POOL_OFFSET % pool.length]);
+  // Prima passa: almeno una domanda per materia, se c'è spazio.
+  for (const sub of shuffle([...SUBCATEGORY_ORDER], random)) {
+    const pool = shuffledGroups.get(sub) ?? [];
+    if (pool.length > 0 && result.length < count) result.push(pool.shift()!);
+  }
+
+  // Seconda passa: riempi il basket in round-robin casuale tra le materie.
+  while (result.length < count) {
+    let added = false;
+    for (const sub of shuffle([...SUBCATEGORY_ORDER], random)) {
+      const pool = shuffledGroups.get(sub) ?? [];
+      if (pool.length > 0 && result.length < count) {
+        result.push(pool.shift()!);
+        added = true;
+      }
     }
+    if (!added) break;
   }
 
-  // 11ª domanda: seconda da "geografia" (offset +1)
-  const geoPool = groups.get("geografia")!;
-  if (geoPool.length > 1) {
-    result.push(geoPool[(GENERAL_POOL_OFFSET + 1) % geoPool.length]);
-  } else if (geoPool.length === 1) {
-    result.push(geoPool[0]);
-  }
+  return result;
+}
 
-  return result.slice(0, GENERAL_QUESTION_COUNT);
+export function buildQuestionIndex(): Map<string, Question> {
+  return new Map(
+    [demoQuestion, ...leoneQuestions, ...generalQuestions].map((question) => [question.id, question])
+  );
+}
+
+export function questionIdsFromQuestions(questions: Question[]): string[] {
+  return questions.map((question) => question.id);
+}
+
+export function questionsFromIds(ids: string[]): Question[] {
+  const index = buildQuestionIndex();
+  return ids.map((id) => index.get(id)).filter(Boolean) as Question[];
 }
 
 /**
- * Costruisce la scaletta completa del gioco:
- * [demo, q1, q2, ..., q20]
- *
- * Distribuzione:
- *  - indice 0:  domanda demo (non vale punti)
- *  - indici 1-20: domande vere
- *    - posizioni LEONE_SLOTS {1,4,6,9,12,14,17,19,20}: domande su Leone
- *      (Q1 = opener, Q9 = grande finale)
- *    - posizioni rimanenti {2,3,5,7,8,10,11,13,15,16,18}: cultura generale
- *      con round-robin per sottocategoria
+ * Costruisce la scaletta completa: [demo, q1, q2, ...]
+ * Q1 e ultima domanda sono sempre le stesse domande su Leone.
  */
-export function buildGameQuestions(): Question[] {
-  const selectedGeneral = buildGeneralSelection();
+export function buildGameQuestions(options: BuildGameQuestionsOptions = {}): Question[] {
+  const totalQuestions = Math.max(LEONE_QUESTION_COUNT, options.totalQuestions ?? TOTAL_QUESTIONS);
+  const seed = options.seed ?? 1;
+  const leoneSlots = buildLeoneSlots(totalQuestions);
+  const selectedGeneral = buildGeneralSelection(totalQuestions - LEONE_QUESTION_COUNT, seed);
 
   const result: Question[] = [];
   let generalIndex = 0;
   let leoneIndex = 0;
 
-  for (let round = 1; round <= 20; round++) {
-    if (LEONE_SLOTS.has(round)) {
+  for (let round = 1; round <= totalQuestions; round++) {
+    if (leoneSlots.has(round)) {
       result.push(leoneQuestions[leoneIndex++]);
     } else {
       result.push(selectedGeneral[generalIndex++]);
     }
   }
 
-  return [demoQuestion, ...result];
+  return [demoQuestion, ...result.filter(Boolean)];
 }
