@@ -1165,6 +1165,20 @@ async function restoreAnswerIfNeeded(questionId: string): Promise<void> {
 
 // ── Game state handler ─────────────────────────────────────────────────────
 async function handleGameState(game: GameState) {
+  // Espulso dall'host: chiudi la sessione e torna alla schermata di ingresso.
+  if (currentUid && game.kickedUids && game.kickedUids[currentUid]) {
+    stopTimer();
+    clearSession();
+    if (gameUnsubscribe) { gameUnsubscribe(); gameUnsubscribe = null; }
+    currentUsername = null;
+    const input = document.getElementById("input-username") as HTMLInputElement | null;
+    if (input) input.value = "";
+    const errEl = document.getElementById("join-error");
+    if (errEl) errEl.textContent = "L'host ti ha rimosso dalla partita.";
+    showScreen("join");
+    return;
+  }
+
   // Sync game session; on session change reset per-question cache so
   // restoreAnswerIfNeeded fetches fresh answers from the new path.
   if (game.gameSession && game.gameSession !== currentGameSession) {

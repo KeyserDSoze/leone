@@ -88,6 +88,8 @@ export type GameState = {
   publicCurrentResult: PublicResult | null;
   publicAnswerStats: PublicAnswerStats | null;
   publicQuestionLeaderboard: PublicQuestionLeaderboardEntry[] | null;
+  /** uid dei giocatori espulsi dall'host (offline) */
+  kickedUids?: Record<string, boolean> | null;
 };
 
 export type Player = {

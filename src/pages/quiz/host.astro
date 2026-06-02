@@ -670,7 +670,10 @@ function stopHostTimer() {
 
 // ── Answer tracking with auto-close ────────────────────────────────────────
 function getActivePlayerCount(): number {
-  return Object.values(currentPlayers).filter((p) => p.username).length;
+  const kicked = currentGame?.kickedUids ?? {};
+  return Object.entries(currentPlayers).filter(
+    ([uid, p]) => p.username && !kicked[uid]
+  ).length;
 }
 
 function stopAnswerTracking() {
@@ -690,6 +693,7 @@ function refreshAnswerTracking() {
 
   const questionId = currentGame.currentQuestionId;
   const gameSession = currentGame.gameSession;
+  const kicked = currentGame.kickedUids ?? {};
   const trackCount =
     currentGame.status === "demo" ||
     currentGame.status === "question" ||
@@ -697,7 +701,7 @@ function refreshAnswerTracking() {
 
   currentAnswers = Object.fromEntries(
     Object.entries(currentPlayers)
-      .filter(([, p]) => p.username)
+      .filter(([uid, p]) => p.username && !kicked[uid])
       .filter(
         ([, p]) =>
           p.currentAnswerGameSession === gameSession &&
@@ -848,8 +852,12 @@ function renderPlayers(players: Record<string, Player> | null) {
     return;
   }
 
-  // Only real players (have username); host record has no username
-  const playerEntries = Object.entries(players).filter(([, p]) => p.username);
+  // Only real players (have username); host record has no username.
+  // Esclude anche i giocatori espulsi (kickedUids nello stato di gioco).
+  const kicked = currentGame?.kickedUids ?? {};
+  const playerEntries = Object.entries(players).filter(
+    ([uid, p]) => p.username && !kicked[uid]
+  );
   const onlineCount = playerEntries.filter(([, p]) => p.connected).length;
   if (countEl) countEl.textContent = String(onlineCount);
 
