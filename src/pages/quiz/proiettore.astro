@@ -27,6 +27,7 @@
       --danger: #B5564B;
       --danger-soft: #F5E6E3;
       --track: #E9EFE4;
+      --cue-duration: 20s;
     }
 
     body {
@@ -380,7 +381,7 @@
       border-radius: 50%;
       background: rgba(184, 146, 61, 0.16);
       filter: blur(2px);
-      animation: cueFloat 16s ease-in-out forwards;
+      animation: cueFloat var(--cue-duration) ease-in-out forwards;
     }
     .cue-orb.one { left: 9vw; top: 12vh; }
     .cue-orb.two { right: 10vw; bottom: 9vh; animation-delay: -3s; background: rgba(92, 132, 84, 0.14); }
@@ -390,7 +391,7 @@
       top: 43%;
       width: clamp(160px, 22vw, 300px);
       filter: drop-shadow(0 24px 34px rgba(58, 90, 53, 0.22));
-      animation: lionRoam 16s cubic-bezier(.22,.9,.32,1) forwards;
+      animation: lionRoam var(--cue-duration) cubic-bezier(.22,.9,.32,1) forwards;
       transform-origin: center;
     }
     .cue-copy {
@@ -409,7 +410,7 @@
       text-transform: uppercase;
       letter-spacing: 0.18em;
       opacity: 0;
-      animation: cueKickerIn 16s ease forwards;
+      animation: cueKickerIn var(--cue-duration) ease forwards;
     }
     .cue-title {
       font-family: 'Playfull Rocket', system-ui, cursive;
@@ -419,14 +420,14 @@
       text-shadow: 0 16px 34px rgba(58, 90, 53, 0.14);
       opacity: 0;
       clip-path: inset(0 100% 0 0);
-      animation: cueTitleReveal 16s ease forwards;
+      animation: cueTitleReveal var(--cue-duration) ease forwards;
     }
     .cue-subtitle {
       color: var(--muted);
       font-size: clamp(20px, 2.2vw, 34px);
       font-weight: 900;
       opacity: 0;
-      animation: cueSubtitleIn 16s ease forwards;
+      animation: cueSubtitleIn var(--cue-duration) ease forwards;
     }
     @keyframes cueFloat {
       0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
@@ -552,7 +553,7 @@
     <span class="cue-orb two"></span>
     <img class="cue-lion" src="/images/leone-lion.png" alt="" />
     <div class="cue-copy">
-      <p class="cue-kicker">Sta iniziando</p>
+      <p class="cue-kicker">Ruggito in arrivo</p>
       <h1 class="cue-title">CervelLeone</h1>
       <p class="cue-subtitle">Pronti a ruggire?</p>
     </div>
