@@ -764,6 +764,15 @@ function nowMs(): number {
   return Date.now() + serverTimeOffset;
 }
 
+async function primeServerTimeOffset() {
+  try {
+    const snap = await get(ref(db, ".info/serverTimeOffset"));
+    serverTimeOffset = Number(snap.val() ?? 0);
+  } catch {
+    serverTimeOffset = 0;
+  }
+}
+
 // ── Session persistence ────────────────────────────────────────────────────
 const SESSION_KEY = "leone_quiz_session";
 
@@ -1383,7 +1392,9 @@ async function handleGameState(game: GameState) {
 }
 
 // ── Setup Firebase listener ────────────────────────────────────────────────
-function startListening() {
+async function startListening() {
+  await primeServerTimeOffset();
+
   onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
     serverTimeOffset = Number(snap.val() ?? 0);
   });
@@ -1468,7 +1479,7 @@ function bindJoinButton() {
       const lobbyEl = document.getElementById("lobby-username");
       if (lobbyEl) lobbyEl.textContent = username;
 
-      startListening();
+      await startListening();
       showScreen("lobby");
     } catch (err) {
       console.error(err);
@@ -1502,7 +1513,7 @@ async function init() {
         const lobbyEl = document.getElementById("lobby-username");
         if (lobbyEl) lobbyEl.textContent = currentUsername!;
         setupPresence(currentUid);
-        startListening();
+        await startListening();
         showScreen("lobby");
         return;
       } else {

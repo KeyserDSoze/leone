@@ -681,7 +681,7 @@ import {
 import { generalQuestions } from "../../lib/quiz/questions.general";
 import { GAME_ID, MAX_TOTAL_QUESTIONS, MIN_TOTAL_QUESTIONS, TOTAL_QUESTIONS } from "../../lib/quiz/config";
 import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
-import { ref, onValue, update } from "firebase/database";
+import { ref, onValue, update, get } from "firebase/database";
 import type {
   GameState,
   LeaderboardEntry,
@@ -708,6 +708,15 @@ let serverTimeOffset = 0;
 
 function nowMs(): number {
   return Date.now() + serverTimeOffset;
+}
+
+async function primeServerTimeOffset() {
+  try {
+    const snap = await get(ref(db, ".info/serverTimeOffset"));
+    serverTimeOffset = Number(snap.val() ?? 0);
+  } catch {
+    serverTimeOffset = 0;
+  }
 }
 
 // Sottocategorie label (per il pannello "prossima domanda")
@@ -1609,7 +1618,9 @@ async function syncKickedUsernames() {
 }
 
 // ── Firebase listeners ─────────────────────────────────────────────────────
-function startListeners() {
+async function startListeners() {
+  await primeServerTimeOffset();
+
   onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
     serverTimeOffset = Number(snap.val() ?? 0);
   });
@@ -1683,7 +1694,7 @@ async function init() {
     bindRemovedPlayersControls();
     bindProjectorCueControls();
     await generateQR();
-    startListeners();
+    await startListeners();
   } catch (err) {
     console.error(err);
     const setup = document.getElementById("panel-setup");

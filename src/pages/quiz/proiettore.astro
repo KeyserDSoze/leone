@@ -563,7 +563,7 @@
     import { db, ensureAnonymousUser } from "../../lib/firebase";
     import { GAME_ID, START_JINGLE_DURATION_MS } from "../../lib/quiz/config";
     import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
-    import { ref, onValue } from "firebase/database";
+    import { ref, onValue, get } from "firebase/database";
     import type {
       AnswerId,
       GameState,
@@ -628,6 +628,15 @@
 
     function nowMs(): number {
       return Date.now() + serverTimeOffset;
+    }
+
+    async function primeServerTimeOffset() {
+      try {
+        const snap = await get(ref(db, ".info/serverTimeOffset"));
+        serverTimeOffset = Number(snap.val() ?? 0);
+      } catch {
+        serverTimeOffset = 0;
+      }
     }
 
     function escapeHtml(value: unknown): string {
@@ -1084,6 +1093,7 @@
     async function init() {
       try {
         await ensureAnonymousUser();
+        await primeServerTimeOffset();
         document.getElementById("audio-unlock")?.addEventListener("click", enableProjectorAudio);
         onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
           serverTimeOffset = Number(snap.val() ?? 0);
