@@ -27,7 +27,7 @@
       --danger: #B5564B;
       --danger-soft: #F5E6E3;
       --track: #E9EFE4;
-      --cue-duration: 20s;
+      --cue-duration: 16s;
     }
 
     body {
@@ -553,7 +553,7 @@
     <span class="cue-orb two"></span>
     <img class="cue-lion" src="/images/leone-lion.png" alt="" />
     <div class="cue-copy">
-      <p class="cue-kicker">Ruggito in arrivo</p>
+      <p class="cue-kicker">Attenzione al Leone</p>
       <h1 class="cue-title">CervelLeone</h1>
       <p class="cue-subtitle">Pronti a ruggire?</p>
     </div>
@@ -616,10 +616,14 @@
     let lastProjectorCueId: string | null = null;
     let lastLobbyPlayerCount = -1;
     let projectorAudio: HTMLAudioElement | null = null;
+    let countdownAudio: HTMLAudioElement | null = null;
     let pendingAudioCue: ProjectorCue | null = null;
+    let pendingCountdownAudio = false;
+    let lastCountdownAudioKey: string | null = null;
 
     const assetBase = import.meta.env.BASE_URL.replace(/\/$/, "");
     const START_JINGLE_SRC = `${assetBase}/audio/cervelleone-start.mp3`;
+    const COUNTDOWN_SRC = `${assetBase}/audio/cervellone-countdown.mp3`;
 
     function escapeHtml(value: unknown): string {
       return String(value ?? "")
@@ -641,6 +645,14 @@
         projectorAudio.preload = "auto";
       }
       return projectorAudio;
+    }
+
+    function getCountdownAudio(): HTMLAudioElement {
+      if (!countdownAudio) {
+        countdownAudio = new Audio(COUNTDOWN_SRC);
+        countdownAudio.preload = "auto";
+      }
+      return countdownAudio;
     }
 
     function setAudioUnlockVisible(visible: boolean) {
@@ -670,6 +682,7 @@
 
     async function enableProjectorAudio() {
       const audio = getProjectorAudio();
+      const countdown = getCountdownAudio();
       try {
         audio.volume = 0;
         audio.currentTime = 0;
@@ -677,10 +690,45 @@
         audio.pause();
         audio.currentTime = 0;
         audio.volume = 1;
+
+        countdown.volume = 0;
+        countdown.currentTime = 0;
+        await countdown.play();
+        countdown.pause();
+        countdown.currentTime = 0;
+        countdown.volume = 1;
+
         setAudioUnlockVisible(false);
         if (pendingAudioCue) await playCueAudio(pendingAudioCue);
+        if (pendingCountdownAudio) await playCurrentQuestionCountdown(true);
       } catch (err) {
         console.warn("Unable to unlock projector audio", err);
+        setAudioUnlockVisible(true);
+      }
+    }
+
+    async function playCurrentQuestionCountdown(force = false) {
+      const game = currentGame;
+      const q = game?.publicCurrentQuestion;
+      if (!game || !q || !game.questionVisible || !game.questionEndsAt) return;
+      if (game.status !== "demo" && game.status !== "question") return;
+
+      const key = `${game.gameSession}:${q.id}:${game.questionStartedAt ?? game.questionEndsAt}`;
+      if (!force && lastCountdownAudioKey === key) return;
+      lastCountdownAudioKey = key;
+
+      const audio = getCountdownAudio();
+      try {
+        audio.pause();
+        audio.src = COUNTDOWN_SRC;
+        audio.currentTime = 0;
+        audio.volume = 1;
+        await audio.play();
+        pendingCountdownAudio = false;
+        setAudioUnlockVisible(false);
+      } catch (err) {
+        console.warn("Countdown audio blocked or unavailable", err);
+        pendingCountdownAudio = true;
         setAudioUnlockVisible(true);
       }
     }
@@ -849,6 +897,7 @@
       if (gridEl) gridEl.innerHTML = renderAnswers(q);
       startTimer(endsAt);
       showScreen("question");
+      if (!locked) void playCurrentQuestionCountdown();
     }
 
     function renderStats(stats: PublicAnswerStats | null, correctIds: AnswerId[]): string {

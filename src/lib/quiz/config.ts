@@ -2,7 +2,7 @@ export const GAME_ID = "battesimo-leone-2026";
 
 export const DEMO_ANSWER_SECONDS = 20;
 export const QUESTION_ANSWER_SECONDS = 20;
-export const START_JINGLE_DURATION_MS = 20_000;
+export const START_JINGLE_DURATION_MS = 16_000;
 
 export const TOTAL_QUESTIONS = 26;
 export const MIN_TOTAL_QUESTIONS = 10;
