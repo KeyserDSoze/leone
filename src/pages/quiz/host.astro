@@ -121,6 +121,17 @@
       text-align: center;
       margin-top: 6px;
     }
+    .uid-box {
+      padding: 10px;
+      background: var(--green-soft);
+      border: 1px solid var(--green-line);
+      border-radius: 10px;
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.35;
+      word-break: break-all;
+    }
     .copy-btn {
       display: block;
       width: 100%;
@@ -540,6 +551,13 @@
         <button class="copy-btn" id="btn-copy-projector-url">📋 Copia link proiettore</button>
       </div>
 
+      <!-- UID browser host -->
+      <div class="card">
+        <p class="card-title">UID questo browser</p>
+        <div class="uid-box" id="host-uid-display">...</div>
+        <button class="copy-btn" id="btn-copy-host-uid">📋 Copia UID</button>
+      </div>
+
       <!-- Giocatori -->
       <div class="card">
         <p class="card-title">Giocatori in partita</p>
@@ -789,6 +807,21 @@ async function generateQR() {
     navigator.clipboard.writeText(projectorUrl).then(() => {
       if (copyProjectorBtn) copyProjectorBtn.textContent = "✅ Copiato!";
       setTimeout(() => { if (copyProjectorBtn) copyProjectorBtn.textContent = "📋 Copia link proiettore"; }, 2000);
+    });
+  });
+}
+
+function bindHostUidCard() {
+  const uidEl = document.getElementById("host-uid-display");
+  const btn = document.getElementById("btn-copy-host-uid");
+
+  if (uidEl) uidEl.textContent = currentUid ?? "UID non disponibile";
+
+  btn?.addEventListener("click", () => {
+    if (!currentUid) return;
+    navigator.clipboard.writeText(currentUid).then(() => {
+      if (btn) btn.textContent = "✅ Copiato!";
+      setTimeout(() => { if (btn) btn.textContent = "📋 Copia UID"; }, 1800);
     });
   });
 }
@@ -1491,6 +1524,7 @@ async function init() {
     setupPresence(currentUid);
 
     bindQuestionSettings();
+    bindHostUidCard();
     await generateQR();
     startListeners();
   } catch (err) {
