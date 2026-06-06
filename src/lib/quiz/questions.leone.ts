@@ -14,7 +14,7 @@ export const leoneQuestions: Question[] = [
     answers: [
       { id: "A", text: "colpa della Ferragni" },
       { id: "B", text: "il Papa" },
-      { id: "C", text: "il bisnonno" },
+      { id: "C", text: "il nome del bisnonno" },
       { id: "D", text: "segno zodiacale di entrambe le nonne" },
     ],
     correctAnswerIds: ["A", "B", "C", "D"],
