@@ -628,6 +628,7 @@ import {
   revealNextLeaderboardStep,
   finishGame,
   kickPlayer,
+  authorizeHost,
 } from "../../lib/quiz/hostApi";
 import { setupPresence } from "../../lib/quiz/presence";
 import {
@@ -1199,16 +1200,48 @@ function hideLeaderboardPanel() {
 }
 
 // ── Controls ───────────────────────────────────────────────────────────────
+async function requestHostAuthorization() {
+  if (!currentUid) return;
+  const btn = document.getElementById("btn-request-host-auth") as HTMLButtonElement | null;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Richiesta inviata...";
+  }
+
+  try {
+    await update(ref(db, `players/${GAME_ID}/${currentUid}`), {
+      hostAuthRequest: true,
+      hostAuthRequestAt: Date.now(),
+    });
+    if (btn) btn.textContent = "✅ Richiesta inviata";
+  } catch (err) {
+    console.error("Host auth request error:", err);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "⚠️ Richiesta non inviata";
+    }
+  }
+}
+
 function renderReadOnlyControls(grid: HTMLElement) {
+  const authorized = currentUid ? currentGame?.authorizedHostUids?.[currentUid] === true : false;
+
   grid.innerHTML = `
     <div style="font-size:14px;line-height:1.55;color:#7C8A76">
-      <strong style="display:block;color:#3A5A35;font-size:15px;margin-bottom:6px">Modalità sola lettura</strong>
-      Questo browser non è autorizzato come host, ma sta seguendo la partita corrente.
-      Usa il browser già autorizzato per avviare domande, mostrare classifiche o fare reset.
+      <strong style="display:block;color:#3A5A35;font-size:15px;margin-bottom:6px">${authorized ? "Autorizzazione concessa" : "Modalità sola lettura"}</strong>
+      ${authorized
+        ? "Questo browser è stato autorizzato. Ricarica la pagina per sbloccare i controlli host."
+        : "Questo browser non è autorizzato come host, ma sta seguendo la partita corrente. Puoi chiedere autorizzazione al browser host già attivo."}
     </div>
     <div class="uid-box" style="font-size:12px;margin:10px 0" id="readonly-uid-box">${currentUid ?? ""}</div>
-    <button class="btn-control btn-gray" id="btn-copy-readonly-uid">📋 Copia UID per autorizzarlo</button>
+    ${authorized
+      ? `<button class="btn-control btn-green" id="btn-reload-as-host">🔄 Ricarica come host</button>`
+      : `<button class="btn-control btn-green" id="btn-request-host-auth">🙋 Richiedi autorizzazione host</button>`}
+    <button class="btn-control btn-gray" id="btn-copy-readonly-uid">📋 Copia UID manualmente</button>
   `;
+
+  document.getElementById("btn-request-host-auth")?.addEventListener("click", requestHostAuthorization);
+  document.getElementById("btn-reload-as-host")?.addEventListener("click", () => location.reload());
 
   document.getElementById("btn-copy-readonly-uid")?.addEventListener("click", () => {
     if (!currentUid) return;
@@ -1218,6 +1251,28 @@ function renderReadOnlyControls(grid: HTMLElement) {
       setTimeout(() => { if (box) box.textContent = currentUid ?? ""; }, 1800);
     });
   });
+}
+
+function renderHostAuthRequests(): string {
+  const alreadyAuthorized = currentGame?.authorizedHostUids ?? {};
+  const requests = Object.entries(currentPlayers)
+    .filter(([uid, player]) => uid !== currentUid && player.hostAuthRequest && !alreadyAuthorized[uid])
+    .sort(([, a], [, b]) => (b.hostAuthRequestAt ?? 0) - (a.hostAuthRequestAt ?? 0));
+
+  if (requests.length === 0) return "";
+
+  return `<div style="display:grid;gap:8px;margin-bottom:10px">
+    <div style="font-size:13px;line-height:1.45;color:#7C8A76">
+      <strong style="display:block;color:#3A5A35;font-size:15px;margin-bottom:4px">Richieste host</strong>
+      Browser in attesa di autorizzazione.
+    </div>
+    ${requests.map(([uid]) => `
+      <div style="display:grid;gap:7px;padding:10px;border-radius:12px;border:1px solid #CBDCC2;background:#F7FAF4">
+        <div style="font-family:monospace;font-size:12px;color:#3A5A35;word-break:break-all">${uid}</div>
+        <button class="btn-control btn-green btn-authorize-host" data-authorize-uid="${uid}">✅ Autorizza questo browser</button>
+      </div>
+    `).join("")}
+  </div>`;
 }
 
 function renderControls(game: GameState) {
@@ -1311,7 +1366,7 @@ function renderControls(game: GameState) {
 
   btns.push({ label: "🔄 Reset partita", cls: "btn-red", id: "btn-reset" });
 
-  grid.innerHTML = btns
+  grid.innerHTML = renderHostAuthRequests() + btns
     .map(
       (b) =>
         `<button class="btn-control ${b.cls}" id="${b.id}" ${b.disabled ? "disabled" : ""}>${b.label}</button>`
@@ -1319,6 +1374,23 @@ function renderControls(game: GameState) {
     .join("");
 
   // Bind events
+  document.querySelectorAll<HTMLButtonElement>(".btn-authorize-host").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const uid = btn.dataset.authorizeUid;
+      if (!uid) return;
+      btn.disabled = true;
+      btn.textContent = "Autorizzazione...";
+      try {
+        await authorizeHost(uid);
+        btn.textContent = "✅ Autorizzato: ricaricare l'altro browser";
+      } catch (err) {
+        console.error("Authorize host error:", err);
+        btn.disabled = false;
+        btn.textContent = "⚠️ Permission denied: copia UID manualmente";
+      }
+    });
+  });
+
   document.getElementById("btn-start-demo")?.addEventListener("click", async () => {
     await startQuestion(questions[0], 0, questions.length - 1);
   });
@@ -1495,6 +1567,7 @@ function startListeners() {
     currentPlayers = snap.val() ?? {};
     syncKickedUsernames().catch(console.error);
     refreshAnswerTracking();
+    if (currentGame) renderControls(currentGame);
     if (currentGame && shouldShowHostLeaderboardPreviews(currentGame)) {
       renderQuestionLeaderboard(currentGame.publicQuestionLeaderboard ?? []);
     }
@@ -1556,8 +1629,9 @@ async function init() {
 
     if (isHostAdmin) {
       await initGameIfNeeded();
-      setupPresence(currentUid);
     }
+
+    setupPresence(currentUid);
 
     bindQuestionSettings();
     await generateQR();

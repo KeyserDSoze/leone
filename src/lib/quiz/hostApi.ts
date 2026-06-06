@@ -44,6 +44,12 @@ export async function checkIsAdmin(uid: string): Promise<boolean> {
   }
 }
 
+/** Autorizza un nuovo browser come host. Richiede che le rules permettano agli admin di scrivere admins/. */
+export async function authorizeHost(uid: string): Promise<void> {
+  await set(ref(db, `admins/${uid}`), true);
+  await update(ref(db, `games/${GAME_ID}/authorizedHostUids`), { [uid]: true });
+}
+
 type ResetGameOptions = {
   questionIds?: string[];
   questionCount?: number;
