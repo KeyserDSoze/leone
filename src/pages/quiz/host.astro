@@ -615,7 +615,6 @@
 <script>
 import { db, ensureAnonymousUser } from "../../lib/firebase";
 import {
-  checkIsAdmin,
   resetGame,
   initGameIfNeeded,
   startQuestion,
@@ -628,7 +627,6 @@ import {
   revealNextLeaderboardStep,
   finishGame,
   kickPlayer,
-  authorizeHost,
 } from "../../lib/quiz/hostApi";
 import { setupPresence } from "../../lib/quiz/presence";
 import {
@@ -653,7 +651,6 @@ let plannedQuestions = questions;
 let plannedQuestionSeed = 1;
 let hasPendingQuestionPlan = false;
 let currentUid: string | null = null;
-let isHostAdmin = false;
 let currentGame: GameState | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -737,13 +734,6 @@ function bindQuestionSettings() {
     input.max = String(MAX_TOTAL_QUESTIONS);
     input.value = String(TOTAL_QUESTIONS);
     input.addEventListener("input", () => { hasPendingQuestionPlan = false; });
-  }
-
-  if (!isHostAdmin) {
-    if (input) input.disabled = true;
-    (document.getElementById("btn-preview-questions") as HTMLButtonElement | null)?.setAttribute("disabled", "disabled");
-    (document.getElementById("btn-randomize-questions") as HTMLButtonElement | null)?.setAttribute("disabled", "disabled");
-    return;
   }
 
   document.getElementById("btn-preview-questions")?.addEventListener("click", () => {
@@ -1070,7 +1060,7 @@ function renderPlayers(players: Record<string, Player> | null) {
       const statusIcon = isQuestionActive
         ? `<span class="answer-status">${hasAnswered ? "✅" : "⏳"}</span>`
         : "";
-      const kickBtn = isHostAdmin && !p.connected
+      const kickBtn = !p.connected
         ? `<button class="player-kick" data-kick="${uid}" data-name="${p.username}" title="Rimuovi giocatore offline">✕</button>`
         : "";
 
@@ -1200,89 +1190,10 @@ function hideLeaderboardPanel() {
 }
 
 // ── Controls ───────────────────────────────────────────────────────────────
-async function requestHostAuthorization() {
-  if (!currentUid) return;
-  const btn = document.getElementById("btn-request-host-auth") as HTMLButtonElement | null;
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = "Richiesta inviata...";
-  }
-
-  try {
-    await update(ref(db, `players/${GAME_ID}/${currentUid}`), {
-      hostAuthRequest: true,
-      hostAuthRequestAt: Date.now(),
-    });
-    if (btn) btn.textContent = "✅ Richiesta inviata";
-  } catch (err) {
-    console.error("Host auth request error:", err);
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = "⚠️ Richiesta non inviata";
-    }
-  }
-}
-
-function renderReadOnlyControls(grid: HTMLElement) {
-  const authorized = currentUid ? currentGame?.authorizedHostUids?.[currentUid] === true : false;
-
-  grid.innerHTML = `
-    <div style="font-size:14px;line-height:1.55;color:#7C8A76">
-      <strong style="display:block;color:#3A5A35;font-size:15px;margin-bottom:6px">${authorized ? "Autorizzazione concessa" : "Modalità sola lettura"}</strong>
-      ${authorized
-        ? "Questo browser è stato autorizzato. Ricarica la pagina per sbloccare i controlli host."
-        : "Questo browser non è autorizzato come host, ma sta seguendo la partita corrente. Puoi chiedere autorizzazione al browser host già attivo."}
-    </div>
-    <div class="uid-box" style="font-size:12px;margin:10px 0" id="readonly-uid-box">${currentUid ?? ""}</div>
-    ${authorized
-      ? `<button class="btn-control btn-green" id="btn-reload-as-host">🔄 Ricarica come host</button>`
-      : `<button class="btn-control btn-green" id="btn-request-host-auth">🙋 Richiedi autorizzazione host</button>`}
-    <button class="btn-control btn-gray" id="btn-copy-readonly-uid">📋 Copia UID manualmente</button>
-  `;
-
-  document.getElementById("btn-request-host-auth")?.addEventListener("click", requestHostAuthorization);
-  document.getElementById("btn-reload-as-host")?.addEventListener("click", () => location.reload());
-
-  document.getElementById("btn-copy-readonly-uid")?.addEventListener("click", () => {
-    if (!currentUid) return;
-    navigator.clipboard.writeText(currentUid).then(() => {
-      const box = document.getElementById("readonly-uid-box");
-      if (box) box.textContent = "✅ Copiato!";
-      setTimeout(() => { if (box) box.textContent = currentUid ?? ""; }, 1800);
-    });
-  });
-}
-
-function renderHostAuthRequests(): string {
-  const alreadyAuthorized = currentGame?.authorizedHostUids ?? {};
-  const requests = Object.entries(currentPlayers)
-    .filter(([uid, player]) => uid !== currentUid && player.hostAuthRequest && !alreadyAuthorized[uid])
-    .sort(([, a], [, b]) => (b.hostAuthRequestAt ?? 0) - (a.hostAuthRequestAt ?? 0));
-
-  if (requests.length === 0) return "";
-
-  return `<div style="display:grid;gap:8px;margin-bottom:10px">
-    <div style="font-size:13px;line-height:1.45;color:#7C8A76">
-      <strong style="display:block;color:#3A5A35;font-size:15px;margin-bottom:4px">Richieste host</strong>
-      Browser in attesa di autorizzazione.
-    </div>
-    ${requests.map(([uid]) => `
-      <div style="display:grid;gap:7px;padding:10px;border-radius:12px;border:1px solid #CBDCC2;background:#F7FAF4">
-        <div style="font-family:monospace;font-size:12px;color:#3A5A35;word-break:break-all">${uid}</div>
-        <button class="btn-control btn-green btn-authorize-host" data-authorize-uid="${uid}">✅ Autorizza questo browser</button>
-      </div>
-    `).join("")}
-  </div>`;
-}
 
 function renderControls(game: GameState) {
   const grid = document.getElementById("controls-grid");
   if (!grid) return;
-
-  if (!isHostAdmin) {
-    renderReadOnlyControls(grid);
-    return;
-  }
 
   const idx = game.currentQuestionIndex;
   const status = game.status;
@@ -1366,7 +1277,7 @@ function renderControls(game: GameState) {
 
   btns.push({ label: "🔄 Reset partita", cls: "btn-red", id: "btn-reset" });
 
-  grid.innerHTML = renderHostAuthRequests() + btns
+  grid.innerHTML = btns
     .map(
       (b) =>
         `<button class="btn-control ${b.cls}" id="${b.id}" ${b.disabled ? "disabled" : ""}>${b.label}</button>`
@@ -1374,23 +1285,6 @@ function renderControls(game: GameState) {
     .join("");
 
   // Bind events
-  document.querySelectorAll<HTMLButtonElement>(".btn-authorize-host").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const uid = btn.dataset.authorizeUid;
-      if (!uid) return;
-      btn.disabled = true;
-      btn.textContent = "Autorizzazione...";
-      try {
-        await authorizeHost(uid);
-        btn.textContent = "✅ Autorizzato: ricaricare l'altro browser";
-      } catch (err) {
-        console.error("Authorize host error:", err);
-        btn.disabled = false;
-        btn.textContent = "⚠️ Permission denied: copia UID manualmente";
-      }
-    });
-  });
-
   document.getElementById("btn-start-demo")?.addEventListener("click", async () => {
     await startQuestion(questions[0], 0, questions.length - 1);
   });
@@ -1520,7 +1414,6 @@ function renderHostLeaderboardPreviews(game: GameState) {
 }
 
 async function syncKickedUsernames() {
-  if (!isHostAdmin) return;
   if (!currentGame?.kickedUids) return;
 
   const existing = currentGame.kickedUsernames ?? {};
@@ -1583,62 +1476,22 @@ function startListeners() {
   });
 }
 
-// ── Not-admin screen ───────────────────────────────────────────────────────
-function showNotAdmin(uid: string) {
-  const setup = document.getElementById("panel-setup");
-  if (setup) {
-    setup.innerHTML = `
-      <div class="setup-card">
-        <span style="font-size:52px">🦁</span>
-        <h1 class="setup-title">Configura l'Host</h1>
-        <p style="font-size:14px;color:#7C8A76;margin-bottom:8px">
-          Il tuo browser non è ancora autorizzato come host.<br>
-          Copia il tuo UID e aggiungilo in Firebase Console.
-        </p>
-        <div class="uid-box" id="uid-display" title="Clicca per copiare">${uid}</div>
-        <button onclick="navigator.clipboard.writeText('${uid}').then(()=>document.getElementById('uid-display').textContent='✅ Copiato!')"
-          style="background:#EDF3E8;border:1px solid #CBDCC2;border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:600;color:#3A5A35;font-size:14px">
-          📋 Copia UID
-        </button>
-        <ol class="setup-steps">
-          <li>Vai su <strong>Firebase Console → Realtime Database</strong></li>
-          <li>Naviga in <code>admins/</code></li>
-          <li>Aggiungi la chiave <code>${uid}</code> con valore <code>true</code></li>
-          <li>Ricarica questa pagina</li>
-        </ol>
-        <button onclick="location.reload()"
-          style="margin-top:16px;width:100%;padding:12px;background:linear-gradient(135deg,#5C8454,#3F6539);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer">
-          🔄 Ricarica dopo la configurazione
-        </button>
-      </div>`;
-  }
-}
-
 // ── Init ───────────────────────────────────────────────────────────────────
 async function init() {
   try {
     const user = await ensureAnonymousUser();
     currentUid = user.uid;
 
-    isHostAdmin = await checkIsAdmin(currentUid);
-
     const setupEl = document.getElementById("panel-setup");
     const hostEl = document.getElementById("panel-host");
     if (setupEl) setupEl.style.display = "none";
     if (hostEl) hostEl.style.display = "block";
 
-    if (isHostAdmin) {
-      await initGameIfNeeded();
-    }
-
+    await initGameIfNeeded();
     setupPresence(currentUid);
 
     bindQuestionSettings();
     await generateQR();
-    if (!isHostAdmin) {
-      const grid = document.getElementById("controls-grid");
-      if (grid) renderReadOnlyControls(grid);
-    }
     startListeners();
   } catch (err) {
     console.error(err);

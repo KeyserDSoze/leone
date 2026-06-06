@@ -34,5 +34,4 @@ export const INITIAL_GAME_STATE = {
   questionIds: null,
   questionCount: TOTAL_QUESTIONS,
   questionSeed: null,
-  authorizedHostUids: null,
 } as const;

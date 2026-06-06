@@ -97,7 +97,6 @@ export type GameState = {
   questionIds?: string[] | null;
   questionCount?: number | null;
   questionSeed?: number | null;
-  authorizedHostUids?: Record<string, boolean> | null;
 };
 
 export type Player = {
@@ -110,8 +109,6 @@ export type Player = {
   currentAnswerQuestionId?: string;
   currentAnswerAnswerId?: AnswerId;
   currentAnswerAnsweredAt?: number;
-  hostAuthRequest?: boolean;
-  hostAuthRequestAt?: number;
 };
 
 export type Answer = {
