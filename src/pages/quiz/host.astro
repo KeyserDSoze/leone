@@ -202,6 +202,22 @@
       color: var(--green-deep);
       font-weight: 800;
     }
+    .question-preview-list .qp-change-btn {
+      margin-top: 6px;
+      padding: 5px 10px;
+      border: 1px solid var(--gold-line);
+      border-radius: 999px;
+      background: var(--gold-soft);
+      color: #7A5A20;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .question-preview-list .qp-change-btn:hover { background: #EFE0B8; }
+    .question-preview-list .qp-change-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
 
     /* ── Players ── */
     .player-count {
@@ -658,6 +674,7 @@ import {
   questionIdsFromQuestions,
   questionsFromIds,
 } from "../../lib/quiz/buildGameQuestions";
+import { generalQuestions } from "../../lib/quiz/questions.general";
 import { GAME_ID, MAX_TOTAL_QUESTIONS, MIN_TOTAL_QUESTIONS, TOTAL_QUESTIONS } from "../../lib/quiz/config";
 import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
 import { ref, onValue, update } from "firebase/database";
@@ -666,6 +683,7 @@ import type {
   LeaderboardEntry,
   Player,
   PublicQuestionLeaderboardEntry,
+  Question,
 } from "../../lib/quiz/types";
 import QRCode from "qrcode";
 
@@ -716,25 +734,124 @@ function setSelectedQuestionCount(count: number) {
   if (input) input.value = String(Math.max(MIN_TOTAL_QUESTIONS, Math.min(MAX_TOTAL_QUESTIONS, count)));
 }
 
+function formatCorrectAnswers(question: Question): string {
+  return question.correctAnswerIds
+    .map((id) => {
+      const answer = question.answers.find((item) => item.id === id);
+      return answer ? `${id}: ${answer.text}` : id;
+    })
+    .join(" / ");
+}
+
+function isPendingPreviewSource(source: typeof questions): boolean {
+  return hasPendingQuestionPlan && source === plannedQuestions;
+}
+
+function getAskedQuestionLimit(source: typeof questions): number {
+  return isPendingPreviewSource(source) ? 0 : (currentGame?.currentQuestionIndex ?? -1);
+}
+
+function getReplacementCandidates(question: Question, source: typeof questions): Question[] {
+  const subcategory = question.subcategory;
+  const usedIds = new Set(source.map((item) => item.id));
+  return generalQuestions.filter(
+    (candidate) =>
+      candidate.subcategory === subcategory &&
+      !usedIds.has(candidate.id)
+  );
+}
+
+async function replacePreviewQuestion(questionIndex: number) {
+  const usePendingPlan = hasPendingQuestionPlan;
+  const source = usePendingPlan ? plannedQuestions : questions;
+  const question = source[questionIndex];
+
+  if (!question || question.category !== "general") return;
+
+  if (!usePendingPlan && questionIndex <= (currentGame?.currentQuestionIndex ?? -1)) {
+    alert("Questa domanda è già stata chiesta e non può più essere cambiata.");
+    renderQuestionPreviewList(source);
+    return;
+  }
+
+  const candidates = getReplacementCandidates(question, source);
+  if (candidates.length === 0) {
+    alert("Non ci sono altre domande disponibili per questa materia.");
+    renderQuestionPreviewList(source);
+    return;
+  }
+
+  const replacement = candidates[Math.floor(Math.random() * candidates.length)];
+  const nextQuestions = [...source];
+  nextQuestions[questionIndex] = replacement;
+
+  if (usePendingPlan) {
+    plannedQuestions = nextQuestions;
+    hasPendingQuestionPlan = true;
+    renderQuestionPreviewList(plannedQuestions);
+    return;
+  }
+
+  const previousQuestions = questions;
+  questions = nextQuestions;
+  plannedQuestions = nextQuestions;
+  hasPendingQuestionPlan = false;
+  renderQuestionPreviewList(questions);
+
+  try {
+    await update(ref(db, `games/${GAME_ID}`), {
+      questionIds: questionIdsFromQuestions(questions),
+      questionCount: questions.length - 1,
+    });
+  } catch (err) {
+    console.error(err);
+    questions = previousQuestions;
+    plannedQuestions = previousQuestions;
+    renderQuestionPreviewList(questions);
+    alert("Non sono riuscito a salvare la sostituzione su Firebase.");
+  }
+}
+
+function bindQuestionPreviewReplacementButtons() {
+  document.querySelectorAll<HTMLButtonElement>(".qp-change-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const questionIndex = Number(button.dataset.questionIndex);
+      if (!Number.isFinite(questionIndex)) return;
+      button.disabled = true;
+      await replacePreviewQuestion(questionIndex);
+    });
+  });
+}
+
+function refreshQuestionPreviewIfVisible() {
+  const list = document.getElementById("question-preview-list");
+  if (!list || list.style.display === "none" || hasPendingQuestionPlan) return;
+  renderQuestionPreviewList(questions);
+}
+
 function renderQuestionPreviewList(source: typeof questions = questions) {
   const list = document.getElementById("question-preview-list");
   if (!list) return;
 
+  const askedLimit = getAskedQuestionLimit(source);
   list.style.display = "block";
   list.innerHTML = source
     .slice(1)
     .map((question, i) => {
+      const questionIndex = i + 1;
       const sub = humanizeSub(question.subcategory ?? question.category);
-      const correctAnswers = question.correctAnswerIds
-        .map((id) => {
-          const answer = question.answers.find((item) => item.id === id);
-          return answer ? `${id}: ${answer.text}` : id;
-        })
-        .join(" / ");
+      const correctAnswers = formatCorrectAnswers(question);
+      const canReplace = question.category === "general" && questionIndex > askedLimit;
+      const replacementCount = canReplace ? getReplacementCandidates(question, source).length : 0;
+      const replaceButton = canReplace
+        ? `<br><button class="qp-change-btn" type="button" data-question-index="${questionIndex}" ${replacementCount === 0 ? "disabled" : ""}>🔁 Cambia stessa materia</button>`
+        : "";
 
-      return `<li><span class="qp-sub">${i + 1}. ${sub}</span><br>${question.text}<span class="qp-answer">Corretta: ${correctAnswers}</span></li>`;
+      return `<li><span class="qp-sub">${questionIndex}. ${sub}</span><br>${question.text}<span class="qp-answer">Corretta: ${correctAnswers}</span>${replaceButton}</li>`;
     })
     .join("");
+
+  bindQuestionPreviewReplacementButtons();
 }
 
 function generatePlannedQuestions() {
@@ -764,7 +881,11 @@ function bindQuestionSettings() {
     input.min = String(MIN_TOTAL_QUESTIONS);
     input.max = String(MAX_TOTAL_QUESTIONS);
     input.value = String(TOTAL_QUESTIONS);
-    input.addEventListener("input", () => { hasPendingQuestionPlan = false; });
+    input.addEventListener("input", () => {
+      hasPendingQuestionPlan = false;
+      const list = document.getElementById("question-preview-list");
+      if (list) list.style.display = "none";
+    });
   }
 
   document.getElementById("btn-preview-questions")?.addEventListener("click", () => {
@@ -1483,6 +1604,7 @@ function startListeners() {
     updateStatusBadge(currentGame.status);
     renderQuestionPanel(currentGame);
     renderControls(currentGame);
+    refreshQuestionPreviewIfVisible();
 
     if (
       currentGame.status === "demo" ||
