@@ -196,6 +196,12 @@
       text-transform: uppercase;
       letter-spacing: 0.4px;
     }
+    .question-preview-list .qp-answer {
+      display: block;
+      margin-top: 4px;
+      color: var(--green-deep);
+      font-weight: 800;
+    }
 
     /* ── Players ── */
     .player-count {
@@ -719,7 +725,14 @@ function renderQuestionPreviewList(source: typeof questions = questions) {
     .slice(1)
     .map((question, i) => {
       const sub = humanizeSub(question.subcategory ?? question.category);
-      return `<li><span class="qp-sub">${i + 1}. ${sub}</span><br>${question.text}</li>`;
+      const correctAnswers = question.correctAnswerIds
+        .map((id) => {
+          const answer = question.answers.find((item) => item.id === id);
+          return answer ? `${id}: ${answer.text}` : id;
+        })
+        .join(" / ");
+
+      return `<li><span class="qp-sub">${i + 1}. ${sub}</span><br>${question.text}<span class="qp-answer">Corretta: ${correctAnswers}</span></li>`;
     })
     .join("");
 }
