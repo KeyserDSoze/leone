@@ -652,6 +652,7 @@ let plannedQuestions = questions;
 let plannedQuestionSeed = 1;
 let hasPendingQuestionPlan = false;
 let currentUid: string | null = null;
+let isHostAdmin = false;
 let currentGame: GameState | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -735,6 +736,13 @@ function bindQuestionSettings() {
     input.max = String(MAX_TOTAL_QUESTIONS);
     input.value = String(TOTAL_QUESTIONS);
     input.addEventListener("input", () => { hasPendingQuestionPlan = false; });
+  }
+
+  if (!isHostAdmin) {
+    if (input) input.disabled = true;
+    (document.getElementById("btn-preview-questions") as HTMLButtonElement | null)?.setAttribute("disabled", "disabled");
+    (document.getElementById("btn-randomize-questions") as HTMLButtonElement | null)?.setAttribute("disabled", "disabled");
+    return;
   }
 
   document.getElementById("btn-preview-questions")?.addEventListener("click", () => {
@@ -1061,7 +1069,7 @@ function renderPlayers(players: Record<string, Player> | null) {
       const statusIcon = isQuestionActive
         ? `<span class="answer-status">${hasAnswered ? "✅" : "⏳"}</span>`
         : "";
-      const kickBtn = !p.connected
+      const kickBtn = isHostAdmin && !p.connected
         ? `<button class="player-kick" data-kick="${uid}" data-name="${p.username}" title="Rimuovi giocatore offline">✕</button>`
         : "";
 
@@ -1191,9 +1199,35 @@ function hideLeaderboardPanel() {
 }
 
 // ── Controls ───────────────────────────────────────────────────────────────
+function renderReadOnlyControls(grid: HTMLElement) {
+  grid.innerHTML = `
+    <div style="font-size:14px;line-height:1.55;color:#7C8A76">
+      <strong style="display:block;color:#3A5A35;font-size:15px;margin-bottom:6px">Modalità sola lettura</strong>
+      Questo browser non è autorizzato come host, ma sta seguendo la partita corrente.
+      Usa il browser già autorizzato per avviare domande, mostrare classifiche o fare reset.
+    </div>
+    <div class="uid-box" style="font-size:12px;margin:10px 0" id="readonly-uid-box">${currentUid ?? ""}</div>
+    <button class="btn-control btn-gray" id="btn-copy-readonly-uid">📋 Copia UID per autorizzarlo</button>
+  `;
+
+  document.getElementById("btn-copy-readonly-uid")?.addEventListener("click", () => {
+    if (!currentUid) return;
+    navigator.clipboard.writeText(currentUid).then(() => {
+      const box = document.getElementById("readonly-uid-box");
+      if (box) box.textContent = "✅ Copiato!";
+      setTimeout(() => { if (box) box.textContent = currentUid ?? ""; }, 1800);
+    });
+  });
+}
+
 function renderControls(game: GameState) {
   const grid = document.getElementById("controls-grid");
   if (!grid) return;
+
+  if (!isHostAdmin) {
+    renderReadOnlyControls(grid);
+    return;
+  }
 
   const idx = game.currentQuestionIndex;
   const status = game.status;
@@ -1414,6 +1448,7 @@ function renderHostLeaderboardPreviews(game: GameState) {
 }
 
 async function syncKickedUsernames() {
+  if (!isHostAdmin) return;
   if (!currentGame?.kickedUids) return;
 
   const existing = currentGame.kickedUsernames ?? {};
@@ -1512,22 +1547,24 @@ async function init() {
     const user = await ensureAnonymousUser();
     currentUid = user.uid;
 
-    const isAdmin = await checkIsAdmin(currentUid);
-
-    if (!isAdmin) {
-      showNotAdmin(currentUid);
-      return;
-    }
+    isHostAdmin = await checkIsAdmin(currentUid);
 
     const setupEl = document.getElementById("panel-setup");
     const hostEl = document.getElementById("panel-host");
     if (setupEl) setupEl.style.display = "none";
     if (hostEl) hostEl.style.display = "block";
 
-    await initGameIfNeeded();
-    setupPresence(currentUid);
+    if (isHostAdmin) {
+      await initGameIfNeeded();
+      setupPresence(currentUid);
+    }
+
     bindQuestionSettings();
     await generateQR();
+    if (!isHostAdmin) {
+      const grid = document.getElementById("controls-grid");
+      if (grid) renderReadOnlyControls(grid);
+    }
     startListeners();
   } catch (err) {
     console.error(err);
