@@ -704,7 +704,11 @@ let timerInterval: ReturnType<typeof setInterval> | null = null;
 let currentPlayers: Record<string, Player> = {};
 let currentLeaderboard: Record<string, LeaderboardEntry> = {};
 let currentAnswers: Record<string, { answerId: string }> = {};
-let autoCloseTimeout: ReturnType<typeof setTimeout> | null = null;
+let serverTimeOffset = 0;
+
+function nowMs(): number {
+  return Date.now() + serverTimeOffset;
+}
 
 // Sottocategorie label (per il pannello "prossima domanda")
 const SUB_LABELS: Record<string, string> = {
@@ -1041,7 +1045,7 @@ function startHostTimer(endsAt: number) {
   el.style.display = "block";
 
   function tick() {
-    const rem = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+    const rem = Math.max(0, Math.ceil((endsAt - nowMs()) / 1000));
     el!.textContent = String(rem);
     el!.classList.toggle("urgent", rem <= 5);
   }
@@ -1055,16 +1059,8 @@ function stopHostTimer() {
   if (el) el.style.display = "none";
 }
 
-// ── Answer tracking with auto-close ────────────────────────────────────────
-function getActivePlayerCount(): number {
-  const kicked = currentGame?.kickedUids ?? {};
-  return Object.entries(currentPlayers).filter(
-    ([uid, p]) => p.username && !kicked[uid]
-  ).length;
-}
-
+// ── Answer tracking ────────────────────────────────────────────────────────
 function stopAnswerTracking() {
-  if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
   currentAnswers = {};
 
   const el = document.getElementById("answer-count");
@@ -1110,30 +1106,6 @@ function refreshAnswerTracking() {
   }
 
   renderPlayers(currentPlayers);
-
-  const autoCloseActive = currentGame.status === "demo" || currentGame.status === "question";
-  if (!autoCloseActive || !currentGame.questionVisible) {
-    if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
-    return;
-  }
-
-  const playerCount = getActivePlayerCount();
-  if (playerCount > 0 && answerCount >= playerCount && !autoCloseTimeout) {
-    autoCloseTimeout = setTimeout(async () => {
-      autoCloseTimeout = null;
-      const qIdx = currentGame?.currentQuestionIndex;
-      const sess = currentGame?.gameSession ?? "";
-      if (qIdx !== undefined && qIdx >= 0 && qIdx < questions.length) {
-        const closeBtn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
-        if (closeBtn) closeBtn.disabled = true;
-        try {
-          await closeQuestion(questions[qIdx], sess);
-        } catch (err) {
-          console.error("Auto-close error:", err);
-        }
-      }
-    }, 1500);
-  }
 }
 
 // ── Render question panel ─────────────────────────────────────────────────
@@ -1521,8 +1493,6 @@ function renderControls(game: GameState) {
   document.getElementById("btn-close-q")?.addEventListener("click", async () => {
     const btn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
     if (btn) btn.disabled = true;
-    // Cancel auto-close timeout if host closes manually
-    if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
     const qIdx = game.currentQuestionIndex;
     const sess = game.gameSession ?? "";
     if (qIdx < 0 || qIdx >= questions.length) return;
@@ -1640,6 +1610,10 @@ async function syncKickedUsernames() {
 
 // ── Firebase listeners ─────────────────────────────────────────────────────
 function startListeners() {
+  onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
+    serverTimeOffset = Number(snap.val() ?? 0);
+  });
+
   // Game state
   onValue(ref(db, `games/${GAME_ID}`), (snap) => {
     if (!snap.exists()) return;

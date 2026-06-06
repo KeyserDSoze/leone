@@ -620,10 +620,15 @@
     let pendingAudioCue: ProjectorCue | null = null;
     let pendingCountdownAudio = false;
     let lastCountdownAudioKey: string | null = null;
+    let serverTimeOffset = 0;
 
     const assetBase = import.meta.env.BASE_URL.replace(/\/$/, "");
     const START_JINGLE_SRC = `${assetBase}/audio/cervelleone-start.mp3`;
     const COUNTDOWN_SRC = `${assetBase}/audio/cervellone-countdown.mp3`;
+
+    function nowMs(): number {
+      return Date.now() + serverTimeOffset;
+    }
 
     function escapeHtml(value: unknown): string {
       return String(value ?? "")
@@ -661,7 +666,7 @@
 
     async function playCueAudio(cue: ProjectorCue) {
       const audio = getProjectorAudio();
-      const elapsedMs = Math.max(0, Date.now() - cue.startedAt);
+      const elapsedMs = Math.max(0, nowMs() - cue.startedAt);
       const durationMs = cue.durationMs || START_JINGLE_DURATION_MS;
       const maxOffsetSeconds = Math.max(0, (durationMs - 300) / 1000);
 
@@ -751,7 +756,7 @@
       const overlay = document.getElementById("projector-cue-overlay");
       if (!overlay) return;
 
-      const elapsedMs = Math.max(0, Date.now() - cue.startedAt);
+      const elapsedMs = Math.max(0, nowMs() - cue.startedAt);
       const durationMs = cue.durationMs || START_JINGLE_DURATION_MS;
       const remainingMs = Math.max(0, durationMs - elapsedMs);
       if (remainingMs <= 0) return;
@@ -771,7 +776,7 @@
       lastProjectorCueId = cue.id;
       if (cue.type !== "start-jingle") return;
 
-      const elapsedMs = Date.now() - cue.startedAt;
+      const elapsedMs = nowMs() - cue.startedAt;
       const durationMs = cue.durationMs || START_JINGLE_DURATION_MS;
       if (elapsedMs > durationMs + 3000) return;
       showProjectorCue(cue);
@@ -852,7 +857,7 @@
       if (!timerEl || !endsAt) return;
 
       function tick() {
-        const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+        const remaining = Math.max(0, Math.ceil((endsAt - nowMs()) / 1000));
         timerEl!.textContent = String(remaining);
         timerEl!.classList.toggle("urgent", remaining <= 5);
       }
@@ -1080,6 +1085,9 @@
       try {
         await ensureAnonymousUser();
         document.getElementById("audio-unlock")?.addEventListener("click", enableProjectorAudio);
+        onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
+          serverTimeOffset = Number(snap.val() ?? 0);
+        });
         onValue(ref(db, `games/${GAME_ID}`), (snap) => {
           if (!snap.exists()) return;
           handleGame(snap.val() as GameState);

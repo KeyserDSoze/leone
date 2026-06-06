@@ -1,4 +1,4 @@
-import { ref, set, get, update } from "firebase/database";
+import { ref, set, get, update, serverTimestamp } from "firebase/database";
 import { db } from "../firebase";
 import { GAME_ID } from "./config";
 import type { AnswerId } from "./types";
@@ -38,6 +38,6 @@ export async function submitAnswer(
     currentAnswerGameSession: gameSession,
     currentAnswerQuestionId: questionId,
     currentAnswerAnswerId: answerId,
-    currentAnswerAnsweredAt: Date.now(),
+    currentAnswerAnsweredAt: serverTimestamp(),
   });
 }

@@ -40,6 +40,15 @@ function sortQuestionLeaderboard(
   return a.username.localeCompare(b.username, "it");
 }
 
+async function getServerNow(): Promise<number> {
+  try {
+    const offsetSnap = await get(ref(db, ".info/serverTimeOffset"));
+    return Date.now() + Number(offsetSnap.val() ?? 0);
+  } catch {
+    return Date.now();
+  }
+}
+
 type ResetGameOptions = {
   questionIds?: string[];
   questionCount?: number;
@@ -92,7 +101,7 @@ export async function restoreRemovedPlayers(): Promise<void> {
 
 /** Lancia jingle e animazione sul proiettore senza cambiare stato della partita. */
 export async function triggerStartJingle(): Promise<void> {
-  const now = Date.now();
+  const now = await getServerNow();
   await update(ref(db, `games/${GAME_ID}`), {
     projectorCue: {
       id: String(now),
@@ -168,7 +177,7 @@ export async function revealQuestion(
   question: Question,
   seconds?: number
 ): Promise<void> {
-  const now = Date.now();
+  const now = await getServerNow();
   const answerSeconds =
     seconds ??
     (question.category === "demo" ? DEMO_ANSWER_SECONDS : QUESTION_ANSWER_SECONDS);
