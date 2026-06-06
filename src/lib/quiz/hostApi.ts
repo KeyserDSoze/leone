@@ -43,11 +43,18 @@ type ResetGameOptions = {
 /** Reset completo della partita */
 export async function resetGame(options: ResetGameOptions = {}): Promise<void> {
   const newSession = Date.now().toString();
+  const existingSnap = await get(ref(db, `games/${GAME_ID}`));
+  const existingGame = existingSnap.val() as {
+    kickedUids?: Record<string, boolean> | null;
+    kickedUsernames?: Record<string, string> | null;
+  } | null;
 
   // Reset game state (new session ID)
   await set(ref(db, `games/${GAME_ID}`), {
     ...INITIAL_GAME_STATE,
     gameSession: newSession,
+    kickedUids: existingGame?.kickedUids ?? INITIAL_GAME_STATE.kickedUids,
+    kickedUsernames: existingGame?.kickedUsernames ?? INITIAL_GAME_STATE.kickedUsernames,
     questionIds: options.questionIds ?? INITIAL_GAME_STATE.questionIds,
     questionCount: options.questionCount ?? INITIAL_GAME_STATE.questionCount,
     questionSeed: options.questionSeed ?? INITIAL_GAME_STATE.questionSeed,
@@ -67,6 +74,14 @@ export async function kickPlayer(uid: string, username?: string): Promise<void> 
     ...(username ? { [`kickedUsernames/${uid}`]: username } : {}),
   });
   await update(ref(db, `leaderboards/${GAME_ID}`), { [uid]: null });
+}
+
+/** Annulla le rimozioni host: i record player ancora presenti tornano visibili. */
+export async function restoreRemovedPlayers(): Promise<void> {
+  await update(ref(db, `games/${GAME_ID}`), {
+    kickedUids: null,
+    kickedUsernames: null,
+  });
 }
 
 /** Inizializza la struttura di gioco se non esiste */

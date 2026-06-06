@@ -585,6 +585,7 @@
         <p class="card-title">Giocatori in partita</p>
         <p class="player-count"><span id="player-count">0</span></p>
         <ul class="player-list" id="player-list"></ul>
+        <button class="copy-btn" id="btn-restore-removed" type="button" style="display:none">↩️ Ripristina rimossi</button>
       </div>
 
       <!-- Controlli -->
@@ -667,6 +668,7 @@ import {
   revealNextLeaderboardStep,
   finishGame,
   kickPlayer,
+  restoreRemovedPlayers,
 } from "../../lib/quiz/hostApi";
 import { setupPresence } from "../../lib/quiz/presence";
 import {
@@ -960,6 +962,23 @@ function bindHostUidCard() {
   });
 }
 
+function bindRemovedPlayersControls() {
+  const btn = document.getElementById("btn-restore-removed") as HTMLButtonElement | null;
+  btn?.addEventListener("click", async () => {
+    const removedCount = Object.values(currentGame?.kickedUids ?? {}).filter(Boolean).length;
+    if (removedCount === 0) return;
+    if (!confirm(`Ripristinare ${removedCount} giocatore/i rimossi? Se hanno ancora un record salvato, torneranno in lista.`)) return;
+    btn.disabled = true;
+    try {
+      await restoreRemovedPlayers();
+    } catch (err) {
+      console.error("Restore removed players error:", err);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
 // ── Status badge ───────────────────────────────────────────────────────────
 const STATUS_LABELS: Record<string, string> = {
   lobby: "Lobby",
@@ -1194,6 +1213,14 @@ function renderNextQuestionPanel(game: GameState) {
 function renderPlayers(players: Record<string, Player> | null) {
   const countEl = document.getElementById("player-count");
   const listEl = document.getElementById("player-list");
+  const restoreBtn = document.getElementById("btn-restore-removed") as HTMLButtonElement | null;
+  const kicked = currentGame?.kickedUids ?? {};
+  const removedCount = Object.values(kicked).filter(Boolean).length;
+
+  if (restoreBtn) {
+    restoreBtn.style.display = removedCount > 0 ? "block" : "none";
+    restoreBtn.textContent = `↩️ Ripristina rimossi (${removedCount})`;
+  }
 
   if (!players) {
     if (countEl) countEl.textContent = "0";
@@ -1203,7 +1230,6 @@ function renderPlayers(players: Record<string, Player> | null) {
 
   // Only real players (have username); host record has no username.
   // Esclude anche i giocatori espulsi (kickedUids nello stato di gioco).
-  const kicked = currentGame?.kickedUids ?? {};
   const playerEntries = Object.entries(players).filter(
     ([uid, p]) => p.username && !kicked[uid]
   );
@@ -1604,6 +1630,7 @@ function startListeners() {
     updateStatusBadge(currentGame.status);
     renderQuestionPanel(currentGame);
     renderControls(currentGame);
+    renderPlayers(currentPlayers);
     refreshQuestionPreviewIfVisible();
 
     if (
@@ -1660,6 +1687,7 @@ async function init() {
 
     bindQuestionSettings();
     bindHostUidCard();
+    bindRemovedPlayersControls();
     await generateQR();
     startListeners();
   } catch (err) {
