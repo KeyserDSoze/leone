@@ -1,6 +1,12 @@
 import { ref, get, set, update } from "firebase/database";
 import { db } from "../firebase";
-import { GAME_ID, INITIAL_GAME_STATE, DEMO_ANSWER_SECONDS, QUESTION_ANSWER_SECONDS } from "./config";
+import {
+  GAME_ID,
+  INITIAL_GAME_STATE,
+  DEMO_ANSWER_SECONDS,
+  QUESTION_ANSWER_SECONDS,
+  START_JINGLE_DURATION_MS,
+} from "./config";
 import type {
   Question,
   GameStatus,
@@ -81,6 +87,19 @@ export async function restoreRemovedPlayers(): Promise<void> {
   await update(ref(db, `games/${GAME_ID}`), {
     kickedUids: null,
     kickedUsernames: null,
+  });
+}
+
+/** Lancia jingle e animazione sul proiettore senza cambiare stato della partita. */
+export async function triggerStartJingle(): Promise<void> {
+  const now = Date.now();
+  await update(ref(db, `games/${GAME_ID}`), {
+    projectorCue: {
+      id: String(now),
+      type: "start-jingle",
+      startedAt: now,
+      durationMs: START_JINGLE_DURATION_MS,
+    },
   });
 }
 

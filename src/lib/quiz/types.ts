@@ -68,6 +68,13 @@ export type PublicQuestionLeaderboardEntry = {
   responseMs: number | null;
 };
 
+export type ProjectorCue = {
+  id: string;
+  type: "start-jingle";
+  startedAt: number;
+  durationMs: number;
+};
+
 export type GameState = {
   /** Identificatore univoco della sessione di gioco; rigenerato ad ogni reset */
   gameSession: string;
@@ -89,6 +96,7 @@ export type GameState = {
   publicCurrentResult: PublicResult | null;
   publicAnswerStats: PublicAnswerStats | null;
   publicQuestionLeaderboard: PublicQuestionLeaderboardEntry[] | null;
+  projectorCue?: ProjectorCue | null;
   /** uid dei giocatori espulsi dall'host (offline) */
   kickedUids?: Record<string, boolean> | null;
   /** username dei giocatori espulsi, per filtrare classifiche già calcolate */

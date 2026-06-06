@@ -110,6 +110,36 @@
       line-height: 1;
       filter: drop-shadow(0 12px 18px rgba(58, 90, 53, 0.12));
     }
+    .projector-player-counter {
+      width: min(520px, 100%);
+      margin: 6px auto 0;
+      padding: 24px 28px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, #F5FAF1, #EAF2E4);
+      border: 2px solid var(--green-line);
+      text-align: center;
+      box-shadow: 0 14px 34px rgba(58, 90, 53, 0.12);
+    }
+    .projector-player-number {
+      display: block;
+      color: var(--green);
+      font-size: clamp(62px, 9vw, 126px);
+      line-height: 0.95;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+    .projector-player-number.bump { animation: countBump 0.42s ease; }
+    .projector-player-label {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: clamp(18px, 1.8vw, 28px);
+      font-weight: 900;
+    }
+    @keyframes countBump {
+      0%, 100% { transform: scale(1); }
+      45% { transform: scale(1.12); }
+    }
 
     .timer-row {
       display: flex;
@@ -311,6 +341,121 @@
     }
     .hidden-row { opacity: 0.62; font-style: italic; }
 
+    .audio-unlock {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 40;
+      display: none;
+      padding: 12px 16px;
+      border: 1px solid var(--green-line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--green-deep);
+      box-shadow: 0 10px 28px rgba(58, 90, 53, 0.18);
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .audio-unlock.show { display: inline-flex; }
+
+    .cue-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(245, 238, 220, 0.95), transparent 34%),
+        radial-gradient(circle at 82% 76%, rgba(203, 220, 194, 0.82), transparent 36%),
+        linear-gradient(135deg, #FFFFFF 0%, #F7FAF4 48%, #EEF5E8 100%);
+      pointer-events: none;
+    }
+    .cue-overlay.active { display: grid; }
+    .cue-orb {
+      position: absolute;
+      width: 28vmin;
+      height: 28vmin;
+      border-radius: 50%;
+      background: rgba(184, 146, 61, 0.16);
+      filter: blur(2px);
+      animation: cueFloat 16s ease-in-out forwards;
+    }
+    .cue-orb.one { left: 9vw; top: 12vh; }
+    .cue-orb.two { right: 10vw; bottom: 9vh; animation-delay: -3s; background: rgba(92, 132, 84, 0.14); }
+    .cue-lion {
+      position: absolute;
+      left: 50%;
+      top: 43%;
+      width: clamp(160px, 22vw, 300px);
+      filter: drop-shadow(0 24px 34px rgba(58, 90, 53, 0.22));
+      animation: lionRoam 16s cubic-bezier(.22,.9,.32,1) forwards;
+      transform-origin: center;
+    }
+    .cue-copy {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      margin-top: 30vh;
+      text-align: center;
+    }
+    .cue-kicker {
+      color: var(--gold);
+      font-size: clamp(18px, 2vw, 30px);
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      opacity: 0;
+      animation: cueKickerIn 16s ease forwards;
+    }
+    .cue-title {
+      font-family: 'Playfull Rocket', system-ui, cursive;
+      color: var(--green);
+      font-size: clamp(70px, 12vw, 170px);
+      line-height: 0.92;
+      text-shadow: 0 16px 34px rgba(58, 90, 53, 0.14);
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+      animation: cueTitleReveal 16s ease forwards;
+    }
+    .cue-subtitle {
+      color: var(--muted);
+      font-size: clamp(20px, 2.2vw, 34px);
+      font-weight: 900;
+      opacity: 0;
+      animation: cueSubtitleIn 16s ease forwards;
+    }
+    @keyframes cueFloat {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      45% { transform: translate3d(7vw, 5vh, 0) scale(1.18); }
+      75% { transform: translate3d(-4vw, 8vh, 0) scale(0.92); }
+    }
+    @keyframes lionRoam {
+      0% { opacity: 0; transform: translate(-82vw, -18vh) rotate(-28deg) scale(0.7); }
+      9% { opacity: 1; }
+      24% { transform: translate(18vw, 18vh) rotate(26deg) scale(0.94); }
+      44% { transform: translate(-28vw, -23vh) rotate(-18deg) scale(1.08); }
+      63% { transform: translate(25vw, -10vh) rotate(16deg) scale(0.96); }
+      82% { transform: translate(-9vw, 8vh) rotate(-8deg) scale(1.02); }
+      100% { opacity: 1; transform: translate(-50%, -70%) rotate(0deg) scale(1.06); }
+    }
+    @keyframes cueKickerIn {
+      0%, 18% { opacity: 0; transform: translateY(16px); }
+      30%, 100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes cueTitleReveal {
+      0%, 24% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateY(18px) scale(0.98); }
+      42% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateY(0) scale(1); }
+      100% { opacity: 1; clip-path: inset(0 0 0 0); transform: translateY(0) scale(1); }
+    }
+    @keyframes cueSubtitleIn {
+      0%, 45% { opacity: 0; transform: translateY(10px); }
+      58%, 100% { opacity: 1; transform: translateY(0); }
+    }
+
     @media (max-width: 760px) {
       body { padding: 14px; }
       .stage-card { padding: 24px 18px; border-radius: 24px; }
@@ -333,6 +478,10 @@
       <span class="hero-icon">🦁</span>
       <h1 class="title">CervelLeone</h1>
       <p class="subtitle">I giocatori stanno entrando. Tra poco si comincia.</p>
+      <div class="projector-player-counter" aria-live="polite">
+        <span id="lobby-player-count" class="projector-player-number">0</span>
+        <span class="projector-player-label">giocatori in partita</span>
+      </div>
     </section>
   </main>
 
@@ -396,15 +545,30 @@
     </section>
   </main>
 
+  <button id="audio-unlock" class="audio-unlock show" type="button">🔊 Attiva audio proiettore</button>
+
+  <div id="projector-cue-overlay" class="cue-overlay" aria-hidden="true">
+    <span class="cue-orb one"></span>
+    <span class="cue-orb two"></span>
+    <img class="cue-lion" src="/images/leone-lion.png" alt="" />
+    <div class="cue-copy">
+      <p class="cue-kicker">Sta iniziando</p>
+      <h1 class="cue-title">CervelLeone</h1>
+      <p class="cue-subtitle">Pronti a ruggire?</p>
+    </div>
+  </div>
+
   <script>
     import { db, ensureAnonymousUser } from "../../lib/firebase";
-    import { GAME_ID } from "../../lib/quiz/config";
+    import { GAME_ID, START_JINGLE_DURATION_MS } from "../../lib/quiz/config";
     import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
     import { ref, onValue } from "firebase/database";
     import type {
       AnswerId,
       GameState,
       LeaderboardEntry,
+      Player,
+      ProjectorCue,
       PublicAnswerStats,
       PublicQuestion,
       PublicQuestionLeaderboardEntry,
@@ -444,8 +608,17 @@
     };
 
     let currentGame: GameState | null = null;
+    let currentPlayers: Record<string, Player> = {};
     let currentLeaderboard: Record<string, LeaderboardEntry> = {};
     let timerInterval: ReturnType<typeof setInterval> | null = null;
+    let cueHideTimeout: ReturnType<typeof setTimeout> | null = null;
+    let lastProjectorCueId: string | null = null;
+    let lastLobbyPlayerCount = -1;
+    let projectorAudio: HTMLAudioElement | null = null;
+    let pendingAudioCue: ProjectorCue | null = null;
+
+    const assetBase = import.meta.env.BASE_URL.replace(/\/$/, "");
+    const START_JINGLE_SRC = `${assetBase}/audio/cervelleone-start.mp3`;
 
     function escapeHtml(value: unknown): string {
       return String(value ?? "")
@@ -459,6 +632,125 @@
     function showScreen(id: string) {
       document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
       document.getElementById(`screen-${id}`)?.classList.add("active");
+    }
+
+    function getProjectorAudio(): HTMLAudioElement {
+      if (!projectorAudio) {
+        projectorAudio = new Audio(START_JINGLE_SRC);
+        projectorAudio.preload = "auto";
+      }
+      return projectorAudio;
+    }
+
+    function setAudioUnlockVisible(visible: boolean) {
+      document.getElementById("audio-unlock")?.classList.toggle("show", visible);
+    }
+
+    async function playCueAudio(cue: ProjectorCue) {
+      const audio = getProjectorAudio();
+      const elapsedMs = Math.max(0, Date.now() - cue.startedAt);
+      const durationMs = cue.durationMs || START_JINGLE_DURATION_MS;
+      const maxOffsetSeconds = Math.max(0, (durationMs - 300) / 1000);
+
+      try {
+        audio.pause();
+        audio.src = START_JINGLE_SRC;
+        audio.currentTime = Math.min(elapsedMs / 1000, maxOffsetSeconds);
+        audio.volume = 1;
+        await audio.play();
+        pendingAudioCue = null;
+        setAudioUnlockVisible(false);
+      } catch (err) {
+        console.warn("Projector audio blocked or unavailable", err);
+        pendingAudioCue = cue;
+        setAudioUnlockVisible(true);
+      }
+    }
+
+    async function enableProjectorAudio() {
+      const audio = getProjectorAudio();
+      try {
+        audio.volume = 0;
+        audio.currentTime = 0;
+        await audio.play();
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 1;
+        setAudioUnlockVisible(false);
+        if (pendingAudioCue) await playCueAudio(pendingAudioCue);
+      } catch (err) {
+        console.warn("Unable to unlock projector audio", err);
+        setAudioUnlockVisible(true);
+      }
+    }
+
+    function hideProjectorCue() {
+      const overlay = document.getElementById("projector-cue-overlay");
+      overlay?.classList.remove("active");
+      overlay?.setAttribute("aria-hidden", "true");
+      if (cueHideTimeout) {
+        clearTimeout(cueHideTimeout);
+        cueHideTimeout = null;
+      }
+      if (projectorAudio && !projectorAudio.paused) {
+        projectorAudio.pause();
+        projectorAudio.currentTime = 0;
+      }
+    }
+
+    function showProjectorCue(cue: ProjectorCue) {
+      const overlay = document.getElementById("projector-cue-overlay");
+      if (!overlay) return;
+
+      const elapsedMs = Math.max(0, Date.now() - cue.startedAt);
+      const durationMs = cue.durationMs || START_JINGLE_DURATION_MS;
+      const remainingMs = Math.max(0, durationMs - elapsedMs);
+      if (remainingMs <= 0) return;
+
+      if (cueHideTimeout) clearTimeout(cueHideTimeout);
+      overlay.classList.remove("active");
+      void overlay.offsetWidth;
+      overlay.classList.add("active");
+      overlay.setAttribute("aria-hidden", "false");
+
+      void playCueAudio(cue);
+      cueHideTimeout = setTimeout(hideProjectorCue, remainingMs);
+    }
+
+    function handleProjectorCue(cue?: ProjectorCue | null) {
+      if (!cue || cue.id === lastProjectorCueId) return;
+      lastProjectorCueId = cue.id;
+      if (cue.type !== "start-jingle") return;
+
+      const elapsedMs = Date.now() - cue.startedAt;
+      const durationMs = cue.durationMs || START_JINGLE_DURATION_MS;
+      if (elapsedMs > durationMs + 3000) return;
+      showProjectorCue(cue);
+    }
+
+    function activePlayerCount(): number {
+      const kickedUids = currentGame?.kickedUids ?? {};
+      const kickedNames = new Set(Object.values(currentGame?.kickedUsernames ?? {}));
+      return Object.entries(currentPlayers).filter(
+        ([uid, player]) =>
+          player.username &&
+          !kickedUids[uid] &&
+          !kickedNames.has(player.username)
+      ).length;
+    }
+
+    function renderLobby() {
+      stopTimer();
+      const count = activePlayerCount();
+      const countEl = document.getElementById("lobby-player-count");
+      if (countEl && count !== lastLobbyPlayerCount) {
+        countEl.textContent = String(count);
+        countEl.classList.remove("bump");
+        void countEl.offsetWidth;
+        countEl.classList.add("bump");
+        lastLobbyPlayerCount = count;
+      }
+      showScreen("lobby");
     }
 
     function subjectKey(q?: PublicQuestion | null): string {
@@ -693,11 +985,11 @@
 
     function handleGame(game: GameState) {
       currentGame = game;
+      handleProjectorCue(game.projectorCue);
       const q = game.publicCurrentQuestion;
 
       if (game.status === "lobby") {
-        stopTimer();
-        showScreen("lobby");
+        renderLobby();
         return;
       }
 
@@ -737,9 +1029,14 @@
     async function init() {
       try {
         await ensureAnonymousUser();
+        document.getElementById("audio-unlock")?.addEventListener("click", enableProjectorAudio);
         onValue(ref(db, `games/${GAME_ID}`), (snap) => {
           if (!snap.exists()) return;
           handleGame(snap.val() as GameState);
+        });
+        onValue(ref(db, `players/${GAME_ID}`), (snap) => {
+          currentPlayers = snap.val() ?? {};
+          if (currentGame?.status === "lobby") renderLobby();
         });
         onValue(ref(db, `leaderboards/${GAME_ID}`), (snap) => {
           currentLeaderboard = snap.val() ?? {};

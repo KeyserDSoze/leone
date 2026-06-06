@@ -569,6 +569,7 @@
       <div class="card">
         <p class="card-title">Schermo proiettore</p>
         <p class="player-url" id="projector-url-text"></p>
+        <button class="copy-btn" id="btn-start-jingle">🎵 Lancia jingle CervelLeone</button>
         <button class="copy-btn" id="btn-open-projector">🖥️ Apri proiettore</button>
         <button class="copy-btn" id="btn-copy-projector-url">📋 Copia link proiettore</button>
       </div>
@@ -669,6 +670,7 @@ import {
   finishGame,
   kickPlayer,
   restoreRemovedPlayers,
+  triggerStartJingle,
 } from "../../lib/quiz/hostApi";
 import { setupPresence } from "../../lib/quiz/presence";
 import {
@@ -975,6 +977,23 @@ function bindRemovedPlayersControls() {
       console.error("Restore removed players error:", err);
     } finally {
       btn.disabled = false;
+    }
+  });
+}
+
+function bindProjectorCueControls() {
+  const btn = document.getElementById("btn-start-jingle") as HTMLButtonElement | null;
+  btn?.addEventListener("click", async () => {
+    btn.disabled = true;
+    try {
+      await triggerStartJingle();
+      btn.textContent = "🎵 Jingle lanciato";
+      setTimeout(() => { btn.textContent = "🎵 Lancia jingle CervelLeone"; }, 1800);
+    } catch (err) {
+      console.error("Start jingle error:", err);
+      alert("Non sono riuscito a lanciare il jingle sul proiettore.");
+    } finally {
+      setTimeout(() => { btn.disabled = false; }, 1200);
     }
   });
 }
@@ -1688,6 +1707,7 @@ async function init() {
     bindQuestionSettings();
     bindHostUidCard();
     bindRemovedPlayersControls();
+    bindProjectorCueControls();
     await generateQR();
     startListeners();
   } catch (err) {
