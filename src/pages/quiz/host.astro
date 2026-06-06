@@ -532,6 +532,14 @@
         <button class="copy-btn" id="btn-copy-url">📋 Copia link</button>
       </div>
 
+      <!-- Schermo proiettore -->
+      <div class="card">
+        <p class="card-title">Schermo proiettore</p>
+        <p class="player-url" id="projector-url-text"></p>
+        <button class="copy-btn" id="btn-open-projector">🖥️ Apri proiettore</button>
+        <button class="copy-btn" id="btn-copy-projector-url">📋 Copia link proiettore</button>
+      </div>
+
       <!-- Giocatori -->
       <div class="card">
         <p class="card-title">Giocatori in partita</p>
@@ -746,9 +754,12 @@ function bindQuestionSettings() {
 async function generateQR() {
   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   const playerUrl = `${window.location.origin}${base}/quiz`;
+  const projectorUrl = `${window.location.origin}${base}/quiz/proiettore`;
   const img = document.getElementById("qr-img") as HTMLImageElement | null;
   const urlText = document.getElementById("player-url-text");
+  const projectorUrlText = document.getElementById("projector-url-text");
   if (urlText) urlText.textContent = playerUrl;
+  if (projectorUrlText) projectorUrlText.textContent = projectorUrl;
 
   try {
     const dataUrl = await QRCode.toDataURL(playerUrl, {
@@ -766,6 +777,19 @@ async function generateQR() {
     navigator.clipboard.writeText(playerUrl).then(() => {
       if (copyBtn) copyBtn.textContent = "✅ Copiato!";
       setTimeout(() => { if (copyBtn) copyBtn.textContent = "📋 Copia link"; }, 2000);
+    });
+  });
+
+  const openProjectorBtn = document.getElementById("btn-open-projector");
+  openProjectorBtn?.addEventListener("click", () => {
+    window.open(projectorUrl, "_blank", "noopener,noreferrer");
+  });
+
+  const copyProjectorBtn = document.getElementById("btn-copy-projector-url");
+  copyProjectorBtn?.addEventListener("click", () => {
+    navigator.clipboard.writeText(projectorUrl).then(() => {
+      if (copyProjectorBtn) copyProjectorBtn.textContent = "✅ Copiato!";
+      setTimeout(() => { if (copyProjectorBtn) copyProjectorBtn.textContent = "📋 Copia link proiettore"; }, 2000);
     });
   });
 }

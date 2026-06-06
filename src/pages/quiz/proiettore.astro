@@ -1,0 +1,760 @@
+---
+// src/pages/quiz/proiettore.astro — Schermo pubblico per proiettore
+---
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proiettore — CervelLeone 🦁</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/global.css" />
+  <style is:global>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-deep: #3A5A35;
+      --green: #4B6F44;
+      --green-mid: #5C8454;
+      --green-soft: #EDF3E8;
+      --green-line: #CBDCC2;
+      --gold: #B8923D;
+      --gold-soft: #F5EEDC;
+      --gold-line: #E4D3A6;
+      --ink: #33402F;
+      --muted: #7C8A76;
+      --card: rgba(255,255,255,0.97);
+      --danger: #B5564B;
+      --danger-soft: #F5E6E3;
+      --track: #E9EFE4;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      color: var(--ink);
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    .screen {
+      display: none;
+      width: min(1180px, 100%);
+    }
+    .screen.active { display: block; }
+
+    .stage-card {
+      width: 100%;
+      min-height: min(760px, calc(100vh - 56px));
+      border-radius: 32px;
+      background: var(--card);
+      border: 1px solid rgba(203, 220, 194, 0.78);
+      box-shadow: 0 22px 60px rgba(58, 90, 53, 0.16);
+      padding: 38px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .stage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 6px;
+    }
+    .progress-label {
+      font-size: clamp(16px, 1.5vw, 22px);
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.1px;
+    }
+    .subject-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 15px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green-deep);
+      font-size: clamp(13px, 1.1vw, 17px);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      white-space: nowrap;
+    }
+    .subject-leone { background: var(--gold-soft); color: #8A6A2B; }
+    .subject-demo { background: #EAF1F2; color: #3E6470; }
+
+    .title {
+      font-family: 'Playfull Rocket', system-ui, cursive;
+      color: var(--green);
+      text-align: center;
+      line-height: 1.1;
+      font-size: clamp(44px, 6vw, 86px);
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: clamp(20px, 2vw, 30px);
+      line-height: 1.35;
+    }
+    .hero-icon {
+      display: block;
+      text-align: center;
+      font-size: clamp(78px, 10vw, 150px);
+      line-height: 1;
+      filter: drop-shadow(0 12px 18px rgba(58, 90, 53, 0.12));
+    }
+
+    .timer-row {
+      display: flex;
+      justify-content: center;
+      margin: 2px 0 6px;
+    }
+    .timer-circle {
+      width: clamp(74px, 8vw, 112px);
+      height: clamp(74px, 8vw, 112px);
+      border-radius: 50%;
+      background: var(--green-soft);
+      border: 4px solid var(--green-mid);
+      color: var(--green-deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(32px, 4vw, 54px);
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+    .timer-circle.urgent {
+      background: var(--danger-soft);
+      border-color: var(--danger);
+      color: var(--danger);
+      animation: pulse 0.6s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    .question-text {
+      text-align: center;
+      color: var(--ink);
+      font-size: clamp(34px, 4vw, 64px);
+      font-weight: 900;
+      line-height: 1.17;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+    .answers-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .answer-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-height: 104px;
+      padding: 18px 22px;
+      border-radius: 22px;
+      border: 3px solid transparent;
+      font-size: clamp(19px, 2vw, 30px);
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .answer-card.correct { border-color: var(--green-mid) !important; background: var(--green-soft) !important; color: var(--green-deep) !important; }
+    .answer-card.dimmed { opacity: 0.42; }
+    .answer-A { background: #EAF1F2; border-color: #C3D7DD; color: #2E5A66; }
+    .answer-B { background: #ECF4E6; border-color: #C5DCB8; color: #3A5A35; }
+    .answer-C { background: #F7EFE1; border-color: #E5D2B2; color: #8A5A2B; }
+    .answer-D { background: #F1ECF3; border-color: #D8C8DF; color: #6A4A78; }
+    .answer-letter {
+      width: clamp(42px, 4vw, 58px);
+      height: clamp(42px, 4vw, 58px);
+      min-width: clamp(42px, 4vw, 58px);
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.68);
+      font-size: clamp(18px, 2vw, 28px);
+      font-weight: 900;
+    }
+
+    .stats-list { display: grid; gap: 12px; }
+    .stat-row {
+      padding: 13px 15px;
+      border-radius: 17px;
+      background: #fff;
+      border: 1px solid #E4E8E0;
+      box-shadow: 0 6px 18px rgba(58, 90, 53, 0.06);
+    }
+    .stat-head { display: flex; align-items: center; gap: 12px; }
+    .stat-letter {
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: var(--green-soft);
+      color: var(--green-deep);
+      font-weight: 900;
+    }
+    .stat-title { flex: 1; font-weight: 800; font-size: clamp(17px, 1.7vw, 25px); }
+    .stat-votes { color: var(--muted); font-size: clamp(14px, 1.2vw, 18px); }
+    .stat-pct { min-width: 70px; text-align: right; color: var(--green-deep); font-weight: 900; font-size: clamp(22px, 2.2vw, 32px); }
+    .stat-bar { margin-top: 9px; height: 10px; border-radius: 999px; background: var(--track); overflow: hidden; }
+    .stat-fill { height: 100%; border-radius: 999px; background: #CDD6C6; transition: width 0.7s ease; }
+    .stat-row.correct { border-color: var(--green-mid); background: var(--green-soft); }
+    .stat-fill.correct { background: linear-gradient(135deg, #6FA063, #4B6F44); }
+
+    .answer-reveal {
+      border-radius: 22px;
+      border: 2px solid var(--green-line);
+      background: linear-gradient(180deg, #F3F8EF, #EAF2E4);
+      padding: 22px;
+      text-align: center;
+    }
+    .answer-reveal-title {
+      color: var(--green-deep);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      font-size: clamp(16px, 1.4vw, 22px);
+    }
+    .answer-reveal-text {
+      color: var(--ink);
+      font-size: clamp(24px, 2.7vw, 42px);
+      font-weight: 900;
+      line-height: 1.22;
+    }
+    .explanation {
+      max-width: 920px;
+      margin: 14px auto 0;
+      color: #4A5544;
+      font-size: clamp(16px, 1.4vw, 22px);
+      line-height: 1.4;
+    }
+
+    .leaderboard-list {
+      list-style: none;
+      display: grid;
+      gap: 14px;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 20px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #fff, #FAFCF7);
+      border: 2px solid var(--green-line);
+      box-shadow: 0 10px 26px rgba(58, 90, 53, 0.07);
+    }
+    .leaderboard-item.rank1 { background: #FBF4DE; border-color: var(--gold); }
+    .leaderboard-item.rank2 { background: #F4F6F1; border-color: #AEBBA6; }
+    .leaderboard-item.rank3 { background: #F6EEE2; border-color: #D8B98A; }
+    .rank-badge {
+      width: 62px;
+      height: 62px;
+      min-width: 62px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.86);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--green-deep);
+    }
+    .lb-copy { flex: 1; min-width: 0; }
+    .lb-name { display: block; color: var(--ink); font-size: clamp(22px, 2.2vw, 34px); font-weight: 900; }
+    .lb-sub { display: block; margin-top: 5px; color: var(--muted); font-size: clamp(14px, 1.2vw, 18px); }
+    .lb-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .lb-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      background: #EDF0EA;
+      color: #5A6654;
+    }
+    .lb-pill.correct { background: #DDEBD3; color: var(--green-deep); }
+    .lb-pill.wrong { background: #F1DED9; color: #8A3E34; }
+    .lb-pill.skip { background: #E4E8E0; color: #5A6654; }
+    .lb-score {
+      min-width: 110px;
+      text-align: center;
+      color: var(--green);
+      background: #F1F6EC;
+      border: 1px solid var(--green-line);
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: clamp(20px, 2vw, 30px);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .hidden-row { opacity: 0.62; font-style: italic; }
+
+    @media (max-width: 760px) {
+      body { padding: 14px; }
+      .stage-card { padding: 24px 18px; border-radius: 24px; }
+      .answers-grid { grid-template-columns: 1fr; }
+      .stage-header { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main id="screen-loading" class="screen active">
+    <section class="stage-card">
+      <span class="hero-icon">🦁</span>
+      <h1 class="title">CervelLeone</h1>
+      <p class="subtitle">Connessione allo schermo del gioco...</p>
+    </section>
+  </main>
+
+  <main id="screen-lobby" class="screen">
+    <section class="stage-card">
+      <span class="hero-icon">🦁</span>
+      <h1 class="title">CervelLeone</h1>
+      <p class="subtitle">I giocatori stanno entrando. Tra poco si comincia.</p>
+    </section>
+  </main>
+
+  <main id="screen-preview" class="screen">
+    <section class="stage-card">
+      <div class="stage-header">
+        <span id="preview-progress" class="progress-label">Domanda</span>
+        <span id="preview-subject" class="subject-badge">Cultura</span>
+      </div>
+      <span id="preview-icon" class="hero-icon">🌿</span>
+      <p class="subtitle">Il babbo sta per rivelare la domanda...</p>
+    </section>
+  </main>
+
+  <main id="screen-question" class="screen">
+    <section class="stage-card">
+      <div class="stage-header">
+        <span id="question-progress" class="progress-label">Domanda</span>
+        <span id="question-subject" class="subject-badge">Cultura</span>
+      </div>
+      <div class="timer-row"><div id="question-timer" class="timer-circle">20</div></div>
+      <h1 id="question-text" class="question-text">...</h1>
+      <div id="answers-grid" class="answers-grid"></div>
+    </section>
+  </main>
+
+  <main id="screen-answer" class="screen">
+    <section class="stage-card">
+      <div class="stage-header">
+        <span id="answer-progress" class="progress-label">Risposta</span>
+        <span id="answer-subject" class="subject-badge">Cultura</span>
+      </div>
+      <h1 id="answer-question-text" class="question-text">...</h1>
+      <div id="answer-grid" class="answers-grid"></div>
+      <div id="correct-reveal" class="answer-reveal"></div>
+      <div id="stats-container"></div>
+    </section>
+  </main>
+
+  <main id="screen-question-leaderboard" class="screen">
+    <section class="stage-card">
+      <h1 class="title">Classifica domanda</h1>
+      <ul id="question-leaderboard-list" class="leaderboard-list"></ul>
+    </section>
+  </main>
+
+  <main id="screen-leaderboard" class="screen">
+    <section class="stage-card">
+      <span class="hero-icon">🏆</span>
+      <h1 class="title">Classifica</h1>
+      <ul id="leaderboard-list" class="leaderboard-list"></ul>
+      <p id="leaderboard-note" class="subtitle"></p>
+    </section>
+  </main>
+
+  <main id="screen-error" class="screen">
+    <section class="stage-card">
+      <span class="hero-icon">😕</span>
+      <h1 class="title">Ops!</h1>
+      <p id="error-message" class="subtitle">Errore di connessione.</p>
+    </section>
+  </main>
+
+  <script>
+    import { db, ensureAnonymousUser } from "../../lib/firebase";
+    import { GAME_ID } from "../../lib/quiz/config";
+    import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
+    import { ref, onValue } from "firebase/database";
+    import type {
+      AnswerId,
+      GameState,
+      LeaderboardEntry,
+      PublicAnswerStats,
+      PublicQuestion,
+      PublicQuestionLeaderboardEntry,
+      PublicResult,
+    } from "../../lib/quiz/types";
+
+    const SUB_NAMES: Record<string, string> = {
+      "geografia": "Geografia",
+      "storia-antica": "Storia Antica",
+      "storia-moderna": "Storia Moderna",
+      "tecnologia": "Tecnologia",
+      "politica-italia": "Politica",
+      "grammatica-italiana": "Italiano",
+      "matematica": "Matematica",
+      "fisica-chimica": "Fisica & Chimica",
+      "arte": "Arte & Letteratura",
+      "musica": "Musica",
+      "religione": "Religione",
+      "leone": "Leone",
+      "demo": "Demo",
+    };
+
+    const SUB_ICONS: Record<string, string> = {
+      "geografia": "🌍",
+      "storia-antica": "🏛️",
+      "storia-moderna": "📜",
+      "tecnologia": "💻",
+      "politica-italia": "🇮🇹",
+      "grammatica-italiana": "📝",
+      "matematica": "🔢",
+      "fisica-chimica": "🧪",
+      "arte": "🎨",
+      "musica": "🎵",
+      "religione": "🕊️",
+      "leone": "🦁",
+      "demo": "🎓",
+    };
+
+    let currentGame: GameState | null = null;
+    let currentLeaderboard: Record<string, LeaderboardEntry> = {};
+    let timerInterval: ReturnType<typeof setInterval> | null = null;
+
+    function escapeHtml(value: unknown): string {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showScreen(id: string) {
+      document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
+      document.getElementById(`screen-${id}`)?.classList.add("active");
+    }
+
+    function subjectKey(q?: PublicQuestion | null): string {
+      if (!q) return "general";
+      return q.category === "general" ? q.subcategory ?? "general" : q.category;
+    }
+
+    function subjectName(q?: PublicQuestion | null): string {
+      return SUB_NAMES[subjectKey(q)] ?? "Cultura";
+    }
+
+    function subjectIcon(q?: PublicQuestion | null): string {
+      return SUB_ICONS[subjectKey(q)] ?? "🌿";
+    }
+
+    function subjectClass(q?: PublicQuestion | null): string {
+      if (q?.category === "leone") return "subject-badge subject-leone";
+      if (q?.category === "demo") return "subject-badge subject-demo";
+      return "subject-badge";
+    }
+
+    function setSubject(prefix: string, q: PublicQuestion) {
+      const subjectEl = document.getElementById(`${prefix}-subject`);
+      if (subjectEl) {
+        subjectEl.textContent = subjectName(q);
+        subjectEl.className = subjectClass(q);
+      }
+    }
+
+    function progressText(q: PublicQuestion): string {
+      return q.category === "demo" ? "Domanda demo" : `Domanda ${q.index} / ${q.total}`;
+    }
+
+    function formatResponseTime(responseMs: number | null): string {
+      if (responseMs == null) return "Tempo scaduto";
+      const seconds = responseMs / 1000;
+      return `${seconds < 10 ? seconds.toFixed(1) : Math.round(seconds)}s`;
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function startTimer(endsAt: number | null) {
+      stopTimer();
+      const timerEl = document.getElementById("question-timer");
+      if (!timerEl || !endsAt) return;
+
+      function tick() {
+        const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+        timerEl!.textContent = String(remaining);
+        timerEl!.classList.toggle("urgent", remaining <= 5);
+      }
+
+      tick();
+      timerInterval = setInterval(tick, 500);
+    }
+
+    function renderPreview(q: PublicQuestion) {
+      stopTimer();
+      const progressEl = document.getElementById("preview-progress");
+      const subjectEl = document.getElementById("preview-subject");
+      const iconEl = document.getElementById("preview-icon");
+      if (progressEl) progressEl.textContent = progressText(q);
+      if (subjectEl) {
+        subjectEl.textContent = subjectName(q);
+        subjectEl.className = subjectClass(q);
+      }
+      if (iconEl) iconEl.textContent = subjectIcon(q);
+      showScreen("preview");
+    }
+
+    function answerClass(id: AnswerId): string {
+      return `answer-card answer-${id}`;
+    }
+
+    function renderAnswers(q: PublicQuestion, correctIds: AnswerId[] = [], reveal = false): string {
+      return q.answers.map((answer) => {
+        const isCorrect = correctIds.includes(answer.id);
+        const cls = `${answerClass(answer.id)} ${reveal && isCorrect ? "correct" : ""} ${reveal && !isCorrect ? "dimmed" : ""}`;
+        return `<div class="${cls}"><span class="answer-letter">${answer.id}</span><span>${escapeHtml(answer.text)}</span></div>`;
+      }).join("");
+    }
+
+    function renderQuestion(q: PublicQuestion, endsAt: number | null, locked = false) {
+      const progressEl = document.getElementById("question-progress");
+      const textEl = document.getElementById("question-text");
+      const gridEl = document.getElementById("answers-grid");
+      if (progressEl) progressEl.textContent = locked ? `${progressText(q)} · risposte chiuse` : progressText(q);
+      setSubject("question", q);
+      if (textEl) textEl.textContent = q.text;
+      if (gridEl) gridEl.innerHTML = renderAnswers(q);
+      startTimer(endsAt);
+      showScreen("question");
+    }
+
+    function renderStats(stats: PublicAnswerStats | null, correctIds: AnswerId[]): string {
+      if (!stats) return "";
+      const ids = ["A", "B", "C", "D"] as const;
+      const total = stats.total ?? 0;
+      return `<div class="stats-list">${ids.map((id) => {
+        const count = stats[id] ?? 0;
+        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+        const correct = correctIds.includes(id);
+        return `<div class="stat-row ${correct ? "correct" : ""}">
+          <div class="stat-head">
+            <span class="stat-letter">${id}</span>
+            <span class="stat-title">Risposta ${id}</span>
+            <span class="stat-votes">${count} ${count === 1 ? "risposta" : "risposte"}</span>
+            <span class="stat-pct">${pct}%</span>
+          </div>
+          <div class="stat-bar"><div class="stat-fill ${correct ? "correct" : ""}" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join("")}</div>`;
+    }
+
+    function renderAnswer(q: PublicQuestion, result: PublicResult, stats: PublicAnswerStats | null, showStats: boolean) {
+      stopTimer();
+      const correctIds = getCorrectAnswerIds(result);
+      const progressEl = document.getElementById("answer-progress");
+      const questionEl = document.getElementById("answer-question-text");
+      const gridEl = document.getElementById("answer-grid");
+      const revealEl = document.getElementById("correct-reveal");
+      const statsEl = document.getElementById("stats-container");
+
+      if (progressEl) progressEl.textContent = progressText(q);
+      setSubject("answer", q);
+      if (questionEl) questionEl.textContent = q.text;
+      if (gridEl) gridEl.innerHTML = renderAnswers(q, correctIds, true);
+
+      const correctTexts = correctIds
+        .map((id) => q.answers.find((answer) => answer.id === id))
+        .filter(Boolean)
+        .map((answer) => `${answer!.id}) ${answer!.text}`);
+
+      if (revealEl) {
+        revealEl.innerHTML = `<p class="answer-reveal-title">${correctIds.length === 4 ? "Domanda speciale" : correctIds.length > 1 ? "Risposte corrette" : "Risposta corretta"}</p>
+          <p class="answer-reveal-text">${escapeHtml(correctIds.length === 4 ? "Tutte le risposte erano valide" : correctTexts.join(" · "))}</p>
+          ${result.explanation ? `<p class="explanation">${escapeHtml(result.explanation)}</p>` : ""}`;
+      }
+      if (statsEl) statsEl.innerHTML = showStats ? renderStats(stats, correctIds) : "";
+      showScreen("answer");
+    }
+
+    function isKicked(uid: string, username: string): boolean {
+      const kickedUids = currentGame?.kickedUids ?? {};
+      const kickedNames = new Set(Object.values(currentGame?.kickedUsernames ?? {}));
+      return Boolean(kickedUids[uid]) || kickedNames.has(username);
+    }
+
+    function visibleLeaderboardEntries(): [string, LeaderboardEntry][] {
+      return Object.entries(currentLeaderboard)
+        .filter(([uid, entry]) => !isKicked(uid, entry.username))
+        .sort(([, a], [, b]) => b.score - a.score);
+    }
+
+    function visibleQuestionEntries(entries: PublicQuestionLeaderboardEntry[]): PublicQuestionLeaderboardEntry[] {
+      const kickedUids = currentGame?.kickedUids ?? {};
+      const kickedNames = new Set(Object.values(currentGame?.kickedUsernames ?? {}));
+      return entries.filter((entry) => !(entry.uid && kickedUids[entry.uid]) && !kickedNames.has(entry.username));
+    }
+
+    function renderQuestionLeaderboard(entries: PublicQuestionLeaderboardEntry[]) {
+      stopTimer();
+      const listEl = document.getElementById("question-leaderboard-list");
+      if (!listEl) return;
+      const visible = visibleQuestionEntries(entries).slice(0, 10);
+      if (visible.length === 0) {
+        listEl.innerHTML = `<li class="leaderboard-item"><span class="lb-name">Nessun dato disponibile</span></li>`;
+        showScreen("question-leaderboard");
+        return;
+      }
+
+      const medals = ["🥇", "🥈", "🥉"];
+      listEl.innerHTML = visible.map((entry, i) => {
+        const rank = i + 1;
+        const outcomeClass = entry.isCorrect ? "correct" : entry.answerId ? "wrong" : "skip";
+        const outcomeLabel = entry.isCorrect ? "Corretta" : entry.answerId ? "Sbagliata" : "Saltata";
+        const points = `${entry.points >= 0 ? "+" : ""}${entry.points.toLocaleString("it-IT")} pt`;
+        return `<li class="leaderboard-item ${rank <= 3 ? `rank${rank}` : ""}">
+          <span class="rank-badge">${medals[i] ?? `${rank}.`}</span>
+          <div class="lb-copy">
+            <span class="lb-name">${escapeHtml(entry.username)}</span>
+            <span class="lb-sub">${formatResponseTime(entry.responseMs)}</span>
+            <span class="lb-tags"><span class="lb-pill">${entry.answerId ?? "-"}</span><span class="lb-pill ${outcomeClass}">${outcomeLabel}</span></span>
+          </div>
+          <span class="lb-score">${points}</span>
+        </li>`;
+      }).join("");
+      showScreen("question-leaderboard");
+    }
+
+    function renderLeaderboard(revealStep = -1, finished = false) {
+      stopTimer();
+      const listEl = document.getElementById("leaderboard-list");
+      const noteEl = document.getElementById("leaderboard-note");
+      if (!listEl) return;
+
+      const sorted = visibleLeaderboardEntries();
+      if (sorted.length === 0) {
+        listEl.innerHTML = `<li class="leaderboard-item"><span class="lb-name">Ancora nessun punteggio</span></li>`;
+        showScreen("leaderboard");
+        return;
+      }
+
+      const total = sorted.length;
+      const startIndex = finished ? 0 : Math.max(0, Math.min(total, 5 - revealStep));
+      const visible = sorted.slice(startIndex, startIndex + 10);
+      const medals = ["🥇", "🥈", "🥉"];
+      let html = "";
+
+      if (!finished && startIndex > 0) {
+        html += `<li class="leaderboard-item hidden-row"><span class="rank-badge">🎭</span><span class="lb-name">Top ${startIndex} ancora nascosta...</span></li>`;
+      }
+
+      html += visible.map(([uid, entry], i) => {
+        const rank = startIndex + i + 1;
+        return `<li class="leaderboard-item ${rank <= 3 ? `rank${rank}` : ""}">
+          <span class="rank-badge">${medals[rank - 1] ?? `${rank}.`}</span>
+          <div class="lb-copy"><span class="lb-name">${escapeHtml(entry.username)}</span></div>
+          <span class="lb-score">${entry.score.toLocaleString("it-IT")}</span>
+        </li>`;
+      }).join("");
+
+      listEl.innerHTML = html;
+      if (noteEl) noteEl.textContent = finished ? "Classifica finale" : revealStep >= 5 ? "Classifica completa" : "Il babbo sta rivelando la classifica...";
+      showScreen("leaderboard");
+    }
+
+    function handleGame(game: GameState) {
+      currentGame = game;
+      const q = game.publicCurrentQuestion;
+
+      if (game.status === "lobby") {
+        stopTimer();
+        showScreen("lobby");
+        return;
+      }
+
+      if ((game.status === "demo" || game.status === "question") && q) {
+        if (!game.questionVisible) renderPreview(q);
+        else renderQuestion(q, game.questionEndsAt, false);
+        return;
+      }
+
+      if (game.status === "locked" && q) {
+        renderQuestion(q, null, true);
+        const timerEl = document.getElementById("question-timer");
+        if (timerEl) { timerEl.textContent = "0"; timerEl.classList.add("urgent"); }
+        return;
+      }
+
+      if (game.status === "answer" && q && game.publicCurrentResult) {
+        renderAnswer(q, game.publicCurrentResult, game.publicAnswerStats ?? null, game.showStats);
+        return;
+      }
+
+      if (game.status === "question-leaderboard") {
+        renderQuestionLeaderboard(game.publicQuestionLeaderboard ?? []);
+        return;
+      }
+
+      if (game.status === "leaderboard") {
+        renderLeaderboard(game.leaderboardRevealStep ?? -1, false);
+        return;
+      }
+
+      if (game.status === "finished") {
+        renderLeaderboard(99, true);
+      }
+    }
+
+    async function init() {
+      try {
+        await ensureAnonymousUser();
+        onValue(ref(db, `games/${GAME_ID}`), (snap) => {
+          if (!snap.exists()) return;
+          handleGame(snap.val() as GameState);
+        });
+        onValue(ref(db, `leaderboards/${GAME_ID}`), (snap) => {
+          currentLeaderboard = snap.val() ?? {};
+          if (currentGame?.status === "leaderboard") renderLeaderboard(currentGame.leaderboardRevealStep ?? -1, false);
+          if (currentGame?.status === "finished") renderLeaderboard(99, true);
+        });
+      } catch (err) {
+        console.error(err);
+        const errorEl = document.getElementById("error-message");
+        if (errorEl) errorEl.textContent = "Impossibile collegarsi al gioco.";
+        showScreen("error");
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
