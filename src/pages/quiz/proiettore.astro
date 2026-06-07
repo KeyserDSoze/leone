@@ -304,48 +304,50 @@
     .leaderboard-list {
       list-style: none;
       display: grid;
-      gap: 14px;
-      max-width: 900px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
       width: 100%;
       margin: 0 auto;
+      align-content: start;
     }
     .leaderboard-item {
       display: flex;
       align-items: center;
-      gap: 18px;
-      padding: 16px 20px;
-      border-radius: 22px;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 18px;
       background: linear-gradient(180deg, #fff, #FAFCF7);
       border: 2px solid var(--green-line);
       box-shadow: 0 10px 26px rgba(58, 90, 53, 0.07);
+      min-height: 74px;
     }
     .leaderboard-item.rank1 { background: #FBF4DE; border-color: var(--gold); }
     .leaderboard-item.rank2 { background: #F4F6F1; border-color: #AEBBA6; }
     .leaderboard-item.rank3 { background: #F6EEE2; border-color: #D8B98A; }
     .rank-badge {
-      width: 62px;
-      height: 62px;
-      min-width: 62px;
-      border-radius: 18px;
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      border-radius: 12px;
       background: rgba(255,255,255,0.86);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
+      font-size: 20px;
       font-weight: 900;
       color: var(--green-deep);
     }
     .lb-copy { flex: 1; min-width: 0; }
-    .lb-name { display: block; color: var(--ink); font-size: clamp(22px, 2.2vw, 34px); font-weight: 900; }
-    .lb-sub { display: block; margin-top: 5px; color: var(--muted); font-size: clamp(14px, 1.2vw, 18px); }
-    .lb-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .lb-name { display: block; color: var(--ink); font-size: clamp(16px, 1.2vw, 22px); font-weight: 900; line-height: 1.15; }
+    .lb-sub { display: block; margin-top: 3px; color: var(--muted); font-size: clamp(11px, 0.95vw, 14px); }
+    .lb-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
     .lb-pill {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 5px 10px;
+      padding: 4px 7px;
       border-radius: 999px;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 800;
       background: #EDF0EA;
       color: #5A6654;
@@ -354,18 +356,76 @@
     .lb-pill.wrong { background: #F1DED9; color: #8A3E34; }
     .lb-pill.skip { background: #E4E8E0; color: #5A6654; }
     .lb-score {
-      min-width: 110px;
+      min-width: 74px;
       text-align: center;
       color: var(--green);
       background: #F1F6EC;
       border: 1px solid var(--green-line);
       border-radius: 999px;
-      padding: 12px 16px;
-      font-size: clamp(20px, 2vw, 30px);
+      padding: 8px 10px;
+      font-size: clamp(15px, 1.1vw, 20px);
       font-weight: 900;
       white-space: nowrap;
     }
     .hidden-row { opacity: 0.62; font-style: italic; }
+    .leaderboard-screen-card {
+      min-height: min(760px, calc(100vh - 56px));
+      justify-content: flex-start;
+      gap: 16px;
+      padding: 26px;
+    }
+    .leaderboard-title-compact {
+      color: var(--green);
+      text-align: center;
+      font-family: 'Playfull Rocket', system-ui, cursive;
+      font-size: clamp(42px, 4vw, 70px);
+      line-height: 0.95;
+    }
+    .leaderboard-note-compact {
+      text-align: center;
+      color: var(--muted);
+      font-size: clamp(15px, 1.2vw, 20px);
+    }
+
+    .proof-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 35;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(247, 250, 244, 0.96);
+      backdrop-filter: blur(4px);
+    }
+    .proof-overlay.active { display: flex; }
+    .proof-overlay-card {
+      width: min(100%, 1700px);
+      max-height: calc(100vh - 48px);
+      border-radius: 28px;
+      overflow: hidden;
+      border: 2px solid var(--green-line);
+      background: #F8FBF5;
+      box-shadow: 0 22px 50px rgba(58, 90, 53, 0.18);
+      display: flex;
+      flex-direction: column;
+    }
+    .proof-overlay-card img,
+    .proof-overlay-card video {
+      display: block;
+      width: 100%;
+      max-height: calc(100vh - 150px);
+      object-fit: contain;
+      background: #000;
+    }
+    .proof-overlay-caption {
+      padding: 16px 22px 18px;
+      text-align: center;
+      color: var(--ink);
+      font-size: clamp(18px, 1.5vw, 26px);
+      font-weight: 800;
+      line-height: 1.35;
+    }
 
     .audio-unlock {
       position: fixed;
@@ -487,6 +547,7 @@
       .stage-card { padding: 24px 18px; border-radius: 24px; }
       .answers-grid { grid-template-columns: 1fr; }
       .stage-header { align-items: flex-start; flex-direction: column; }
+      .leaderboard-list { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -548,18 +609,17 @@
   </main>
 
   <main id="screen-question-leaderboard" class="screen">
-    <section class="stage-card">
-      <h1 class="title">Classifica domanda</h1>
+    <section class="stage-card leaderboard-screen-card">
+      <h1 class="leaderboard-title-compact">Classifica domanda</h1>
       <ul id="question-leaderboard-list" class="leaderboard-list"></ul>
     </section>
   </main>
 
   <main id="screen-leaderboard" class="screen">
-    <section class="stage-card">
-      <span class="hero-icon">🏆</span>
-      <h1 class="title">Classifica</h1>
+    <section class="stage-card leaderboard-screen-card">
+      <h1 class="leaderboard-title-compact">Classifica</h1>
       <ul id="leaderboard-list" class="leaderboard-list"></ul>
-      <p id="leaderboard-note" class="subtitle"></p>
+      <p id="leaderboard-note" class="leaderboard-note-compact"></p>
     </section>
   </main>
 
@@ -583,6 +643,8 @@
       <p class="cue-subtitle">Pronti a ruggire?</p>
     </div>
   </div>
+
+  <div id="proof-overlay" class="proof-overlay" aria-hidden="true"></div>
 
   <script>
     import { db, ensureAnonymousUser } from "../../lib/firebase";
@@ -646,6 +708,8 @@
     let pendingCountdownAudio = false;
     let lastCountdownAudioKey: string | null = null;
     let serverTimeOffset = 0;
+    let proofVisible = false;
+    let activeProofKey: string | null = null;
 
     const assetBase = import.meta.env.BASE_URL.replace(/\/$/, "");
     const START_JINGLE_SRC = `${assetBase}/audio/cervelleone-start.mp3`;
@@ -676,6 +740,42 @@
     function showScreen(id: string) {
       document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
       document.getElementById(`screen-${id}`)?.classList.add("active");
+    }
+
+    function hideProofOverlay() {
+      proofVisible = false;
+      activeProofKey = null;
+      const overlay = document.getElementById("proof-overlay");
+      if (!overlay) return;
+      const video = overlay.querySelector("video") as HTMLVideoElement | null;
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+      }
+      overlay.innerHTML = "";
+      overlay.classList.remove("active");
+      overlay.setAttribute("aria-hidden", "true");
+    }
+
+    function showProofOverlay(result: PublicResult) {
+      if (!result.showProof || !result.proof) {
+        hideProofOverlay();
+        return;
+      }
+
+      const proofKey = `${result.questionId}:${result.proof.src}`;
+      if (proofVisible && activeProofKey === proofKey) return;
+
+      const overlay = document.getElementById("proof-overlay");
+      if (!overlay) return;
+
+      proofVisible = true;
+      activeProofKey = proofKey;
+      overlay.innerHTML = result.proof.type === "image"
+        ? `<div class="proof-overlay-card"><img src="${escapeHtml(result.proof.src)}" alt="${escapeHtml(result.proof.caption ?? "Prova")}" />${result.proof.caption ? `<div class="proof-overlay-caption">${escapeHtml(result.proof.caption)}</div>` : ""}</div>`
+        : `<div class="proof-overlay-card"><video src="${escapeHtml(result.proof.src)}" ${result.proof.poster ? `poster="${escapeHtml(result.proof.poster)}"` : ""} autoplay playsinline controls></video>${result.proof.caption ? `<div class="proof-overlay-caption">${escapeHtml(result.proof.caption)}</div>` : ""}</div>`;
+      overlay.classList.add("active");
+      overlay.setAttribute("aria-hidden", "false");
     }
 
     function getProjectorAudio(): HTMLAudioElement {
@@ -989,6 +1089,7 @@
       }
       if (statsEl) statsEl.innerHTML = showStats ? renderStats(stats, correctIds) : "";
       showScreen("answer");
+      showProofOverlay(result);
     }
 
     function isKicked(uid: string, username: string): boolean {
@@ -1011,6 +1112,7 @@
 
     function renderQuestionLeaderboard(entries: PublicQuestionLeaderboardEntry[]) {
       stopTimer();
+      hideProofOverlay();
       const listEl = document.getElementById("question-leaderboard-list");
       if (!listEl) return;
       const visible = visibleQuestionEntries(entries).slice(0, 10);
@@ -1041,6 +1143,7 @@
 
     function renderLeaderboard(revealStep = -1, finished = false) {
       stopTimer();
+      hideProofOverlay();
       const listEl = document.getElementById("leaderboard-list");
       const noteEl = document.getElementById("leaderboard-note");
       if (!listEl) return;
@@ -1082,17 +1185,20 @@
       const q = game.publicCurrentQuestion;
 
       if (game.status === "lobby") {
+        hideProofOverlay();
         renderLobby();
         return;
       }
 
       if ((game.status === "demo" || game.status === "question") && q) {
+        hideProofOverlay();
         if (!game.questionVisible) renderPreview(q);
         else renderQuestion(q, game.questionEndsAt, false);
         return;
       }
 
       if (game.status === "locked" && q) {
+        hideProofOverlay();
         renderQuestion(q, null, true);
         const timerEl = document.getElementById("question-timer");
         if (timerEl) { timerEl.textContent = "0"; timerEl.classList.add("urgent"); }

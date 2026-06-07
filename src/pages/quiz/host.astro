@@ -667,6 +667,7 @@ import {
   reopenQuestion,
   revealStats,
   showProof,
+  hideProof,
   showQuestionLeaderboard,
   showLeaderboard,
   revealNextLeaderboardStep,
@@ -1445,6 +1446,7 @@ function renderControls(game: GameState) {
   const answerSeconds = game.settings?.answerSeconds ?? QUESTION_ANSWER_SECONDS;
   const currentProof = game.publicCurrentResult?.proof;
   const canShowProof = status === "answer" && Boolean(currentProof) && !game.publicCurrentResult?.showProof;
+  const canHideProof = status === "answer" && Boolean(currentProof) && Boolean(game.publicCurrentResult?.showProof);
 
   const btns: { label: string; cls: string; id: string; disabled?: boolean }[] = [];
 
@@ -1477,6 +1479,9 @@ function renderControls(game: GameState) {
       // Stats visible → question leaderboard / overall / skip
       if (canShowProof) {
         btns.push({ label: "🖼️ Mostra prova", cls: "btn-blue", id: "btn-show-proof" });
+      }
+      if (canHideProof) {
+        btns.push({ label: "🙈 Chiudi prova", cls: "btn-gray", id: "btn-hide-proof" });
       }
       btns.push({ label: "⚡ Classifica domanda", cls: "btn-blue", id: "btn-show-question-lb" });
       btns.push({ label: "🏆 Mostra classifica", cls: "btn-purple", id: "btn-show-lb" });
@@ -1593,6 +1598,10 @@ function renderControls(game: GameState) {
 
   document.getElementById("btn-show-proof")?.addEventListener("click", async () => {
     await showProof();
+  });
+
+  document.getElementById("btn-hide-proof")?.addEventListener("click", async () => {
+    await hideProof();
   });
 
   document.getElementById("btn-show-lb")?.addEventListener("click", async () => {
