@@ -602,6 +602,8 @@
         <p class="card-title">Scaletta domande</p>
         <label class="settings-label" for="question-count-input">Domande vere</label>
         <input id="question-count-input" class="question-count-input" type="number" min="10" max="26" value="26" />
+        <label class="settings-label" for="answer-seconds-input" style="margin-top:10px">Secondi per domanda</label>
+        <input id="answer-seconds-input" class="question-count-input" type="number" min="5" max="60" value="20" />
         <div class="settings-actions">
           <button class="copy-btn" id="btn-preview-questions" type="button">👀 Vedi scaletta</button>
           <button class="copy-btn" id="btn-randomize-questions" type="button">🎲 Rigenera anteprima</button>
@@ -671,6 +673,7 @@ import {
   kickPlayer,
   restoreRemovedPlayers,
   triggerStartJingle,
+  updateAnswerSeconds,
 } from "../../lib/quiz/hostApi";
 import { setupPresence } from "../../lib/quiz/presence";
 import {
@@ -679,9 +682,9 @@ import {
   questionsFromIds,
 } from "../../lib/quiz/buildGameQuestions";
 import { generalQuestions } from "../../lib/quiz/questions.general";
-import { GAME_ID, MAX_TOTAL_QUESTIONS, MIN_TOTAL_QUESTIONS, TOTAL_QUESTIONS } from "../../lib/quiz/config";
+import { GAME_ID, MAX_TOTAL_QUESTIONS, MIN_TOTAL_QUESTIONS, QUESTION_ANSWER_SECONDS, TOTAL_QUESTIONS } from "../../lib/quiz/config";
 import { getCorrectAnswerIds } from "../../lib/quiz/publicResult";
-import { ref, onValue, update } from "firebase/database";
+import { ref, onValue, update, get } from "firebase/database";
 import type {
   GameState,
   LeaderboardEntry,
@@ -704,7 +707,20 @@ let timerInterval: ReturnType<typeof setInterval> | null = null;
 let currentPlayers: Record<string, Player> = {};
 let currentLeaderboard: Record<string, LeaderboardEntry> = {};
 let currentAnswers: Record<string, { answerId: string }> = {};
-let autoCloseTimeout: ReturnType<typeof setTimeout> | null = null;
+let serverTimeOffset = 0;
+
+function nowMs(): number {
+  return Date.now() + serverTimeOffset;
+}
+
+async function primeServerTimeOffset() {
+  try {
+    const snap = await get(ref(db, ".info/serverTimeOffset"));
+    serverTimeOffset = Number(snap.val() ?? 0);
+  } catch {
+    serverTimeOffset = 0;
+  }
+}
 
 // Sottocategorie label (per il pannello "prossima domanda")
 const SUB_LABELS: Record<string, string> = {
@@ -722,6 +738,9 @@ const SUB_LABELS: Record<string, string> = {
   "leone":               "Leone 🦁",
   "demo":                "Demo",
 };
+const MIN_ANSWER_SECONDS = 5;
+const MAX_ANSWER_SECONDS = 60;
+
 function humanizeSub(sub?: string): string {
   return sub ? (SUB_LABELS[sub] ?? "Cultura") : "Cultura";
 }
@@ -736,6 +755,18 @@ function getSelectedQuestionCount(): number {
 function setSelectedQuestionCount(count: number) {
   const input = document.getElementById("question-count-input") as HTMLInputElement | null;
   if (input) input.value = String(Math.max(MIN_TOTAL_QUESTIONS, Math.min(MAX_TOTAL_QUESTIONS, count)));
+}
+
+function getSelectedAnswerSeconds(): number {
+  const input = document.getElementById("answer-seconds-input") as HTMLInputElement | null;
+  const raw = Number(input?.value ?? QUESTION_ANSWER_SECONDS);
+  const seconds = Number.isFinite(raw) ? Math.round(raw) : QUESTION_ANSWER_SECONDS;
+  return Math.max(MIN_ANSWER_SECONDS, Math.min(MAX_ANSWER_SECONDS, seconds));
+}
+
+function setSelectedAnswerSeconds(seconds: number) {
+  const input = document.getElementById("answer-seconds-input") as HTMLInputElement | null;
+  if (input) input.value = String(Math.max(MIN_ANSWER_SECONDS, Math.min(MAX_ANSWER_SECONDS, seconds)));
 }
 
 function formatCorrectAnswers(question: Question): string {
@@ -879,8 +910,13 @@ function syncQuestionsFromGame(game: GameState) {
   setSelectedQuestionCount(game.questionCount ?? restored.length - 1);
 }
 
+function syncAnswerSecondsFromGame(game: GameState) {
+  setSelectedAnswerSeconds(game.settings?.answerSeconds ?? QUESTION_ANSWER_SECONDS);
+}
+
 function bindQuestionSettings() {
   const input = document.getElementById("question-count-input") as HTMLInputElement | null;
+  const secondsInput = document.getElementById("answer-seconds-input") as HTMLInputElement | null;
   if (input) {
     input.min = String(MIN_TOTAL_QUESTIONS);
     input.max = String(MAX_TOTAL_QUESTIONS);
@@ -889,6 +925,30 @@ function bindQuestionSettings() {
       hasPendingQuestionPlan = false;
       const list = document.getElementById("question-preview-list");
       if (list) list.style.display = "none";
+    });
+  }
+
+  if (secondsInput) {
+    secondsInput.min = String(MIN_ANSWER_SECONDS);
+    secondsInput.max = String(MAX_ANSWER_SECONDS);
+    secondsInput.value = String(QUESTION_ANSWER_SECONDS);
+
+    const persistAnswerSeconds = async () => {
+      const nextValue = getSelectedAnswerSeconds();
+      setSelectedAnswerSeconds(nextValue);
+      try {
+        await updateAnswerSeconds(nextValue);
+      } catch (err) {
+        console.error(err);
+        alert("Non sono riuscito a salvare i secondi della domanda.");
+      }
+    };
+
+    secondsInput.addEventListener("change", () => {
+      void persistAnswerSeconds();
+    });
+    secondsInput.addEventListener("blur", () => {
+      void persistAnswerSeconds();
     });
   }
 
@@ -1041,7 +1101,7 @@ function startHostTimer(endsAt: number) {
   el.style.display = "block";
 
   function tick() {
-    const rem = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+    const rem = Math.max(0, Math.ceil((endsAt - nowMs()) / 1000));
     el!.textContent = String(rem);
     el!.classList.toggle("urgent", rem <= 5);
   }
@@ -1055,16 +1115,8 @@ function stopHostTimer() {
   if (el) el.style.display = "none";
 }
 
-// ── Answer tracking with auto-close ────────────────────────────────────────
-function getActivePlayerCount(): number {
-  const kicked = currentGame?.kickedUids ?? {};
-  return Object.entries(currentPlayers).filter(
-    ([uid, p]) => p.username && !kicked[uid]
-  ).length;
-}
-
+// ── Answer tracking ────────────────────────────────────────────────────────
 function stopAnswerTracking() {
-  if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
   currentAnswers = {};
 
   const el = document.getElementById("answer-count");
@@ -1110,30 +1162,6 @@ function refreshAnswerTracking() {
   }
 
   renderPlayers(currentPlayers);
-
-  const autoCloseActive = currentGame.status === "demo" || currentGame.status === "question";
-  if (!autoCloseActive || !currentGame.questionVisible) {
-    if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
-    return;
-  }
-
-  const playerCount = getActivePlayerCount();
-  if (playerCount > 0 && answerCount >= playerCount && !autoCloseTimeout) {
-    autoCloseTimeout = setTimeout(async () => {
-      autoCloseTimeout = null;
-      const qIdx = currentGame?.currentQuestionIndex;
-      const sess = currentGame?.gameSession ?? "";
-      if (qIdx !== undefined && qIdx >= 0 && qIdx < questions.length) {
-        const closeBtn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
-        if (closeBtn) closeBtn.disabled = true;
-        try {
-          await closeQuestion(questions[qIdx], sess);
-        } catch (err) {
-          console.error("Auto-close error:", err);
-        }
-      }
-    }, 1500);
-  }
 }
 
 // ── Render question panel ─────────────────────────────────────────────────
@@ -1413,6 +1441,7 @@ function renderControls(game: GameState) {
   const isLastQuestion = idx === questions.length - 1;
   const isAfterDemo = idx === 0 && status === "answer";
   const revealStep = game.leaderboardRevealStep ?? -1;
+  const answerSeconds = game.settings?.answerSeconds ?? QUESTION_ANSWER_SECONDS;
 
   const btns: { label: string; cls: string; id: string; disabled?: boolean }[] = [];
 
@@ -1423,7 +1452,7 @@ function renderControls(game: GameState) {
 
   if ((status === "demo" || status === "question") && !qVisible) {
     // Domanda avviata ma non ancora rivelata ai player
-    btns.push({ label: "▶️ Avvia timer (20s)", cls: "btn-green", id: "btn-reveal-q" });
+    btns.push({ label: `▶️ Avvia timer (${answerSeconds}s)`, cls: "btn-green", id: "btn-reveal-q" });
   }
 
   if ((status === "demo" || status === "question") && qVisible) {
@@ -1431,7 +1460,7 @@ function renderControls(game: GameState) {
   }
 
   if (status === "locked") {
-    btns.push({ label: "↩️ Riapri risposte (+20s)", cls: "btn-blue", id: "btn-reopen-q" });
+    btns.push({ label: `↩️ Riapri risposte (+${answerSeconds}s)`, cls: "btn-blue", id: "btn-reopen-q" });
     btns.push({ label: "📊 Mostra risultati", cls: "btn-amber", id: "btn-close-q" });
   }
 
@@ -1511,7 +1540,7 @@ function renderControls(game: GameState) {
     const qIdx = game.currentQuestionIndex;
     if (qIdx < 0 || qIdx >= questions.length) return;
     try {
-      await revealQuestion(questions[qIdx], 20);
+      await revealQuestion(questions[qIdx], getSelectedAnswerSeconds());
     } catch (err) {
       console.error(err);
       if (btn) btn.disabled = false;
@@ -1521,8 +1550,6 @@ function renderControls(game: GameState) {
   document.getElementById("btn-close-q")?.addEventListener("click", async () => {
     const btn = document.getElementById("btn-close-q") as HTMLButtonElement | null;
     if (btn) btn.disabled = true;
-    // Cancel auto-close timeout if host closes manually
-    if (autoCloseTimeout) { clearTimeout(autoCloseTimeout); autoCloseTimeout = null; }
     const qIdx = game.currentQuestionIndex;
     const sess = game.gameSession ?? "";
     if (qIdx < 0 || qIdx >= questions.length) return;
@@ -1601,6 +1628,7 @@ function renderControls(game: GameState) {
     hasPendingQuestionPlan = false;
     renderQuestionPreviewList(questions);
     await resetGame({
+      answerSeconds: getSelectedAnswerSeconds(),
       questionIds: questionIdsFromQuestions(questions),
       questionCount: questions.length - 1,
       questionSeed: plannedQuestionSeed,
@@ -1639,12 +1667,19 @@ async function syncKickedUsernames() {
 }
 
 // ── Firebase listeners ─────────────────────────────────────────────────────
-function startListeners() {
+async function startListeners() {
+  await primeServerTimeOffset();
+
+  onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
+    serverTimeOffset = Number(snap.val() ?? 0);
+  });
+
   // Game state
   onValue(ref(db, `games/${GAME_ID}`), (snap) => {
     if (!snap.exists()) return;
     currentGame = snap.val() as GameState;
     syncQuestionsFromGame(currentGame);
+    syncAnswerSecondsFromGame(currentGame);
     syncKickedUsernames().catch(console.error);
     updateStatusBadge(currentGame.status);
     renderQuestionPanel(currentGame);
@@ -1709,7 +1744,7 @@ async function init() {
     bindRemovedPlayersControls();
     bindProjectorCueControls();
     await generateQR();
-    startListeners();
+    await startListeners();
   } catch (err) {
     console.error(err);
     const setup = document.getElementById("panel-setup");

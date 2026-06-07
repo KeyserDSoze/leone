@@ -40,10 +40,20 @@ function sortQuestionLeaderboard(
   return a.username.localeCompare(b.username, "it");
 }
 
+async function getServerNow(): Promise<number> {
+  try {
+    const offsetSnap = await get(ref(db, ".info/serverTimeOffset"));
+    return Date.now() + Number(offsetSnap.val() ?? 0);
+  } catch {
+    return Date.now();
+  }
+}
+
 type ResetGameOptions = {
   questionIds?: string[];
   questionCount?: number;
   questionSeed?: number;
+  answerSeconds?: number;
 };
 
 /** Reset completo della partita */
@@ -51,6 +61,7 @@ export async function resetGame(options: ResetGameOptions = {}): Promise<void> {
   const newSession = Date.now().toString();
   const existingSnap = await get(ref(db, `games/${GAME_ID}`));
   const existingGame = existingSnap.val() as {
+    settings?: { answerSeconds?: number } | null;
     kickedUids?: Record<string, boolean> | null;
     kickedUsernames?: Record<string, string> | null;
   } | null;
@@ -59,6 +70,10 @@ export async function resetGame(options: ResetGameOptions = {}): Promise<void> {
   await set(ref(db, `games/${GAME_ID}`), {
     ...INITIAL_GAME_STATE,
     gameSession: newSession,
+    settings: {
+      ...INITIAL_GAME_STATE.settings,
+      answerSeconds: options.answerSeconds ?? existingGame?.settings?.answerSeconds ?? INITIAL_GAME_STATE.settings.answerSeconds,
+    },
     kickedUids: existingGame?.kickedUids ?? INITIAL_GAME_STATE.kickedUids,
     kickedUsernames: existingGame?.kickedUsernames ?? INITIAL_GAME_STATE.kickedUsernames,
     questionIds: options.questionIds ?? INITIAL_GAME_STATE.questionIds,
@@ -68,6 +83,12 @@ export async function resetGame(options: ResetGameOptions = {}): Promise<void> {
 
   // Clear leaderboard
   await set(ref(db, `leaderboards/${GAME_ID}`), null);
+}
+
+export async function updateAnswerSeconds(answerSeconds: number): Promise<void> {
+  await update(ref(db, `games/${GAME_ID}`), {
+    "settings/answerSeconds": answerSeconds,
+  });
 }
 
 /** Rimuove un giocatore (offline) dalla partita e dalla classifica.
@@ -92,7 +113,7 @@ export async function restoreRemovedPlayers(): Promise<void> {
 
 /** Lancia jingle e animazione sul proiettore senza cambiare stato della partita. */
 export async function triggerStartJingle(): Promise<void> {
-  const now = Date.now();
+  const now = await getServerNow();
   await update(ref(db, `games/${GAME_ID}`), {
     projectorCue: {
       id: String(now),
@@ -168,10 +189,12 @@ export async function revealQuestion(
   question: Question,
   seconds?: number
 ): Promise<void> {
-  const now = Date.now();
+  const now = await getServerNow();
   const answerSeconds =
     seconds ??
-    (question.category === "demo" ? DEMO_ANSWER_SECONDS : QUESTION_ANSWER_SECONDS);
+    (question.category === "demo"
+      ? DEMO_ANSWER_SECONDS
+      : Number((await get(ref(db, `games/${GAME_ID}/settings/answerSeconds`))).val() ?? QUESTION_ANSWER_SECONDS));
 
   await update(ref(db, `games/${GAME_ID}`), {
     questionVisible: true,
@@ -186,13 +209,14 @@ export async function revealQuestion(
  * Le risposte già inviate restano valide (Firebase ".write: !data.exists()").
  */
 export async function reopenQuestion(question: Question): Promise<void> {
-  const now = Date.now();
+  const now = await getServerNow();
+  const answerSeconds = Number((await get(ref(db, `games/${GAME_ID}/settings/answerSeconds`))).val() ?? QUESTION_ANSWER_SECONDS);
   const status: GameStatus = question.category === "demo" ? "demo" : "question";
   await update(ref(db, `games/${GAME_ID}`), {
     status,
     questionVisible: true,
     questionStartedAt: now,
-    questionEndsAt: now + 20 * 1000,
+    questionEndsAt: now + answerSeconds * 1000,
     publicCurrentResult: null,
     publicAnswerStats: null,
     publicQuestionLeaderboard: null,

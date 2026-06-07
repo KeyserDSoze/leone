@@ -758,6 +758,20 @@ let currentGameSession: string | null = null;
 let lastGameSession: string | null = null;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let gameUnsubscribe: (() => void) | null = null;
+let serverTimeOffset = 0;
+
+function nowMs(): number {
+  return Date.now() + serverTimeOffset;
+}
+
+async function primeServerTimeOffset() {
+  try {
+    const snap = await get(ref(db, ".info/serverTimeOffset"));
+    serverTimeOffset = Number(snap.val() ?? 0);
+  } catch {
+    serverTimeOffset = 0;
+  }
+}
 
 // ── Session persistence ────────────────────────────────────────────────────
 const SESSION_KEY = "leone_quiz_session";
@@ -801,7 +815,7 @@ function startTimer(endsAt: number) {
   if (!timerEl) return;
 
   function tick() {
-    const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+    const remaining = Math.max(0, Math.ceil((endsAt - nowMs()) / 1000));
     timerEl!.textContent = String(remaining);
     timerEl!.classList.toggle("urgent", remaining <= 5);
   }
@@ -1378,7 +1392,13 @@ async function handleGameState(game: GameState) {
 }
 
 // ── Setup Firebase listener ────────────────────────────────────────────────
-function startListening() {
+async function startListening() {
+  await primeServerTimeOffset();
+
+  onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
+    serverTimeOffset = Number(snap.val() ?? 0);
+  });
+
   const gameRef = ref(db, `games/${GAME_ID}`);
   const unsub = onValue(gameRef, (snap) => {
     if (!snap.exists()) return;
@@ -1398,7 +1418,7 @@ function bindAnswerButtons() {
       // Record answer locally before async submit
       hasAnswered = true;
       myAnswerId = id;
-      myAnsweredAt = Date.now();
+      myAnsweredAt = nowMs();
 
       // Disable all buttons and highlight selected — stay on question screen.
       // NON fermiamo il timer: continua a girare così tutti vedono quanto tempo rimane.
@@ -1459,7 +1479,7 @@ function bindJoinButton() {
       const lobbyEl = document.getElementById("lobby-username");
       if (lobbyEl) lobbyEl.textContent = username;
 
-      startListening();
+      await startListening();
       showScreen("lobby");
     } catch (err) {
       console.error(err);
@@ -1493,7 +1513,7 @@ async function init() {
         const lobbyEl = document.getElementById("lobby-username");
         if (lobbyEl) lobbyEl.textContent = currentUsername!;
         setupPresence(currentUid);
-        startListening();
+        await startListening();
         showScreen("lobby");
         return;
       } else {
