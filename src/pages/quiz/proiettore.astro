@@ -1117,11 +1117,6 @@
         const remaining = Math.max(0, Math.ceil((endsAt - nowMs()) / 1000));
         timerEl!.textContent = String(remaining);
         timerEl!.classList.toggle("urgent", remaining <= 5);
-        if (remaining <= 0) {
-          stopTimer();
-          stopCountdownAudio();
-          void syncAmbientAudio();
-        }
       }
 
       tick();
