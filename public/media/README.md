@@ -1,6 +1,8 @@
 Optional proof assets for quiz answers go here.
 
-Example already wired:
+Current proof assets can also live under `/public/prove/`.
+
+Old example path:
 
 ```txt
 /media/leone-nuoto.mp4

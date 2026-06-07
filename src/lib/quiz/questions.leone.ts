@@ -20,6 +20,11 @@ export const leoneQuestions: Question[] = [
     correctAnswerIds: ["A", "B", "C", "D"],
     explanation:
       "Tutte e quattro vanno bene: era la domanda jolly per far divertire tutti fin dall'inizio.",
+    proof: {
+      type: "image",
+      src: "/prove/leone-nome.jpeg",
+      caption: "Le origini del nome Leone.",
+    },
   },
   {
     id: "leone_002",
@@ -35,16 +40,16 @@ export const leoneQuestions: Question[] = [
     correctAnswerIds: ["B"],
     explanation: "La risposta corretta era 7 mesi.",
     proof: {
-      type: "video",
-      src: "/media/leone-nuoto.mp4",
-      caption: "Leone con il suo diploma di nuoto.",
+      type: "image",
+      src: "/prove/brevetto-leone.jpeg",
+      caption: "Il brevetto di nuoto di Leone.",
     },
   },
   {
     id: "leone_003",
     category: "leone",
     subcategory: "leone",
-    text: "Cos'è Pineta Sacchetti nella storia di Leone?",
+    text: "Cos'è Pineta Sacchetti?",
     answers: [
       { id: "A", text: "luogo di nascita di Leone" },
       { id: "B", text: "miglior posizione per digerire fino ai primi due mesi" },
@@ -67,6 +72,11 @@ export const leoneQuestions: Question[] = [
     ],
     correctAnswerIds: ["C"],
     explanation: "La risposta corretta era colpire delle foglie.",
+    proof: {
+      type: "video",
+      src: "/prove/leone-ridemolto.mp4",
+      caption: "Leone si diverte da matti a colpire le foglie.",
+    },
   },
   {
     id: "leone_005",
@@ -123,6 +133,11 @@ export const leoneQuestions: Question[] = [
     ],
     correctAnswerIds: ["A"],
     explanation: "La risposta corretta era 1 mese.",
+    proof: {
+      type: "image",
+      src: "/prove/leone-lago.jpeg",
+      caption: "Leone al lago il 1 novembre 2025, a 8 giorni dalla nascita.",
+    },
   },
   {
     id: "leone_009",
