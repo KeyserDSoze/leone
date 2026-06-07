@@ -372,6 +372,12 @@ export async function showProof(): Promise<void> {
   });
 }
 
+export async function hideProof(): Promise<void> {
+  await update(ref(db, `games/${GAME_ID}`), {
+    "publicCurrentResult/showProof": false,
+  });
+}
+
 /** Mostra la classifica della singola domanda appena conclusa */
 export async function showQuestionLeaderboard(): Promise<void> {
   await update(ref(db, `games/${GAME_ID}`), {

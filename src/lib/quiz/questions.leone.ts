@@ -22,7 +22,7 @@ export const leoneQuestions: Question[] = [
       "Tutte e quattro vanno bene: era la domanda jolly per far divertire tutti fin dall'inizio.",
     proof: {
       type: "image",
-      src: "/prove/leone-nome.jpeg",
+      src: "/prove/leone-nome.png",
       caption: "Le origini del nome Leone.",
     },
   },
@@ -41,7 +41,7 @@ export const leoneQuestions: Question[] = [
     explanation: "La risposta corretta era 7 mesi.",
     proof: {
       type: "image",
-      src: "/prove/brevetto-leone.jpeg",
+      src: "/prove/leone-brevetto.png",
       caption: "Il brevetto di nuoto di Leone.",
     },
   },
