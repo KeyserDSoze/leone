@@ -44,7 +44,7 @@ export const leoneQuestions: Question[] = [
     id: "leone_003",
     category: "leone",
     subcategory: "leone",
-    text: "Cos'è Pineta Sacchetti nella storia di Leone?",
+    text: "Cos'è Pineta Sacchetti?",
     answers: [
       { id: "A", text: "luogo di nascita di Leone" },
       { id: "B", text: "miglior posizione per digerire fino ai primi due mesi" },
