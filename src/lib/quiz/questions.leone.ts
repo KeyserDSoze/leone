@@ -34,6 +34,11 @@ export const leoneQuestions: Question[] = [
     ],
     correctAnswerIds: ["B"],
     explanation: "La risposta corretta era 7 mesi.",
+    proof: {
+      type: "video",
+      src: "/media/leone-nuoto.mp4",
+      caption: "Leone con il suo diploma di nuoto.",
+    },
   },
   {
     id: "leone_003",

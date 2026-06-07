@@ -336,6 +336,8 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
       questionId: question.id,
       correctAnswerId: encodeCorrectAnswerIds(question.correctAnswerIds),
       explanation: question.explanation ?? null,
+      proof: question.proof ?? null,
+      showProof: false,
     },
     publicQuestionLeaderboard: questionLeaderboard.sort(sortQuestionLeaderboard),
   });
@@ -361,6 +363,12 @@ export async function closeQuestion(question: Question, gameSession: string): Pr
 export async function revealStats(): Promise<void> {
   await update(ref(db, `games/${GAME_ID}`), {
     showStats: true,
+  });
+}
+
+export async function showProof(): Promise<void> {
+  await update(ref(db, `games/${GAME_ID}`), {
+    "publicCurrentResult/showProof": true,
   });
 }
 

@@ -2,6 +2,13 @@ export type QuestionCategory = "demo" | "general" | "leone";
 
 export type AnswerId = "A" | "B" | "C" | "D";
 
+export type QuestionProof = {
+  type: "image" | "video";
+  src: string;
+  poster?: string;
+  caption?: string;
+};
+
 export type Question = {
   id: string;
   category: QuestionCategory;
@@ -12,6 +19,7 @@ export type Question = {
   /** Uno o più ID corretti (risposta multipla supportata) */
   correctAnswerIds: AnswerId[];
   explanation?: string;
+  proof?: QuestionProof;
 };
 
 export type GameStatus =
@@ -47,6 +55,8 @@ export type PublicResult = {
   /** Uno o più ID corretti */
   correctAnswerIds?: AnswerId[];
   explanation: string | null;
+  proof?: QuestionProof | null;
+  showProof?: boolean;
 };
 
 /** Distribuzione delle risposte di tutti i giocatori (pubblicata dall'host dopo chiusura) */

@@ -275,6 +275,31 @@
       font-size: clamp(16px, 1.4vw, 22px);
       line-height: 1.4;
     }
+    .proof-media {
+      max-width: 980px;
+      margin: 12px auto 0;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 2px solid var(--green-line);
+      background: #F8FBF5;
+      box-shadow: 0 16px 36px rgba(58, 90, 53, 0.12);
+    }
+    .proof-media img,
+    .proof-media video {
+      display: block;
+      width: 100%;
+      max-height: 56vh;
+      object-fit: contain;
+      background: #000;
+    }
+    .proof-caption {
+      padding: 14px 18px;
+      color: var(--ink);
+      text-align: center;
+      font-size: clamp(16px, 1.6vw, 24px);
+      font-weight: 700;
+      line-height: 1.35;
+    }
 
     .leaderboard-list {
       list-style: none;
@@ -956,7 +981,11 @@
       if (revealEl) {
         revealEl.innerHTML = `<p class="answer-reveal-title">${correctIds.length === 4 ? "Domanda speciale" : correctIds.length > 1 ? "Risposte corrette" : "Risposta corretta"}</p>
           <p class="answer-reveal-text">${escapeHtml(correctIds.length === 4 ? "Tutte le risposte erano valide" : correctTexts.join(" · "))}</p>
-          ${result.explanation ? `<p class="explanation">${escapeHtml(result.explanation)}</p>` : ""}`;
+          ${result.explanation ? `<p class="explanation">${escapeHtml(result.explanation)}</p>` : ""}
+          ${result.showProof && result.proof ? result.proof.type === "image"
+            ? `<div class="proof-media"><img src="${escapeHtml(result.proof.src)}" alt="${escapeHtml(result.proof.caption ?? "Prova")}" />${result.proof.caption ? `<p class="proof-caption">${escapeHtml(result.proof.caption)}</p>` : ""}</div>`
+            : `<div class="proof-media"><video src="${escapeHtml(result.proof.src)}" ${result.proof.poster ? `poster="${escapeHtml(result.proof.poster)}"` : ""} controls autoplay playsinline></video>${result.proof.caption ? `<p class="proof-caption">${escapeHtml(result.proof.caption)}</p>` : ""}</div>`
+            : ""}`;
       }
       if (statsEl) statsEl.innerHTML = showStats ? renderStats(stats, correctIds) : "";
       showScreen("answer");
