@@ -704,16 +704,20 @@
     let lastLobbyPlayerCount = -1;
     let projectorAudio: HTMLAudioElement | null = null;
     let countdownAudio: HTMLAudioElement | null = null;
+    let backgroundAudio: HTMLAudioElement | null = null;
     let pendingAudioCue: ProjectorCue | null = null;
     let pendingCountdownAudio = false;
+    let pendingBackgroundAudio = false;
     let lastCountdownAudioKey: string | null = null;
     let serverTimeOffset = 0;
     let proofVisible = false;
     let activeProofKey: string | null = null;
+    let passiveAudioMode: "none" | "background" | "countdown" = "none";
 
     const assetBase = import.meta.env.BASE_URL.replace(/\/$/, "");
     const START_JINGLE_SRC = `${assetBase}/audio/cervelleone-start.mp3`;
     const COUNTDOWN_SRC = `${assetBase}/audio/cervellone-countdown.mp3`;
+    const BACKGROUND_SRC = `${assetBase}/audio/background.mp3`;
 
     function nowMs(): number {
       return Date.now() + serverTimeOffset;
@@ -755,6 +759,7 @@
       overlay.innerHTML = "";
       overlay.classList.remove("active");
       overlay.setAttribute("aria-hidden", "true");
+      void syncAmbientAudio();
     }
 
     function showProofOverlay(result: PublicResult) {
@@ -776,6 +781,15 @@
         : `<div class="proof-overlay-card"><video src="${escapeHtml(result.proof.src)}" ${result.proof.poster ? `poster="${escapeHtml(result.proof.poster)}"` : ""} autoplay playsinline controls></video>${result.proof.caption ? `<div class="proof-overlay-caption">${escapeHtml(result.proof.caption)}</div>` : ""}</div>`;
       overlay.classList.add("active");
       overlay.setAttribute("aria-hidden", "false");
+
+      const video = overlay.querySelector("video") as HTMLVideoElement | null;
+      if (video) {
+        video.addEventListener("play", () => { void syncAmbientAudio(); });
+        video.addEventListener("pause", () => { void syncAmbientAudio(); });
+        video.addEventListener("ended", () => { void syncAmbientAudio(); });
+      }
+
+      void syncAmbientAudio();
     }
 
     function getProjectorAudio(): HTMLAudioElement {
@@ -792,6 +806,100 @@
         countdownAudio.preload = "auto";
       }
       return countdownAudio;
+    }
+
+    function getBackgroundAudio(): HTMLAudioElement {
+      if (!backgroundAudio) {
+        backgroundAudio = new Audio(BACKGROUND_SRC);
+        backgroundAudio.preload = "auto";
+      }
+      return backgroundAudio;
+    }
+
+    function stopBackgroundAudio() {
+      if (!backgroundAudio) return;
+      backgroundAudio.pause();
+      backgroundAudio.currentTime = 0;
+      if (passiveAudioMode === "background") passiveAudioMode = "none";
+    }
+
+    function stopCountdownAudio() {
+      if (!countdownAudio) return;
+      countdownAudio.pause();
+      countdownAudio.currentTime = 0;
+      if (passiveAudioMode === "countdown") passiveAudioMode = "none";
+    }
+
+    function isJingleActive(): boolean {
+      return Boolean(document.getElementById("projector-cue-overlay")?.classList.contains("active"));
+    }
+
+    function isProofVideoPlaying(): boolean {
+      const overlay = document.getElementById("proof-overlay");
+      const video = overlay?.querySelector("video") as HTMLVideoElement | null;
+      return Boolean(video && !video.paused && !video.ended);
+    }
+
+    async function playBackgroundAudio() {
+      const audio = getBackgroundAudio();
+      if (passiveAudioMode === "background" && !audio.paused) return;
+
+      stopCountdownAudio();
+      try {
+        audio.pause();
+        audio.src = BACKGROUND_SRC;
+        audio.currentTime = 0;
+        audio.volume = 1;
+        await audio.play();
+        passiveAudioMode = "background";
+        pendingBackgroundAudio = false;
+        setAudioUnlockVisible(false);
+      } catch (err) {
+        console.warn("Background audio blocked or unavailable", err);
+        pendingBackgroundAudio = true;
+        setAudioUnlockVisible(true);
+      }
+    }
+
+    async function syncAmbientAudio() {
+      if (isJingleActive()) {
+        stopBackgroundAudio();
+        stopCountdownAudio();
+        return;
+      }
+
+      if (isProofVideoPlaying()) {
+        stopBackgroundAudio();
+        return;
+      }
+
+      const game = currentGame;
+      if (!game) {
+        stopBackgroundAudio();
+        stopCountdownAudio();
+        return;
+      }
+
+      if ((game.status === "demo" || game.status === "question") && game.questionVisible) {
+        await playCurrentQuestionCountdown();
+        return;
+      }
+
+      if (
+        game.status === "lobby" ||
+        game.status === "locked" ||
+        game.status === "answer" ||
+        game.status === "question-leaderboard" ||
+        game.status === "leaderboard" ||
+        game.status === "finished" ||
+        ((game.status === "demo" || game.status === "question") && !game.questionVisible)
+      ) {
+        await playBackgroundAudio();
+        return;
+      }
+
+      stopBackgroundAudio();
+      stopCountdownAudio();
     }
 
     function setAudioUnlockVisible(visible: boolean) {
@@ -822,6 +930,7 @@
     async function enableProjectorAudio() {
       const audio = getProjectorAudio();
       const countdown = getCountdownAudio();
+      const background = getBackgroundAudio();
       try {
         audio.volume = 0;
         audio.currentTime = 0;
@@ -837,9 +946,18 @@
         countdown.currentTime = 0;
         countdown.volume = 1;
 
+        background.volume = 0;
+        background.currentTime = 0;
+        await background.play();
+        background.pause();
+        background.currentTime = 0;
+        background.volume = 1;
+
         setAudioUnlockVisible(false);
         if (pendingAudioCue) await playCueAudio(pendingAudioCue);
         if (pendingCountdownAudio) await playCurrentQuestionCountdown(true);
+        if (pendingBackgroundAudio) await playBackgroundAudio();
+        await syncAmbientAudio();
       } catch (err) {
         console.warn("Unable to unlock projector audio", err);
         setAudioUnlockVisible(true);
@@ -858,11 +976,13 @@
 
       const audio = getCountdownAudio();
       try {
+        stopBackgroundAudio();
         audio.pause();
         audio.src = COUNTDOWN_SRC;
         audio.currentTime = 0;
         audio.volume = 1;
         await audio.play();
+        passiveAudioMode = "countdown";
         pendingCountdownAudio = false;
         setAudioUnlockVisible(false);
       } catch (err) {
@@ -884,6 +1004,7 @@
         projectorAudio.pause();
         projectorAudio.currentTime = 0;
       }
+      void syncAmbientAudio();
     }
 
     function showProjectorCue(cue: ProjectorCue) {
@@ -901,6 +1022,8 @@
       overlay.classList.add("active");
       overlay.setAttribute("aria-hidden", "false");
 
+      stopBackgroundAudio();
+      stopCountdownAudio();
       void playCueAudio(cue);
       cueHideTimeout = setTimeout(hideProjectorCue, remainingMs);
     }
@@ -994,6 +1117,11 @@
         const remaining = Math.max(0, Math.ceil((endsAt - nowMs()) / 1000));
         timerEl!.textContent = String(remaining);
         timerEl!.classList.toggle("urgent", remaining <= 5);
+        if (remaining <= 0) {
+          stopTimer();
+          stopCountdownAudio();
+          void syncAmbientAudio();
+        }
       }
 
       tick();
@@ -1012,6 +1140,7 @@
       }
       if (iconEl) iconEl.textContent = subjectIcon(q);
       showScreen("preview");
+      void syncAmbientAudio();
     }
 
     function answerClass(id: AnswerId): string {
@@ -1037,6 +1166,7 @@
       startTimer(endsAt);
       showScreen("question");
       if (!locked) void playCurrentQuestionCountdown();
+      if (locked) void syncAmbientAudio();
     }
 
     function renderStats(stats: PublicAnswerStats | null, correctIds: AnswerId[]): string {
@@ -1086,6 +1216,7 @@
       if (statsEl) statsEl.innerHTML = showStats ? renderStats(stats, correctIds) : "";
       showScreen("answer");
       showProofOverlay(result);
+      if (!result.showProof) void syncAmbientAudio();
     }
 
     function isKicked(uid: string, username: string): boolean {
@@ -1135,6 +1266,7 @@
         </li>`;
       }).join("");
       showScreen("question-leaderboard");
+      void syncAmbientAudio();
     }
 
     function renderLeaderboard(revealStep = -1, finished = false) {
@@ -1173,6 +1305,7 @@
       listEl.innerHTML = html;
       if (noteEl) noteEl.textContent = finished ? "Classifica finale" : revealStep >= 5 ? "Classifica completa" : "Il babbo sta rivelando la classifica...";
       showScreen("leaderboard");
+      void syncAmbientAudio();
     }
 
     function handleGame(game: GameState) {
